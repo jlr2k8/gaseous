@@ -1,0 +1,35 @@
+SetEnv DB_PORT 3306
+
+RewriteEngine on
+
+# Register
+RewriteRule ^register/$                     controllers/user/register.php [QSA,L]
+RewriteRule ^register/([A-Za-z0-9]+)/$      controllers/user/register.php?access_code=$1 [QSA,L]
+
+# Login
+RewriteRule ^login/$                        controllers/user/login.php [QSA,L]
+RewriteRule ^logout/$                       controllers/user/logout.php [QSA,L]
+
+# Admin
+RewriteRule ^admin/$                        controllers/admin/index.php [QSA,L]
+RewriteRule ^admin/roles/$                  controllers/admin/roles.php [QSA,L]
+RewriteRule ^admin/users/$                  controllers/admin/users.php [QSA,L]
+RewriteRule ^admin/settings/$               controllers/admin/settings.php [QSA,L]
+RewriteRule ^admin/pages/$                  controllers/admin/pages.php [QSA,L]
+RewriteRule ^admin/css/$                    controllers/admin/css.php [QSA,L]
+
+# CSS Preview Check
+RewriteRule ^css-preview-check/$            services/css_preview_check.php
+
+# CMS pages
+RewriteRule ^shop/([A-Za-z0-9\-_\/]+)?$     controllers/cms/store.php?page=$1 [QSA,L]
+RewriteRule ^([A-Za-z0-9\-_\/]+)$           controllers/cms/index.php?page=$1 [QSA,L]
+
+# Images
+RewriteRule ^img/(.*)$                      services/images.php?src=$1 [QSA,L]
+
+# SiteMap
+RewriteRule ^sitemap.xml$                   services/sitemap_output.php
+
+# CSS
+RewriteRule ^styles.gz.css$                 services/css_output.php

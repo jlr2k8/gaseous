@@ -91,14 +91,14 @@
                     <div class="floating_form_label_and_input">
                         <label>Roles:</label>
                         <div>
-                            {foreach from=$roles item=role}
+                            {foreach from=$all_roles item=role}
                                 <div class="display_inline_block" title="{$role.description}">
                                     <label>
                                         {$role.role_name}
                                     </label>
 
                                     <input class="margin_right" type="checkbox" name="page_roles[]" value="{$role.role_name}"
-                                        {if !empty($account) && in_array($role.role_name, $account.account_roles)}
+                                        {if in_array($role.role_name, $page.roles)}
                                             checked="checked"
                                         {/if}
                                     />
@@ -142,7 +142,8 @@
                 {foreach from=$iterations key=key item=iteration}
                     {$next_key = ($key+1)}
                     <tr>
-                        <td>
+                        <td {if $page.uid == $iteration.page_iteration_uid}style="background-color: yellow;"{/if}>
+                            {if $page.uid == $iteration.page_iteration_uid}<span class="bold red_text">(Current)</span>{/if}
                             <p>
                                 Change by {$iteration.author} {$iteration.formatted_created}
                             <br />

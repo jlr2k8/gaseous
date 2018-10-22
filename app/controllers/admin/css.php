@@ -13,6 +13,11 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
+// check setting/role privileges
+if (!\Settings::value('manage_css')) {
+    \Pages\HTTP::error(401);
+}
+
 if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
     unset($_SESSION['css_preview']);
     header('Location: ' . \Settings::value('full_web_url') . '/admin/css/');

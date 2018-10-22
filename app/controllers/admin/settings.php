@@ -12,8 +12,10 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
-$get_page = new \Pages\Get();
-$get_page->enforceSystemPageRoles();
+// check setting/role privileges
+if (!\Settings::value('edit_settings')) {
+    \Pages\HTTP::error(401);
+}
 
 $settings           = new \Settings();
 $templator          = new \Pages\Templator();
@@ -79,4 +81,4 @@ $page_find_replace = [
     'body'              => $templator->fetch('admin/settings.tpl'),
 ];
 
-echo \Pages\Templator::page($page_find_replace);
+echo \Pages\Templator:: page($page_find_replace);

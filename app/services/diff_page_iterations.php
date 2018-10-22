@@ -28,11 +28,16 @@ $compare_fields = [
     'page_title_h1',
     'meta_desc',
     'meta_robots',
+    'roles', // array
+    'include_in_sitemap',
     'body',
 ];
 
 foreach($compare_fields as $f) {
-    $compare[$f] = \Pages\Diff::formattedHtml($old_page_content[$f], $new_page_content[$f]);
+    if ($f != 'roles')
+        $compare[$f] = \Pages\Diff::formattedHtml($old_page_content[$f], $new_page_content[$f]);
+    else
+        $compare[$f] = \Pages\Diff::formattedHtmlArray($old_page_content[$f], $new_page_content[$f]);
 }
 
 $columns_for_comparison = array_keys($old_page_content); // old or new page content shouldn't make a difference. just need the fields.

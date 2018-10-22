@@ -432,6 +432,30 @@ class Account
 
 
     /**
+     * @param array $data
+     * @return bool
+     */
+    public function archive(array $data)
+    {
+        $sql = "
+            UPDATE account
+            SET archived = '1',
+            archived_datetime = NOW()
+            WHERE username = ?
+            AND archived='0'
+        ";
+
+        $bind = [
+            $data['username']
+        ];
+
+        $db = new \Db\Query($sql, $bind);
+
+        return $db->run();
+    }
+
+
+    /**
      * @throws \Exception
      */
     public static function editUsersCheck()

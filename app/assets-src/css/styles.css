@@ -102,7 +102,7 @@ h4 {
 }
 
 .gray_border {
-    border-color: #e6e6e6;
+    border: solid 2px #e6e6e6;
 }
 
 .thick_border {

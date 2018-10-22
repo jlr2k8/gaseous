@@ -12,8 +12,10 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
-$get_page = new \Pages\Get();
-$get_page->enforceSystemPageRoles();
+// check setting/role privileges
+if (!\Settings::value('add_roles') || !\Settings::value('edit_roles') || !\Settings::value('archive_roles')) {
+    \Pages\HTTP::error(401);
+}
 
 $templator  = new \Pages\Templator();
 $roles      = new \User\Roles();

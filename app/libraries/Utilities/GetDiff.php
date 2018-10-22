@@ -60,4 +60,18 @@ class GetDiff
 
         return $formatted_diff;
     }
+
+
+    /**
+     * @param array $old
+     * @param array $new
+     * @return null|string|string[]
+     */
+    static function formattedHtmlArray($old = [], $new = [])
+    {
+        $old_as_string = implode(', ', $old);
+        $new_as_string = implode(', ', $new);
+
+        return self::formattedHtml($old_as_string, $new_as_string);
+    }
 }

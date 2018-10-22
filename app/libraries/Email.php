@@ -12,7 +12,7 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/libraries/Vendor/SwiftMailer/vendor/autoload.php';
 
-class SwiftLoader extends \Swift_Mailer
+class Email extends \Swift_Mailer
 {
     public function __construct()
     {

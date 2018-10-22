@@ -12,8 +12,10 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
-$get_page = new \Pages\Get();
-$get_page->enforceSystemPageRoles();
+// check setting/role privileges
+if (!\Settings::value('edit_users') || !\Settings::value('archive_users')) {
+    \Pages\HTTP::error(401);
+}
 
 $templator      = new \Pages\Templator();
 $account        = new \User\Account();
@@ -60,6 +62,7 @@ $templator->assign('my_username', $my_username);
 $templator->assign('full_web_url',\Settings::value('full_web_url'));
 $templator->assign('access_code', \Settings::value('registration_access_code'));
 $templator->assign('edit_users', \Settings::value('edit_users'));
+$templator->assign('archive_users', \Settings::value('archive_users'));
 
 $title = 'Users';
 

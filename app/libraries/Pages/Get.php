@@ -20,64 +20,6 @@ class Get
 
 
     /**
-     * @throws \Exception
-     */
-    public function enforceSystemPageRoles()
-    {
-        $check_system_page_roles = $this->checkSystemPageRoles();
-
-        if (empty($check_system_page_roles))
-            \Pages\HTTP::error(401);
-    }
-
-
-    /**
-     * @param null $username
-     * @param null $uri
-     * @return bool
-     */
-    public function checkSystemPageRoles($username = null, $uri = null)
-    {
-        $username   = $username ?? \User\Account::getUsername($username);
-        $uri        = $uri ?? $_SERVER['REQUEST_URI'];
-        $parsed_uri = parse_url($uri);
-
-        $sql = "
-            SELECT COUNT(*)
-            FROM page AS p
-            INNER JOIN uri ON uri.uid = p.uri_uid
-            LEFT JOIN page_roles AS pr
-              ON pr.uri_uid = p.uri_uid
-            WHERE p.is_system_page = '1'
-            AND uri.uri = ?
-        ";
-
-        $bind[] = trim($parsed_uri['path'], '/');
-
-        if ($username) {
-
-            $sql .= "
-               AND (
-                    pr.role_name IN (SELECT role_name FROM account_roles WHERE account_username = ? AND archived = '0')
-                    OR pr.role_name IS NULL
-                )
-            ";
-
-            $bind[] = $username;
-
-        } else {
-
-            $sql .= " AND (pr.role_name IS NULL OR pr.archived = '1') ";
-        }
-
-        $db     = new \Db\Query($sql, $bind);
-        $count  = (int)$db->fetch();
-
-        return ($count > (int)0);
-    }
-
-
-    /**
      * @return bool
      */
     public function byUri()
@@ -169,10 +111,13 @@ class Get
      */
     public function pagePreviewByIterationUid($page_iteration_uid, $content_only = false)
     {
-        $diff           = new \Pages\Diff();
-        $iteration      = $diff->getPageIteration($page_iteration_uid);
-        $find_replace   = $this->pageContentForPreview($page_iteration_uid);
-        $content        = $this->templatedPage($find_replace);
+        $diff                   = new \Pages\Diff();
+        $iteration              = $diff->getPageIteration($page_iteration_uid);
+        $find_replace           = $this->pageContentForPreview($page_iteration_uid);
+        $content                = $this->templatedPage($find_replace);
+        $return_url_encoded     = urlencode(\Settings::value('full_web_url') . $_SERVER['REQUEST_URI']);
+        $current_iteration      = $this->currentPageIteration($find_replace['page_master_uid']);
+        $is_current_iteration   = ($current_iteration == $page_iteration_uid);
 
         if (empty($content)) {
             $content = \Pages\HTTP::error(404);
@@ -183,10 +128,15 @@ class Get
         if ($content_only == false) {
             $templator = new \Pages\Templator();
 
+            $page_reference = $find_replace['page_title_h1'] ?: $find_replace['page_title_seo'] ?: $find_replace['uri'];
+
             $templator->assign('find_replace', $find_replace);
+            $templator->assign('page_reference', $page_reference);
             $templator->assign('page_iteration_uid', $page_iteration_uid);
             $templator->assign('full_web_url', \Settings::value('full_web_url'));
             $templator->assign('iteration', $iteration);
+            $templator->assign('is_current_iteration', $is_current_iteration);
+            $templator->assign('return_url_encoded', $return_url_encoded);
 
             $content = $templator->fetch('admin/preview_page_iteration.tpl');
         }
@@ -196,10 +146,32 @@ class Get
 
 
     /**
+     * @param $page_master_uid
+     * @return string
+     */
+    private function currentPageIteration($page_master_uid)
+    {
+        $sql = "
+            SELECT page_iteration_uid
+            FROM current_page_iteration
+            WHERE page_master_uid = ?
+        ";
+
+        $bind = [
+            $page_master_uid,
+        ];
+
+        $db = new \Db\Query($sql, $bind);
+
+        return $db->fetch();
+    }
+
+
+    /**
      * @param $page_uri
      * @param $status
      * @param $username
-     * @return bool
+     * @return array
      */
     public function pageContent($page_uri, $status = 'active', $username = null)
     {
@@ -225,13 +197,13 @@ class Get
             FROM page AS p
             INNER JOIN uri ON uri.uid = p.uri_uid
             INNER JOIN current_page_iteration AS cpi ON cpi.page_master_uid = p.page_master_uid
+            INNER JOIN page_iteration AS pi ON pi.uid = cpi.page_iteration_uid
             LEFT JOIN page_roles AS pr
-              ON pr.uri_uid = p.uri_uid
+              ON pr.page_iteration_uid = pi.uid
             LEFT JOIN account_roles AS ar
               ON pr.role_name = ar.role_name
             LEFT JOIN account AS a
               ON ar.account_username = a.username
-            INNER JOIN page_iteration AS pi ON pi.uid = cpi.page_iteration_uid
             WHERE uri.uri = ?
             AND pi.status = ?
             AND p.archived = \'0\'
@@ -259,14 +231,41 @@ class Get
 
         $db     = new \Db\Query($sql, $bind);
         $result = $db->fetchAssoc();
+        $roles  = $this->pageRoles($result['uid']);
+
+        $result['roles'] = $roles;
 
         return !empty($result) ? $result : array();
     }
 
 
     /**
+     * @param $uri_uid
+     * @return array
+     */
+    public function pageRoles($uri_uid)
+    {
+        $sql = "
+            SELECT role_name
+            FROM page_roles
+            WHERE page_iteration_uid = ?
+            AND archived = '0'
+        ";
+
+        $bind = [
+            $uri_uid,
+        ];
+
+        $db         = new \Db\Query($sql, $bind);
+        $results    = $db->fetchAll();
+
+        return $results;
+    }
+
+
+    /**
      * @param $page_iteration_uid
-     * @return bool
+     * @return array
      */
     public function pageContentForPreview($page_iteration_uid)
     {
@@ -296,13 +295,13 @@ class Get
             FROM page AS p
             INNER JOIN uri ON uri.uid = p.uri_uid
             INNER JOIN current_page_iteration AS cpi ON cpi.page_master_uid = p.page_master_uid
+            INNER JOIN page_iteration AS pi ON pi.uid = ?
             LEFT JOIN page_roles AS pr
-              ON pr.uri_uid = p.uri_uid
+              ON pr.page_iteration_uid = pi.uid
             LEFT JOIN account_roles AS ar
               ON pr.role_name = ar.role_name
             LEFT JOIN account AS a
               ON ar.account_username = a.username
-            INNER JOIN page_iteration AS pi ON pi.uid = ?
             WHERE p.archived = \'0\'
             AND pi.archived = \'0\'
         ';
@@ -313,8 +312,10 @@ class Get
 
         $db     = new \Db\Query($sql, $bind);
         $result = $db->fetchAssoc();
+        $roles  = $this->pageRoles($result['uid']);
 
-        $result['formatted_modified'] = \Utilities\DateTime::formatDateTime($result['modified']);
+        $result['roles']                = $roles;
+        $result['formatted_modified']   = \Utilities\DateTime::formatDateTime($result['modified']);
 
         return !empty($result) ? $result : array();
     }
@@ -342,13 +343,13 @@ class Get
             FROM page AS p
             INNER JOIN uri ON uri.uid = p.uri_uid
             INNER JOIN current_page_iteration AS cpi ON cpi.page_master_uid = p.page_master_uid
+            INNER JOIN page_iteration AS pi ON pi.uid = cpi.page_iteration_uid
             LEFT JOIN page_roles AS pr
-              ON pr.uri_uid = p.uri_uid
+              ON pr.page_iteration_uid = pi.uid
             LEFT JOIN account_roles AS ar
               ON pr.role_name = ar.role_name
             LEFT JOIN account AS a
               ON ar.account_username = a.username
-            INNER JOIN page_iteration AS pi ON pi.uid = cpi.page_iteration_uid
             WHERE pi.status = ?
             AND p.archived = \'0\'
             AND pi.archived = \'0\'
@@ -422,7 +423,7 @@ class Get
 
     /**
      * @param $templator
-     * @param array $content
+     * @param $find_replace
      * @return mixed
      */
     private function main($templator, array $find_replace)
@@ -451,7 +452,7 @@ class Get
     /**
      * @throws \Exception
      */
-    public static function editPageCheck()
+    public function editPageCheck()
     {
         if (!\Settings::value('edit_pages'))
             throw new \Exception('Editing pages not allowed');
@@ -480,16 +481,20 @@ class Get
           INNER JOIN page ON page.uri_uid = uri.uid
           WHERE uri.archived = '0'
           AND page.archived = '0'
+          ORDER BY uri.uri ASC
         ";
 
-        if (!$include_system_pages) {
-            $sql .= " AND is_system_page = '0' ";
+        $db         = new \Db\Query($sql);
+        $results    = $db->fetchAllAssoc();
+
+        if ($include_system_pages) {
+            $system_pages           = new \Utilities\SystemPages();
+            $system_pages_results   = $system_pages->getSystemPagesAsResultSet();
+
+            $results = array_merge($results, $system_pages_results);
         }
 
-        $sql    .= "ORDER BY uri.uri ASC";
-        $db     = new \Db\Query($sql);
-
-        return $db->fetchAllAssoc();
+        return $results;
     }
 
 

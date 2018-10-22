@@ -17,6 +17,7 @@ RewriteRule ^admin/users/$                  controllers/admin/users.php [QSA,L]
 RewriteRule ^admin/settings/$               controllers/admin/settings.php [QSA,L]
 RewriteRule ^admin/pages/$                  controllers/admin/pages.php [QSA,L]
 RewriteRule ^admin/css/$                    controllers/admin/css.php [QSA,L]
+RewriteRule ^admin/menu/$                   controllers/admin/menu.php [QSA,L]
 
 # CSS Preview Check
 RewriteRule ^css-preview-check/$            services/css_preview_check.php

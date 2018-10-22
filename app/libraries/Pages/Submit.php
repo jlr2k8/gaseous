@@ -78,7 +78,7 @@ class Submit
             }
 
             // archive/re-add page roles
-            if ($this->archivePageRoles($transaction) && !empty($this->post_data['page_roles']))
+            if (!empty($this->post_data['page_roles']))
                 $this->insertPageRoles($transaction);
 
         } catch(\Exception $e) {
@@ -184,11 +184,11 @@ class Submit
             if (in_array($role['role_name'], $page_roles)) {
 
                 $sql .= "
-                  INSERT INTO page_roles (uri_uid, role_name)
+                  INSERT INTO page_roles (page_iteration_uid, role_name)
                   VALUES (?, ?);
                 ";
 
-                $bind[] = $this->uri_uid;
+                $bind[] = $this->new_uid;
                 $bind[] = $role['role_name'];
 
                 $transaction
@@ -340,8 +340,11 @@ class Submit
     /**
      * @param \Db\PdoMySql $transaction
      */
-    private function updateCurrentIteration(\Db\PdoMySql $transaction)
+    public function updateCurrentIteration(\Db\PdoMySql $transaction, $page_iteration_uid = false, $page_master_uid = false)
     {
+        $page_iteration_uid = $page_iteration_uid ?: $this->new_uid;
+        $page_master_uid    = $page_master_uid ?: $this->page_master_uid;
+
         $sql = "
             UPDATE current_page_iteration
             SET page_iteration_uid = ?
@@ -349,10 +352,10 @@ class Submit
         ";
 
         $bind = [
-            $this->new_uid,
-            $this->page_master_uid,
+            $page_iteration_uid,
+            $page_master_uid,
         ];
-
+var_dump($sql, $bind);
         $transaction
             ->prepare($sql)
             ->execute($bind);

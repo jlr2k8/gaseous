@@ -47,8 +47,7 @@ class HTTP
         if (!empty($redirect)) {
             return self::redirect($redirect);
         } else {
-            echo self::renderErrorPage($status_code);
-            exit;
+            die(self::renderErrorPage($status_code));
         }
     }
 
@@ -83,9 +82,9 @@ class HTTP
      */
     public static function header($status_code)
     {
-        $status_code = !in_array((int)$status_code, self::$status_codes) ? 404 : $status_code;
+        $status_code = !array_key_exists((int)$status_code, self::$status_codes) ? 404 : $status_code;
 
-        header('HTTP/1.1 ' . self::$status_codes[$status_code]);
+        header('HTTP/1.1 ' . $status_code . ' ' . self::$status_codes[$status_code]);
 
         return true;
     }

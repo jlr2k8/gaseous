@@ -77,13 +77,14 @@ class Submit
                 $this->insertCurrentIteration($transaction);
             }
 
-            // archive/re-add page roles
-            if (!empty($this->post_data['page_roles']))
+            // add page roles
+            if ($this->archivePageRoles($transaction) && !empty($this->post_data['page_roles']))
                 $this->insertPageRoles($transaction);
 
         } catch(\Exception $e) {
             $transaction->rollBack();
 
+            $this->errors[] = $e->getMessage();
             $this->errors[] = $e->getTraceAsString();
 
             $this->checkAndThrowErrorException();
@@ -151,11 +152,11 @@ class Submit
             SET
               archived = '1',
               archived_datetime = NOW()
-            WHERE uri_uid = ?
+            WHERE page_iteration_uid = ?
             AND archived = '0'
         ";
 
-        $bind = [$this->uri_uid];
+        $bind = [$this->new_uid];
 
         return $transaction
             ->prepare($sql)
@@ -177,7 +178,6 @@ class Submit
         $page_roles = $this->post_data['page_roles']; // array
 
         foreach ($all_roles as $role) {
-
             $sql    = null;
             $bind   = [];
 
@@ -355,7 +355,7 @@ class Submit
             $page_iteration_uid,
             $page_master_uid,
         ];
-var_dump($sql, $bind);
+
         $transaction
             ->prepare($sql)
             ->execute($bind);

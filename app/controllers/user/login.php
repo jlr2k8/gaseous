@@ -12,7 +12,7 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
-$templator  = new \Pages\Templator();
+$templator  = new \Content\Pages\Templator();
 $login      = new \User\Login();
 
 $page_find_replace  = [

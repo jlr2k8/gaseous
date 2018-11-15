@@ -27,7 +27,7 @@ class Headers
     public function __construct(array $apache_request_headers, $filename = false, $filetype = false)
     {
         if (!empty($filename) && !is_readable($filename)) {
-            \Pages\HTTP::error(404);
+            \Content\Pages\HTTP::error(404);
         }
 
         $this->client_headers   = $apache_request_headers;

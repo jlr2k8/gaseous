@@ -1,7 +1,7 @@
 <form id="setting_{$setting.key}" method="post" action="{$full_web_url}/admin/settings/">
     {if in_array('codemirror', $setting.properties)}
         <td colspan="3">
-            <p>{$setting.key}:</p>
+            <p>{$setting.key_display}:</p>
             <input type="hidden" name="key" value="{$setting.key}" />
             <input type="hidden" name="codemirror" value="true" />
             <textarea id="value_{$setting.key}" name="value">{htmlspecialchars($setting.value, ENT_SUBSTITUTE)}</textarea>
@@ -15,7 +15,7 @@
     {else}
         <td class="no_border">
             <input type="hidden" name="key" value="{$setting.key}" />
-            {$setting.key}
+            {$setting.key_display}
         </td>
         <td class="no_border">
             {if in_array('boolean', $setting.properties)}

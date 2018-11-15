@@ -23,8 +23,7 @@ RewriteRule ^admin/menu/$                   controllers/admin/menu.php [QSA,L]
 RewriteRule ^css-preview-check/$            services/css_preview_check.php
 
 # CMS pages
-RewriteRule ^shop/([A-Za-z0-9\-_\/]+)?$     controllers/cms/store.php?page=$1 [QSA,L]
-RewriteRule ^([A-Za-z0-9\-_\/]+)$           controllers/cms/index.php?page=$1 [QSA,L]
+RewriteRule ^([\w\/\-]+(\.html)?)$           controllers/cms/index.php?page=$1 [QSA,L]
 
 # Images
 RewriteRule ^img/(.*)$                      services/images.php?src=$1 [QSA,L]
@@ -34,3 +33,6 @@ RewriteRule ^sitemap.xml$                   services/sitemap_output.php
 
 # CSS
 RewriteRule ^styles.gz.css$                 services/css_output.php
+
+# robots.txt
+RewriteRule ^robots.txt$                    services/robots.txt.php [QSA,L]

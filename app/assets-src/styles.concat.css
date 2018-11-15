@@ -2,6 +2,12 @@
     width: 88%;
     height: 5em;
 }
+#page_iterations_wrapper {
+    min-height: 300px;
+}
+#toolbar_buffer {
+    margin-top: 120px;
+}
 #site_admin_banner_message {
     position: fixed;
     background: orange;
@@ -23,6 +29,7 @@
     width: 100%;
     display: block;
     min-height: 500px;
+    margin-left: -3px;
 }
 .breadcrumbs {
     margin: 20px 0;
@@ -216,6 +223,14 @@ button.archive {
 
 .display_block {
     display: block;
+}
+
+.padding_left_1em {
+    padding-left: 1em;
+}
+
+.display_none {
+    display: none;
 }
 
 .display_inline_block, .inline_block {
@@ -435,7 +450,9 @@ th {
 thead tr:nth-child(odd) {
     background-color: #6e6e6e;
 }
-
+thead tr:nth-child(even) {
+    background-color: #969696;
+}
 
 tbody tr:nth-child(odd) {
     background-color: #e3e3e3;
@@ -526,6 +543,10 @@ hr {
 
 .gray_background {
     background-color: #e6e6e6;
+}
+
+nav .current {
+    font-weight: bold;
 }
 
 @media screen and (max-width: 800px) {

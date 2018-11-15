@@ -22,7 +22,7 @@ $filename       = !empty($_GET['src']) && is_file($upload_root . '/' . $_GET['sr
 
 // 404 if img not provided or doesn't exist locally
 if (!$filename) {
-    \Pages\HTTP::error(404);
+    \Content\Pages\HTTP::error(404);
 }
 
 $client_headers = apache_request_headers();

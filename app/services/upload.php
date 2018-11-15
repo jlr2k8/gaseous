@@ -18,6 +18,10 @@ $upload_url_relative    = \Settings::value('upload_url_relative');
 
 if ($file_upload && $file_reference) {
 
+    $token                      = \Utilities\Token::generate();
+    $file_pathinfo              = pathinfo($file_reference);
+    $tokenized_file_reference   = $file_pathinfo['filename'] . '-' . $token . '.' . $file_pathinfo['extension'];
+
     // img folder should always be writable (max permission ok here)
     if (!is_dir($upload_root))
         mkdir($upload_root, 0777, true);
@@ -26,13 +30,13 @@ if ($file_upload && $file_reference) {
         chmod($upload_root, 0777);
 
     // move it on up!
-    if (move_uploaded_file($file_upload, $upload_root . '/' . $file_reference)) {
+    if (move_uploaded_file($file_upload, $upload_root . '/' . $tokenized_file_reference)) {
 
         // callback for CK editor to see upload
         $func_num = $_GET['CKEditorFuncNum'];
 
         // url for callback to pass into cms
-        $url = $upload_url_relative . '/' . $file_reference;
+        $url = $upload_url_relative . '/' . $tokenized_file_reference;
 
         // message (dont need this)
         $message = null;

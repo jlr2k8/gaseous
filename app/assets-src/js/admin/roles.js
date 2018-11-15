@@ -10,7 +10,7 @@ $(document).ready( function() {
 
         var data = $('#role_' + role_name).serialize() + '&update';
 
-        $.post('/admin/roles/', data, function() {
+        $.post('/admin/roles/', data, function(response) {
             this_update_button
                 .html('Updated&#160;<i class="fas fa-check"></i>')
                 .delay(1000)
@@ -19,6 +19,7 @@ $(document).ready( function() {
                         .removeAttr('disabled');
                     e();
                 });
+            console.log(response);
         });
     });
 });

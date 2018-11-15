@@ -10,7 +10,7 @@
  *
  **/
 
-namespace Pages;
+namespace Content\Pages;
 
 class Diff extends \Utilities\GetDiff
 {

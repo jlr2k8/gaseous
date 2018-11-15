@@ -32,8 +32,8 @@ class Minify
             '~<!--.*?-->~' => null,
         );
 
-        $find = array_keys($find_replace);
-        $replace = $find_replace;
+        $find       = array_keys($find_replace);
+        $replace    = $find_replace;
 
         return preg_replace($find, $replace, $input);
     }
@@ -49,10 +49,11 @@ class Minify
             '~\n|\r|\t~' => ' ',
             '~\/\*[\w\s\*]*\*\/~' => null,
             '~\s{2,}~' => ' ',
+            '~\s({|})\s~' => '$1',
         );
 
-        $find = array_keys($find_replace);
-        $replace = $find_replace;
+        $find       = array_keys($find_replace);
+        $replace    = $find_replace;
 
         return preg_replace($find, $replace, $input);
     }

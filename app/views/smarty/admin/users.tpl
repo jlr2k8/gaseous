@@ -95,6 +95,6 @@
         <a href="{$full_web_url}/admin/pages/">Edit pages and role access per page</a>
     </li>
     <li>
-        <a href="{$full_web_url}/admin/configuration/">Manage site configuration and role association</a>
+        <a href="{$full_web_url}/admin/settings/">Manage site configuration and role association</a>
     </li>
 </ul>

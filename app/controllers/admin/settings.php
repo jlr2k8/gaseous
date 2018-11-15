@@ -14,11 +14,11 @@ require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
 // check setting/role privileges
 if (!\Settings::value('edit_settings')) {
-    \Pages\HTTP::error(401);
+    \Content\Pages\HTTP::error(401);
 }
 
 $settings           = new \Settings();
-$templator          = new \Pages\Templator();
+$templator          = new \Content\Pages\Templator();
 $roles              = new \User\Roles();
 $account            = new \User\Account();
 
@@ -77,8 +77,8 @@ $title = 'Site Settings';
 $page_find_replace = [
     'page_title_seo'    => $title,
     'page_title_h1'     => $title,
-    'breadcrumbs'       => (new \Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
+    'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
     'body'              => $templator->fetch('admin/settings.tpl'),
 ];
 
-echo \Pages\Templator:: page($page_find_replace);
+echo \Content\Pages\Templator::page($page_find_replace);

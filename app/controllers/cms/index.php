@@ -12,10 +12,10 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
-$get = new \Pages\GetHomePage();
+$get = new \Content\Pages\GetHomePage();
 
-if (in_array($_SERVER['REQUEST_URI'], \Pages\GetHomePage::$home_pages)) {
-    $get->redirectHome();
+if (in_array($_SERVER['REQUEST_URI'], \Content\Pages\GetHomePage::$home_pages)) {
+    $get->redirectHome(); exit;
 }
 
 echo $get->byUri();

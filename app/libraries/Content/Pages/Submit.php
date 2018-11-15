@@ -10,7 +10,7 @@
  *
  **/
 
-namespace Pages;
+namespace Content\Pages;
 
 class Submit
 {
@@ -19,6 +19,8 @@ class Submit
     public $new_uid         = false;
     public $uri_uid         = false;
     public $page_master_uid = false;
+
+    public $json_upsert_status;
 
 
     /**
@@ -37,7 +39,8 @@ class Submit
 
 
     /**
-     *
+     * @return bool
+     * @throws \Exception
      */
     public function upsert()
     {
@@ -66,28 +69,34 @@ class Submit
 
             // a previous iteration of the same page
             } elseif($old_uid != $this->new_uid && !empty($old_uid) && $this->iterationExists()) {
+                $this->page_master_uid = $this->getMasterPageId($transaction);
                 $this->updateCurrentIteration($transaction);
 
             // new page altogether. the iteration does not exist already
             } elseif(empty($old_uid) && !$this->iterationExists()) {
                 $this->insertPage($transaction);
-                $this->insertIteration($transaction);
                 $this->page_master_uid = $this->getMasterPageId($transaction);
+                $this->insertIteration($transaction);
                 $this->insertIterationCommitInfo($transaction);
+                $this->page_master_uid = $this->getMasterPageId($transaction);
                 $this->insertCurrentIteration($transaction);
             }
 
-            // add page roles
-            if ($this->archivePageRoles($transaction) && !empty($this->post_data['page_roles']))
+            // add/remove page roles
+            if ($this->archivePageRoles($transaction) && !empty($this->post_data['page_roles'])) {
                 $this->insertPageRoles($transaction);
+            } elseif(empty($this->post_data['page_roles'])) {
+                $this->archivePageRoles($transaction);
+            }
 
-        } catch(\Exception $e) {
+            $this->generate_json_upsert_status('status', 'success');
+
+        } catch(\ErrorException $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getMessage();
-            $this->errors[] = $e->getTraceAsString();
 
-            $this->checkAndThrowErrorException();
+            $this->generate_json_upsert_status('status', $e->getMessage());
 
             return false;
         }
@@ -99,7 +108,24 @@ class Submit
 
 
     /**
-     *
+     * @param $status
+     * @param $message
+     * @return bool
+     */
+    private function generate_json_upsert_status($status, $message)
+    {
+        $status_message = [
+            $status => $message,
+        ];
+
+        $this->json_upsert_status = json_encode($status_message);
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     * @throws \Exception
      */
     public function archive()
     {
@@ -107,9 +133,9 @@ class Submit
 
         $transaction    = new \Db\PdoMySql();
         $this->uri_uid  = $this->post_data['original_uri_uid'];
-        $transaction->beginTransaction();
+        $uri            = \Content\Pages\Get::uri($this->post_data['original_uri_uid']);
 
-        $uri = \Pages\Get::uri($this->post_data['original_uri_uid']);
+        $transaction->beginTransaction();
 
         if ($uri == 'home')
         {
@@ -121,6 +147,7 @@ class Submit
             $this->archiveOldUri($transaction);
             $this->archivePageRoles($transaction);
             $this->archiveCurrentIteration($transaction);
+            $this->archivePageIteration($transaction);
             $this->archivePage($transaction);
         } catch(\Exception $e) {
             $transaction->rollBack();
@@ -135,6 +162,30 @@ class Submit
         $transaction->commit();
 
         return true;
+    }
+
+
+    /**
+     * @param \Db\PdoMySql $transaction
+     * @return bool
+     */
+    private function archivePageIteration(\Db\PdoMySql $transaction)
+    {
+        $sql = "
+            UPDATE page_iteration
+            SET archived = '1',
+            archived_datetime = NOW()
+            WHERE uid = ?
+            AND archived = '0'
+        ";
+
+        $bind = [
+            $this->post_data['uid'],
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
     }
 
 
@@ -453,13 +504,18 @@ class Submit
     function processUri(\Db\PdoMySql $transaction)
     {
         $this->uri_uid          = $this->post_data['original_uri_uid'];
-        $old_uri                = \Pages\Get::uri($this->uri_uid);
-        $old_uri_as_array       = \Pages\Utilities::uriAsArray($old_uri);
-        $parent_page_uri        = \Pages\Get::uri($this->post_data['parent_page_uri']);
+        $old_uri                = \Content\Pages\Get::uri($this->uri_uid);
+        $old_uri_as_array       = \Content\Pages\Utilities::uriAsArray($old_uri);
+        $parent_page_uri        = \Content\Pages\Get::uri($this->post_data['parent_page_uri']);
         $this_uri_piece         = $this->post_data['this_uri_piece'];
         $new_uri                = trim($parent_page_uri . '/' . $this_uri_piece, '/');
-        $new_uri_as_array       = \Pages\Utilities::uriAsArray($new_uri);
-        $all_uris               = \Pages\Get::allUris();
+        $new_uri_as_array       = \Content\Pages\Utilities::uriAsArray($new_uri);
+        $all_uris               = \Content\Pages\Get::allUris();
+
+        if ($old_uri == 'home' && $old_uri != $new_uri) {
+            $this->errors[] = 'The home page URI cannot be edited';
+            $this->checkAndThrowErrorException();
+        }
 
         // user changed URI and it matches an existing
         if ($old_uri != $new_uri && self::uriExists($new_uri)) {
@@ -468,8 +524,8 @@ class Submit
 
         // user changed URI and it's unique
         } elseif($old_uri != $new_uri && !self::uriExists($new_uri)) {
-            $this->insertUri($transaction, $new_uri);
             $this->archiveOldUri($transaction);
+            $this->insertUri($transaction, $new_uri);
             $this->uri_uid = $this->getUriUid($transaction, $new_uri);
             $this->updatePage($transaction);
         }
@@ -478,7 +534,7 @@ class Submit
         if (!empty($old_uri) && $old_uri != $new_uri) {
             foreach ($all_uris as $uri_result) {
                 $result_uri             = $uri_result['uri'];
-                $result_uri_as_array    = \Pages\Utilities::uriAsArray($result_uri);
+                $result_uri_as_array    = \Content\Pages\Utilities::uriAsArray($result_uri);
 
                 $matching_uri_bases = true;
 
@@ -489,8 +545,9 @@ class Submit
                     }
                 }
 
-                if ($matching_uri_bases === true)
+                if ($matching_uri_bases === true) {
                     $this->updateUri($transaction, $uri_result['uid'], $new_uri_as_array);
+                }
             }
         }
 
@@ -598,15 +655,16 @@ class Submit
      */
     private function updateUri(\Db\PdoMySql $transaction, $old_uri_uid, array $new_uri_as_array)
     {
-        $old_uri            = \Pages\Get::uri($old_uri_uid);                        // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
-        $old_uri_as_array   = \Pages\Utilities::uriAsArray($old_uri);               // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
-        $updated_uri_array  = array_replace($old_uri_as_array, $new_uri_as_array);  // [0] => foo, [1] => bar, [2] => baz, [3] => lorem-ipsum ... [12] => upper-uri
-        $updated_uri        = trim(\Pages\Utilities::arrayAsUri($updated_uri_array), '/');     // foo/bar/baz/lorem-ipsum
+        $old_uri            = \Content\Pages\Get::uri($old_uri_uid);                                            // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
+        $old_uri_as_array   = \Content\Pages\Utilities::uriAsArray($old_uri);                                   // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
+        $updated_uri_array  = array_replace($old_uri_as_array, $new_uri_as_array);                              // [0] => foo, [1] => bar, [2] => baz, [3] => lorem-ipsum ... [12] => upper-uri
+        $updated_uri        = trim(\Content\Pages\Utilities::arrayAsUri($updated_uri_array), '/');      // foo/bar/baz/lorem-ipsum
 
         $sql = "
             UPDATE uri
             SET uri = ?
-            WHERE uid = ?;
+            WHERE uid = ?
+            AND archived = '0';
         ";
 
         $bind = [
@@ -686,5 +744,7 @@ class Submit
 
             throw new \ErrorException($errors);
         }
+
+        return true;
     }
 }

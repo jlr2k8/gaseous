@@ -185,6 +185,14 @@ button.archive {
     display: block;
 }
 
+.padding_left_1em {
+    padding-left: 1em;
+}
+
+.display_none {
+    display: none;
+}
+
 .display_inline_block, .inline_block {
     display: inline-block;
 }
@@ -402,7 +410,9 @@ th {
 thead tr:nth-child(odd) {
     background-color: #6e6e6e;
 }
-
+thead tr:nth-child(even) {
+    background-color: #969696;
+}
 
 tbody tr:nth-child(odd) {
     background-color: #e3e3e3;
@@ -493,6 +503,10 @@ hr {
 
 .gray_background {
     background-color: #e6e6e6;
+}
+
+nav .current {
+    font-weight: bold;
 }
 
 @media screen and (max-width: 800px) {

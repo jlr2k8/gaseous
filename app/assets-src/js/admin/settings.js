@@ -29,7 +29,6 @@ $(document).ready( function() {
     });
 
     $('.specify_roles').on('click', function(e) {
-
         e.preventDefault();
 
         var setting_key = $(this).attr('data-key');
@@ -41,7 +40,6 @@ $(document).ready( function() {
     });
 
     $('.boolean_setting_true').on('change click', function() {
-
         var setting_key = $(this).attr('data-key');
 
         $('#roles_checkbox_container_' + setting_key + ' input[type="checkbox"]').each(function() {
@@ -51,7 +49,6 @@ $(document).ready( function() {
     });
 
     $('.boolean_setting_false').on('change click', function() {
-
         var setting_key = $(this).attr('data-key');
 
         $('#roles_checkbox_container_' + setting_key + ' input[type="checkbox"]').each(function() {
@@ -65,6 +62,7 @@ $(document).ready( function() {
     function check_if_any_are_checked(setting_key)
     {
         var any_checked = false;
+
         $('#roles_checkbox_container_' + setting_key + ' input[type="checkbox"]').each(function() {
             if ($(this).is(':checked')) {
                 any_checked = true;
@@ -72,7 +70,6 @@ $(document).ready( function() {
         });
 
         if (any_checked === false) {
-
             $('#roles_checkbox_container_' + setting_key).hide();
             $('#specify_roles_' + setting_key).show();
         } else {

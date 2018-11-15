@@ -78,7 +78,6 @@ class Settings
         $setting = new self();
 
         if (!empty($setting->$key)) {
-
             // get value by key, or get value as explicitly sought by key
             if (!$value || ($value && $setting->$key == $value))
                 return $setting->$key;
@@ -94,13 +93,12 @@ class Settings
      */
     protected static function getAllSelfProperties()
     {
-        $setting     = new self();
+        $setting    = new self();
         $reflect    = new \ReflectionClass($setting);
         $properties = $reflect->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED);
         $return     = [];
 
         foreach ($properties as $property) {
-
             $return[$property->getName()] = $property->getValue($setting);
         }
 
@@ -121,7 +119,7 @@ class Settings
         $username = $username ?? $_SESSION['account']['username'] ?? false;
 
         $sql = "
-            SELECT *
+            SELECT *, COALESCE(s.display, s.key) AS key_display
             FROM settings AS s
             INNER JOIN settings_values AS sv
               ON s.key = sv.settings_key
@@ -138,24 +136,20 @@ class Settings
         $bind_array[] = $key;
 
         if ($username) {
-
             $sql .= "
                AND (
-                    (s.role_based = 'true' AND sr.role_name IN (SELECT role_name FROM account_roles WHERE account_username = ? AND archived = '0') AND sr.archived != '1')
+                    (s.role_based = 'true' AND sr.role_name IN (SELECT role_name FROM account_roles WHERE account_username = ? AND archived = '0') AND sr.archived != '1' AND ar.archived != '1')
                     OR
                     (s.role_based != 'true')
                 )
             ";
 
             $bind_array[] = $username;
-
         } else {
-
-            $sql .= " AND (sr.role_name IS NULL OR sr.archived = '1') ";
+            $sql .= " AND (sr.role_name IS NULL OR sr.archived = '1') AND s.role_based = 'false'";
         }
 
         if ($value) {
-
             $sql .= " AND sv.value = ? ";
 
             $bind_array[] = $value;
@@ -184,7 +178,7 @@ class Settings
     public static function getAllFromDB($values_only = false)
     {
         $sql = "
-            SELECT *
+            SELECT *, COALESCE(s.display, s.key) AS key_display
             FROM settings AS s
             INNER JOIN settings_values AS sv
               ON s.key = sv.settings_key

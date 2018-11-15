@@ -9,7 +9,7 @@
  * Build breadcrumbs on page
  */
 
-namespace Pages;
+namespace Content\Pages;
 
 class Breadcrumbs
 {

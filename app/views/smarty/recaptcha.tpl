@@ -1,2 +1,2 @@
-<script src='https://www.google.com/recaptcha/api.js'></script>
-<div class="g-recaptcha" data-sitekey="{$recapthca_public_key}"></div>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<div class="g-recaptcha" data-sitekey="{$recaptcha_public_key}"></div>

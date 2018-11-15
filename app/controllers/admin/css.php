@@ -15,7 +15,7 @@ require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
 // check setting/role privileges
 if (!\Settings::value('manage_css')) {
-    \Pages\HTTP::error(401);
+    \Content\Pages\HTTP::error(401);
 }
 
 if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
@@ -24,7 +24,7 @@ if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
 }
 
 $css        = new \Css();
-$templator  = new \Pages\Templator();
+$templator  = new \Content\Pages\Templator();
 $codemirror = new \Wysiwyg\Codemirror();
 
 $css_iterations = $css->getAllIterations();
@@ -85,8 +85,8 @@ $title = 'Custom Site CSS';
 $page_find_replace = [
     'page_title_seo'    => $title,
     'page_title_h1'     => $title,
-    'breadcrumbs'       => (new \Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
+    'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
     'body'              => $templator->fetch('admin/css.tpl'),
 ];
 
-echo \Pages\Templator::page($page_find_replace);
+echo \Content\Pages\Templator::page($page_find_replace);

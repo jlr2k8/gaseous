@@ -16,9 +16,9 @@ namespace Wysiwyg;
 class Codemirror
 {
     public $cdn_root    = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror';
-    public $jquery_url  = '//code.jquery.com/jquery-1.11.3.min.js';
-    public $mode        = "smarty";
-    public $mode_src    = 'mode/smarty/smarty.js';
+    public $jquery_url  = '//code.jquery.com/jquery-2.2.4.min.js';
+    public $mode = 'css';
+    public $mode_src = 'mode/css/css.js';
     private $version    = '5.39.0';
 
     /**
@@ -38,11 +38,25 @@ class Codemirror
         $this->cdn = '
             <script src="' . $this->jquery_url . '">&#160;</script>
             <script src="' . $this->cdn_root . '/' . $this->version . '/codemirror.js"></script>
+            <script src="' . $this->cdn_root . '/' . $this->version . '/mode/htmlmixed/htmlmixed.js"></script>
+            <script src="' . $this->cdn_root . '/' . $this->version . '/mode/xml/xml.js"></script>
+            <script src="' . $this->cdn_root . '/' . $this->version . '/mode/javascript/javascript.js"></script>
+            <script src="' . $this->cdn_root . '/' . $this->version . '/mode/css/css.js"></script>
+            <script src="' . $this->cdn_root . '/' . $this->version . '/mode/clike/clike.js"></script>
             <link rel="stylesheet" href="' . $this->cdn_root . '/' . $this->version . '/codemirror.css">
-            <script src="' . $this->cdn_root . '/' . $this->version . '/' . $this->mode_src . '"></script>
         ';
 
         return true;
+    }
+
+
+    public function setMode($mode, $mode_src = false)
+    {
+        $mode_src = $mode_src ?: $mode;
+
+        $this->mode        = $mode;
+        $this->mode_src    = 'mode/' . $mode_src . '/' . $mode_src . '.js';
+        return '<script src="' . $this->cdn_root . '/' . $this->version . '/' . $this->mode_src . '"></script>';
     }
 
 

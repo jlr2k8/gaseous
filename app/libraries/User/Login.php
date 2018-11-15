@@ -116,7 +116,7 @@ class Login
                 ? (string)filter_var($_POST['password'], FILTER_SANITIZE_STRING)
                 : false;
 
-            if ($this->validateLogin($username, $password)) {
+            if ($this->clearLoginSession($username) && $this->validateLogin($username, $password)) {
                 return $this->createSession($username);
             } else {
                 $this->logout();
@@ -260,8 +260,6 @@ class Login
 
 
     /**
-     * Logout must return false
-     *
      * @return bool
      */
     public function logout()

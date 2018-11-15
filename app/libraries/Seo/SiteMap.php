@@ -81,7 +81,12 @@ class SiteMap
           AND pi.archived = '0'
           AND pi.status = 'active' 
           AND pi.include_in_sitemap = '1'
-          ORDER BY uri.uri
+          ORDER BY
+            CASE WHEN uri.uri = 'home'
+              THEN 0
+              ELSE 1
+            END,
+            uri.uri
         ";
 
         $db = new \Db\Query($sql);
@@ -96,7 +101,13 @@ class SiteMap
      */
     private static function buildFullUrl($uri)
     {
-        return \Settings::value('full_web_url') . '/' . $uri . '/';
+        // Exception
+        if ($uri == 'home')
+            $uri = '';
+        else
+            $uri .= '/';
+
+        return \Settings::value('full_web_url') . '/' . $uri;
     }
 
 

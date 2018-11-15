@@ -10,9 +10,9 @@
  *
  **/
 
-namespace Pages;
+namespace Content\Pages;
 
-class GetHomePage extends \Pages\Get
+class GetHomePage extends \Content\Pages\Get
 {
     public function __construct()
     {
@@ -23,13 +23,12 @@ class GetHomePage extends \Pages\Get
         '/index.htm',
         '/index.php',
         '/home/',
-        '/home',
     ];
 
 
     public function redirectHome()
     {
-        return \Pages\HTTP::redirect('/', 301);
+        return \Content\Pages\HTTP::redirect('/', 301);
     }
 
 
@@ -47,13 +46,14 @@ class GetHomePage extends \Pages\Get
      */
     protected function redirectProperUri(array $parsed_uri)
     {
-        $current_uri    = $parsed_uri['path'];
-        $querystring    = !empty($parsed_uri['query']) ? '?' . $parsed_uri['query'] : null;
+        $current_uri = $parsed_uri['path'];
 
         if (in_array($current_uri, self::$home_pages)) {
 
             return parent::redirectProperUri($parsed_uri);
         }
+
+        return false;
     }
 
 
@@ -62,10 +62,7 @@ class GetHomePage extends \Pages\Get
      */
     public function byUri()
     {
-        if (self::isHomepage())
-            return $this->page('home', [], false);
-
-        return parent::byUri();
+        return self::isHomepage() ? $this->page('home', [], false) : parent::byUri();
     }
 
 
@@ -74,7 +71,7 @@ class GetHomePage extends \Pages\Get
      * @param array $find_replace
      * @return bool
      */
-    public function page($page_uri = 'home', $find_replace = array(), $redirect_proper_uri = true)
+    public function page($page_uri = 'home', $find_replace = [], $redirect_proper_uri = true)
     {
         $find_replace   = $this->pageContent('home');
         $parsed_uri     = parse_url($page_uri);

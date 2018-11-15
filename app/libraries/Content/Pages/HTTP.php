@@ -10,7 +10,7 @@
  *
  **/
 
-namespace Pages;
+namespace Content\Pages;
 
 class HTTP
 {
@@ -62,10 +62,6 @@ class HTTP
     {
         $url = !empty($url) ? filter_var($url, FILTER_SANITIZE_URL) : false;
 
-        if ($header) {
-            self::header($header);
-        }
-
         if (!$url) {
             throw new \Exception('Cannot redirect to "' . $url . '"');
         }
@@ -97,15 +93,14 @@ class HTTP
      */
     private static function renderErrorPage($status_code)
     {
-        $templator = new \Pages\Templator();
+        $templator = new \Content\Pages\Templator();
 
         $templator->assign('error_code', $status_code);
         $templator->assign('error_name', self::$status_codes[$status_code]);
-        $templator->assign('full_web_url',\Settings::value('full_web_url'));
+        $templator->assign('full_web_url', \Settings::value('full_web_url'));
 
         $body_template          = \Settings::value('http_error_template');
         $find_replace['body']   = $templator->fetch('string: ' . $body_template);
-
 
         return $templator::page($find_replace);
     }

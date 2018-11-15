@@ -8,11 +8,12 @@ module.exports = function(grunt) {
 				stripBanners: true
 			},
 			css: {
-				src: ['app/assets-src/**/*.css'],
+				src: ['app/assets-src/css/**/*.css'],
 				dest: 'app/assets-src/styles.concat.css'
 			},
 			js: {
-				src: ['app/assets-src/**/*.js'],
+				// make sure jquery is first
+				src: ['app/assets-src/js/jquery*.js', 'app/assets-src/js/**/*.js'],
 				dest: 'app/assets-src/js.concat.js'
 			}
 		},
@@ -49,7 +50,7 @@ module.exports = function(grunt) {
 			}
 		}
 		
-    });
+	});
 
 	// Load plugins
 	grunt.loadNpmTasks('grunt-contrib-concat');

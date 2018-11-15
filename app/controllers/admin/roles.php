@@ -13,11 +13,11 @@
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
 // check setting/role privileges
-if (!\Settings::value('add_roles') || !\Settings::value('edit_roles') || !\Settings::value('archive_roles')) {
-    \Pages\HTTP::error(401);
+if (!\Settings::value('add_roles') && !\Settings::value('edit_roles') && !\Settings::value('archive_roles')) {
+    \Content\Pages\HTTP::error(401);
 }
 
-$templator  = new \Pages\Templator();
+$templator  = new \Content\Pages\Templator();
 $roles      = new \User\Roles();
 $all_roles  = $roles->getAll();
 $error      = null;
@@ -26,7 +26,6 @@ $role_name_value    = null;
 $description_value  = null;
 
 if (!empty($_POST)) {
-
     foreach($_POST as $key => $val)
         $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
 
@@ -66,8 +65,8 @@ $title = 'Roles';
 $page_find_replace = [
     'page_title_seo'    => $title,
     'page_title_h1'     => $title,
-    'breadcrumbs'       => (new \Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
+    'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
     'body'              => $templator->fetch('admin/roles.tpl'),
 ];
 
-echo \Pages\Templator::page($page_find_replace);
+echo \Content\Pages\Templator::page($page_find_replace);

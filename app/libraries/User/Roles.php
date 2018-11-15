@@ -255,7 +255,7 @@ class Roles
     private function updateConfigRoles(\Db\PdoMySql $transaction, array $role_data)
     {
         $sql = "
-            UPDATE config_roles
+            UPDATE settings_roles
             SET role_name = ?
             WHERE role_name = ?
             AND archived = '0';

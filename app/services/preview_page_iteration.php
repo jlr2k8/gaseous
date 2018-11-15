@@ -12,12 +12,13 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 
-$get_uid        = !empty($_GET['uid']) ? (string)filter_var($_GET['uid'], FILTER_SANITIZE_STRING) : false;
-$content_only   = (!empty($_GET['content_only']) && $_GET['content_only'] == 'true');
+$get_uid                = !empty($_GET['uid']) ? (string)filter_var($_GET['uid'], FILTER_SANITIZE_STRING) : false;
+$get_page_master_uid    = !empty($_GET['page_master_uid']) ? (string)filter_var($_GET['page_master_uid'], FILTER_SANITIZE_STRING) : false;
+$content_only           = !empty($_GET['content_only']) && $_GET['content_only'] == 'true';
 
 if (empty($get_uid))
-    \Pages\HTTP::error(400);
+    \Content\Pages\HTTP::error(400);
 
-$get = new \Pages\Get();
+$get = new \Content\Pages\Get();
 
-echo $get->pagePreviewByIterationUid($get_uid, $content_only);
+echo $get->pagePreviewByIterationUid($get_uid, $get_page_master_uid, $content_only);

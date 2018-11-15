@@ -10,7 +10,7 @@
  *
  */
 
-namespace Pages;
+namespace Content\Pages;
 
 class Utilities
 {
@@ -95,5 +95,27 @@ class Utilities
         }
 
         return $uri;
+    }
+
+
+    /**
+     * @param $page_master_uid
+     * @return string
+     */
+    static function pageUriFromMasterUid($page_master_uid)
+    {
+        $sql = "
+            SELECT uri
+            FROM uri
+            INNER JOIN page
+              ON page.uri_uid = uri.uid
+            WHERE page.page_master_uid = ?
+            AND uri.archived = '0'
+            AND page.archived = '0'
+        ";
+
+        $db = new \Db\Query($sql, [$page_master_uid]);
+
+        return $db->fetch();
     }
 }

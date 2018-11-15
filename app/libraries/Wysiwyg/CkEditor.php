@@ -64,7 +64,6 @@ class CkEditor
 
 
     /**
-     * TODO - move filebrowserUploadUrl value to setting value
      * @param $textarea_id
      * @param string $custom_config
      * @return string
@@ -73,7 +72,7 @@ class CkEditor
     {
         $item = '
             <script>
-                CKEDITOR.replace(\'' . $textarea_id . '\', {
+                var ckeditor = CKEDITOR.replace(\'' . $textarea_id . '\', {
                     customConfig: \'' . $custom_config . '\',
                     extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
                     skin: \'' . $this->skin[self::SKIN] . '\',
@@ -88,7 +87,6 @@ class CkEditor
 
 
     /**
-     * TODO - move filebrowserUploadUrl value to setting value
      * @param $textarea_id
      * @param string $custom_config
      * @return string
@@ -97,7 +95,7 @@ class CkEditor
     {
         $item = '
             <script>
-                CKEDITOR.inline(\'' . $textarea_id . '\', {
+                var ckeditor = CKEDITOR.inline(\'' . $textarea_id . '\', {
                     customConfig: \'' . $custom_config . '\',
                     extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
                     filebrowserUploadUrl: \'/services/upload.php\',

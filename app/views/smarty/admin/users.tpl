@@ -60,6 +60,9 @@
                                             {if in_array($role.role_name, $account.account_roles)}
                                                 checked="checked"
                                             {/if}
+                                            {if !$edit_users}
+                                                disabled="disabled"
+                                            {/if}
                                         />
                                     </td>
                                 </tr>
@@ -81,7 +84,15 @@
 <div class="clear_both">&#160;</div>
 
 <p class="margin_on_top clear_both">
-    Provide users with a registration link:<br /><a class="break_word" href="{$full_web_url}/register/?access_code={$access_code}">{$full_web_url}/register/?access_code={$access_code}</a> (or <a href="{$full_web_url}/admin/config/?key=access_code">update</a> the access code)
+    Provide users with a registration link:<br />
+    <a class="break_word" href="{$full_web_url}/register/?access_code={$access_code}">
+        {$full_web_url}/register/?access_code={$access_code}
+    </a>
+    (or
+    <a href="{$full_web_url}/admin/settings/#registration_access_code">
+        update
+    </a>
+    the access code)
 </p>
 
 <div class="clear_both">&#160;</div>

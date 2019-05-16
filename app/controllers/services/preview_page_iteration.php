@@ -10,8 +10,6 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $get_uid                = !empty($_GET['uid']) ? (string)filter_var($_GET['uid'], FILTER_SANITIZE_STRING) : false;
 $get_page_master_uid    = !empty($_GET['page_master_uid']) ? (string)filter_var($_GET['page_master_uid'], FILTER_SANITIZE_STRING) : false;
 $content_only           = !empty($_GET['content_only']) && $_GET['content_only'] == 'true';

@@ -10,6 +10,4 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 echo !empty($_SESSION['css_preview']) ? '1' : '0';

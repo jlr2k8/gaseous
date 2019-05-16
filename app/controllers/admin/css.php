@@ -11,8 +11,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 // check setting/role privileges
 if (!\Settings::value('manage_css')) {
     \Content\Pages\HTTP::error(401);

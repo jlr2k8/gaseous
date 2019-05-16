@@ -23,8 +23,8 @@ class Email extends \Swift_Mailer
 
         $transport  = new \Swift_SmtpTransport($smtp_host, $smtp_port);
 
-        $transport->setUsername($smtp_user);
-        $transport->setPassword($smtp_password);
+        $transport->setUsername($smtp_user)
+            ->setPassword($smtp_password);
 
         parent::__construct($transport);
     }

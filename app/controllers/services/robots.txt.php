@@ -10,9 +10,8 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $robots_txt_value = \Settings::value('robots_txt_value');
 
 header('Content-type: text/plain');
+
 echo $robots_txt_value ?: null;

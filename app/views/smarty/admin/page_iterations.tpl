@@ -10,12 +10,12 @@
                         <p>
                             Change by {$iteration.author} {$iteration.formatted_created}
                             <br />
-                            <a target="_blank" href="{$full_web_url}/services/preview_page_iteration.php?uid={$iteration.page_iteration_uid}&page_master_uid={$page.page_master_uid}">
+                            <a target="_blank" href="{$full_web_url}/controllers/services/preview_page_iteration.php?uid={$iteration.page_iteration_uid}&page_master_uid={$page.page_master_uid}">
                                 Preview
                             </a>
                             &#160;&#160;
                             {if !empty($iterations[$next_key])}
-                                <a target="_blank" href="{$full_web_url}/services/diff_page_iterations.php?old_uid={$iterations[$next_key].page_iteration_uid}&new_uid={$iteration.page_iteration_uid}">
+                                <a target="_blank" href="{$full_web_url}/controllers/services/diff_page_iterations.php?old_uid={$iterations[$next_key].page_iteration_uid}&new_uid={$iteration.page_iteration_uid}">
                                     View Diff
                                 </a>
                             {/if}

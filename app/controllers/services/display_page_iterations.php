@@ -10,8 +10,6 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 // restricted access
 if (!\Settings::value('edit_pages')) {
     \Content\Pages\HTTP::error(401);

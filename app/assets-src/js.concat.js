@@ -97,7 +97,7 @@ $(document).ready( function() {
 
             if (page_master_uid != '') {
                 $('#page_iterations_wrapper div').fadeOut(function() {
-                    $(this).load('/services/display_page_iterations.php?page_master_uid=' + page_master_uid, function() {
+                    $(this).load('/controllers/services/display_page_iterations.php?page_master_uid=' + page_master_uid, function() {
                         $(this).fadeIn();
                     });
                 })

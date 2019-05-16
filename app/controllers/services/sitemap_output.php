@@ -10,8 +10,6 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $sitemap = new \Seo\SiteMap();
 
 $sitemap->outputHeaders();

@@ -10,8 +10,6 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $get_pages          = new \Content\Pages\Get();
 $submit_pages       = new \Content\Pages\Submit($_POST);
 $transaction        = new \Db\PdoMySql();

@@ -10,6 +10,5 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
 // TODO
 echo 'Main admin page goes here';

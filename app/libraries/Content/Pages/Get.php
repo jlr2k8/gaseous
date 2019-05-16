@@ -22,18 +22,22 @@ class Get
 
 
     /**
-     * @return bool
+     * @return string
+     * @throws \Exception
      */
     public function byUri()
     {
         $uri = $_SERVER['REQUEST_URI'];
 
-        return self::page($uri);
+        $find_replace = [];
+
+        return self::page($uri, $find_replace);
     }
 
 
     /**
-     * @param $parsed_uri
+     * @param array $parsed_uri
+     * @return bool
      * @throws \Exception
      */
     protected function redirectProperUri(array $parsed_uri)
@@ -41,11 +45,15 @@ class Get
         $current_uri    = $parsed_uri['path'];
         $querystring    = !empty($parsed_uri['query']) ? '?' . $parsed_uri['query'] : null;
 
-        if (!empty($querystring) && $_SERVER['REQUEST_URI'] != $current_uri . $querystring)
+        if (!empty($querystring) && $_SERVER['REQUEST_URI'] != $current_uri . $querystring) {
             \Content\Pages\HTTP::redirect($current_uri . $querystring, 301);
+        }
 
-        if (!stristr($current_uri, '?') && substr($current_uri, -1) != '/')
+        if (!stristr($current_uri, '?') && substr($current_uri, -1) != '/') {
             \Content\Pages\HTTP::redirect($current_uri . '/' . $querystring, 301);
+        }
+
+        return false;
     }
 
 
@@ -67,7 +75,7 @@ class Get
         ';
 
         $bind = [
-            trim($uri, '/'),
+            rtrim($uri, '/'),
         ];
 
         $db         = new \Db\Query($sql, $bind);
@@ -80,7 +88,9 @@ class Get
     /**
      * @param $page_uri
      * @param array $find_replace
-     * @return bool
+     * @param bool $redirect_proper_uri
+     * @return string
+     * @throws \Exception
      */
     public function page($page_uri, $find_replace = [], $redirect_proper_uri = true)
     {
@@ -98,7 +108,7 @@ class Get
         }
 
         if (empty($content)) {
-            $content = \Content\Pages\HTTP::error(404);
+            \Content\Pages\HTTP::error(404);
         }
 
         return $content;
@@ -106,9 +116,11 @@ class Get
 
 
     /**
-     * @param $page_uri
+     * @param $page_iteration_uid
      * @param $page_master_uid
-     * @return bool
+     * @param bool $content_only
+     * @return bool|string
+     * @throws \SmartyException
      */
     public function pagePreviewByIterationUid($page_iteration_uid, $page_master_uid, $content_only = false)
     {
@@ -265,6 +277,7 @@ class Get
     /**
      * @param $page_iteration_uid
      * @return array
+     * @throws \Exception
      */
     public function pageContentForPreview($page_iteration_uid)
     {
@@ -375,7 +388,7 @@ class Get
         $sql .= "
             GROUP BY uri
             ORDER BY
-            CASE WHEN uri.uri = 'home'
+            CASE WHEN uri.uri = '/home'
               THEN 0
               ELSE 1
             END,
@@ -396,7 +409,8 @@ class Get
 
     /**
      * @param array $find_replace
-     * @return string
+     * @return mixed
+     * @throws \SmartyException
      */
     public function templatedPage($find_replace = array())
     {
@@ -421,14 +435,15 @@ class Get
 
 
     /**
-     * @param Templator $templator
      * @param $string
-     * @return null|string
+     * @param Templator|null $templator
+     * @return string|null
+     * @throws \SmartyException
      */
     private function renderTemplate($string, \Content\Pages\Templator $templator = null)
     {
         if (!empty($templator)) {
-            $templator->security->php_functions         = null;
+            $templator->security->php_functions         = ['date'];
             $templator->security->php_handling          = $templator::PHP_REMOVE;
             $templator->security->php_modifiers         = null;
             $templator->security->static_classes        = null;
@@ -480,9 +495,10 @@ class Get
 
 
     /**
-     * @param $templator
-     * @param $find_replace
-     * @return mixed
+     * @param Templator $templator
+     * @param array $find_replace
+     * @return string
+     * @throws \SmartyException
      */
     private function main(\Content\Pages\Templator $templator, array $find_replace)
     {
@@ -498,9 +514,10 @@ class Get
 
 
     /**
-     * @param $templator
-     * @param $find_replace
-     * @return mixed
+     * @param Templator $templator
+     * @param array $find_replace
+     * @return string
+     * @throws \SmartyException
      */
     private function nav(\Content\Pages\Templator $templator, array $find_replace)
     {
@@ -516,9 +533,10 @@ class Get
 
 
     /**
-     * @param $templator
-     * @param $find_replace
-     * @return mixed
+     * @param Templator $templator
+     * @param array $find_replace
+     * @return string
+     * @throws \SmartyException
      */
     private function footer(\Content\Pages\Templator $templator, array $find_replace)
     {

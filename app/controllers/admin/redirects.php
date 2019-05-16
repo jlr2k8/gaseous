@@ -11,8 +11,6 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 // check setting/role privileges
 if (!\Settings::value('add_redirects') && !\Settings::value('edit_redirects') && !\Settings::value('archive_redirects')) {
     \Content\Pages\HTTP::error(401);

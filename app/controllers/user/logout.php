@@ -10,8 +10,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $login      = new \User\Login();
 $message    = 'You have been successfully logged out!';
 

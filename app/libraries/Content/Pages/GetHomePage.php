@@ -18,20 +18,28 @@ class GetHomePage extends \Content\Pages\Get
     {
     }
 
+
     public static $home_pages = [
         '/index.html',
         '/index.htm',
         '/index.php',
-        '/home/',
+        '/home',
     ];
 
 
+    /**
+     * @return bool
+     * @throws \Exception
+     */
     public function redirectHome()
     {
         return \Content\Pages\HTTP::redirect('/', 301);
     }
 
 
+    /**
+     * @return bool
+     */
     public static function isHomepage()
     {
         $parsed_uri = parse_url($_SERVER['REQUEST_URI']);
@@ -41,7 +49,8 @@ class GetHomePage extends \Content\Pages\Get
 
 
     /**
-     * @param $parsed_uri
+     * @param array $parsed_uri
+     * @return bool
      * @throws \Exception
      */
     protected function redirectProperUri(array $parsed_uri)
@@ -58,32 +67,34 @@ class GetHomePage extends \Content\Pages\Get
 
 
     /**
-     * @return bool
+     * @return bool|string
+     * @throws \Exception
      */
     public function byUri()
     {
-        return self::isHomepage() ? $this->page('home', [], false) : parent::byUri();
+        return self::isHomepage() ? $this->page('/home', [], false) : parent::byUri();
     }
 
 
     /**
-     * @param $page_uri
+     * @param string $page_uri
      * @param array $find_replace
-     * @return bool
+     * @param bool $redirect_proper_uri
+     * @return string
+     * @throws \Exception
      */
     public function page($page_uri = 'home', $find_replace = [], $redirect_proper_uri = true)
     {
-        $find_replace   = $this->pageContent('home');
-        $parsed_uri     = parse_url($page_uri);
+        $parsed_uri         = parse_url($page_uri);
+        $find_replace_page  = $this->pageContent('/home');
+        $find_replace       = array_merge($find_replace_page, $find_replace);
 
-        if (!empty($find_replace) && $page_uri == 'home') {
-
+        if (!empty($find_replace) && $page_uri == '/home') {
             if ($redirect_proper_uri === true) {
                 self::redirectProperUri($parsed_uri);
             }
 
             $content = $this->templatedPage($find_replace);
-
         } else {
             $content = parent::page($page_uri, $find_replace, false);
         }

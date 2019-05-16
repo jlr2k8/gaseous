@@ -13,8 +13,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 // get src param
 $upload_root    = \Settings::value('upload_root');
 $filetype       = !empty($_GET['filetype']) ? $_GET['filetype'] : false;

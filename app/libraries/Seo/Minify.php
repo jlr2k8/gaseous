@@ -25,12 +25,12 @@ class Minify
      */
     public static function html($input)
     {
-        $find_replace = array(
-            '~\n|\r|\t~' => ' ',
-            '~\s{2,}~' => ' ',
-            '~>\s<~' => '><',
-            '~<!--.*?-->~' => null,
-        );
+        $find_replace = [
+            '~\n|\r|\t~'    => ' ',
+            '~\s{2,}~'      => ' ',
+            '~>\s<~'        => '><',
+            '~<!--.*?-->~'  => null,
+        ];
 
         $find       = array_keys($find_replace);
         $replace    = $find_replace;
@@ -45,12 +45,35 @@ class Minify
      */
     public static function css($input)
     {
-        $find_replace = array(
-            '~\n|\r|\t~' => ' ',
-            '~\/\*[\w\s\*]*\*\/~' => null,
-            '~\s{2,}~' => ' ',
-            '~\s({|})\s~' => '$1',
-        );
+        $find_replace = [
+            '~\n|\r|\t~'            => ' ',
+            '~\/\*[\w\s\*]*\*\/~'   => null,
+            '~\s{2,}~'              => ' ',
+            '~\s({|})\s~'           => '$1',
+        ];
+
+        $find       = array_keys($find_replace);
+        $replace    = $find_replace;
+
+        return preg_replace($find, $replace, $input);
+    }
+
+
+    /**
+     * @param $input
+     * @return null|string|string[]
+     */
+    public static function js($input)
+    {
+        // regex taken from https://gist.github.com/Rodrigo54/93169db48194d470188f
+
+        $find_replace = [
+            '~\s*("(?:[^"\\\]++|\\\.)*+"|\'(?:[^\'\\\\]++|\\\.)*+\')\s*|\s*\/\*(?!\!|@cc_on)(?>[\s\S]*?\*\/)\s*|\s*(?<![\:\=])\/\/.*(?=[\n\r]|$)|^\s*|\s*$~'            => '$1',
+            '~("(?:[^"\\\]++|\\\.)*+"|\'(?:[^\'\\\\]++|\\\.)*+\'|\/\*(?>.*?\*\/)|\/(?!\/)[^\n\r]*?\/(?=[\s.,;]|[gimuy]|$))|\s*([!%&*\(\)\-=+\[\]\{\}|;:,.<>?\/])\s*~s'  => '$1$2',
+            '~;+\}~'                                                                                                                                                    => '}',
+            '~([\{,])([\'])(\d+|[a-z_][a-z0-9_]*)\2(?=\:)~i'                                                                                                            => '$1$3',
+            '~([a-z0-9_\)\]])\[([\'"])([a-z_][a-z0-9_]*)\2\]~i'                                                                                                         => '$1.$3',
+        ];
 
         $find       = array_keys($find_replace);
         $replace    = $find_replace;

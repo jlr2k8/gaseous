@@ -10,8 +10,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $client_headers = apache_request_headers();
 $headers        = new \Headers($client_headers);
 $css            = new \Css();

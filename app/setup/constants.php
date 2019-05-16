@@ -13,7 +13,6 @@
 // Bootstrap configuration for cookie/session handling
 define('LOGIN_COOKIE', $_SERVER['LOGIN_COOKIE']);
 define('SESSION_NAME', $_SERVER['SESSION_NAME']);
-define('SESSION_CONFIG_KEY', file_get_contents($_SERVER['WEB_ROOT'] . '/setup/.session_config_key')); // to bust all user cache, rename this. only do that if you're sure you know the risks
 
 // MySQL
 define ('MYSQL_SERVER', $_SERVER['DB_HOST']);

@@ -10,8 +10,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $templator  = new \Content\Pages\Templator();
 $login      = new \User\Login();
 

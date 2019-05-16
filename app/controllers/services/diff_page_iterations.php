@@ -10,8 +10,6 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $diff       = new \Content\Pages\Diff();
 $get        = new \Content\Pages\Get();
 $templator  = new \Content\Pages\Templator();

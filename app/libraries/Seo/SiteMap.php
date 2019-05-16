@@ -102,12 +102,12 @@ class SiteMap
     private static function buildFullUrl($uri)
     {
         // Exception
-        if ($uri == 'home')
+        if ($uri == '/home')
             $uri = '';
         else
             $uri .= '/';
 
-        return \Settings::value('full_web_url') . '/' . $uri;
+        return \Settings::value('full_web_url') . $uri;
     }
 
 

@@ -10,8 +10,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $templator          = new \Content\Pages\Templator();
 $access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['access_code'], FILTER_SANITIZE_STRING) : false;
 $has_valid_access   = ($access_code && $access_code == \Settings::value('registration_access_code'));

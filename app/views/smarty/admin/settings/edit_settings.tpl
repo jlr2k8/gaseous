@@ -1,6 +1,7 @@
 <form id="setting_{$setting.key}" method="post" action="{$full_web_url}/admin/settings/">
     {if in_array('codemirror', $setting.properties)}
         <td colspan="3">
+            <a id="{$setting.key}"></a>
             <p>{$setting.key_display}:</p>
             <input type="hidden" name="key" value="{$setting.key}" />
             <input type="hidden" name="codemirror" value="true" />
@@ -14,6 +15,7 @@
         </td>
     {else}
         <td class="no_border">
+            <a id="{$setting.key}"></a>
             <input type="hidden" name="key" value="{$setting.key}" />
             {$setting.key_display}
         </td>

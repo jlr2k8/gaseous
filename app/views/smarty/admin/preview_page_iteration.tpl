@@ -17,6 +17,6 @@
             {/if}
         </form>
 
-        <iframe style="width:100%;height:80%;" src="{$full_web_url}/services/preview_page_iteration.php?uid={$page_iteration_uid}&page_master_uid={$page_master_uid}&content_only=true"></iframe>
+        <iframe style="width:100%;height:80%;" src="{$full_web_url}/controllers/services/preview_page_iteration.php?uid={$page_iteration_uid}&page_master_uid={$page_master_uid}&content_only=true"></iframe>
     </body>
 </html>

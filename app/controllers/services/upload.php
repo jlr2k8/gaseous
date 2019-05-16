@@ -9,8 +9,6 @@
  * CK Editor upload image
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 $file_upload            = !empty($_FILES['upload']['tmp_name']) ? $_FILES['upload']['tmp_name'] : false;
 $file_reference         = !empty($_FILES['upload']['name']) ? $_FILES['upload']['name'] : false;
 $upload_root            = \Settings::value('upload_root');

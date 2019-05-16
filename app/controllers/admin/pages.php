@@ -10,8 +10,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 // check setting/role privileges
 if (!\Settings::value('add_pages') && !\Settings::value('edit_pages') && !\Settings::value('archive_pages')) {
     \Content\Pages\HTTP::error(401);
@@ -34,7 +32,7 @@ $all_uris           = \Content\Pages\Get::allUris();
 $statuses           = \Content\Pages\Get::statuses();
 $page_uri           = !empty($_GET['page_uri_urlencoded']) ? (string)filter_var($_GET['page_uri_urlencoded'], FILTER_SANITIZE_STRING) : false;
 $this_page          = $pages->pageContent($page_uri) ?: $pages->pageContent($page_uri, 'inactive');
-$is_home_page       = !empty($this_page['uri']) && $this_page['uri'] == 'home';
+$is_home_page       = !empty($this_page['uri']) && $this_page['uri'] == '/home';
 $new_page           = !empty($_GET['new_page']) && $_GET['new_page'] == 'true';
 $all_roles          = $roles->getAll();
 

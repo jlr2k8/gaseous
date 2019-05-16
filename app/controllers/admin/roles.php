@@ -10,8 +10,6 @@
  *
  */
 
-require_once $_SERVER['WEB_ROOT'] . '/setup/init.php';
-
 // check setting/role privileges
 if (!\Settings::value('add_roles') && !\Settings::value('edit_roles') && !\Settings::value('archive_roles')) {
     \Content\Pages\HTTP::error(401);

@@ -508,11 +508,11 @@ class Submit
         $old_uri_as_array       = \Content\Pages\Utilities::uriAsArray($old_uri);
         $parent_page_uri        = \Content\Pages\Get::uri($this->post_data['parent_page_uri']);
         $this_uri_piece         = $this->post_data['this_uri_piece'];
-        $new_uri                = trim($parent_page_uri . '/' . $this_uri_piece, '/');
+        $new_uri                = rtrim($parent_page_uri . '/' . $this_uri_piece, '/');
         $new_uri_as_array       = \Content\Pages\Utilities::uriAsArray($new_uri);
         $all_uris               = \Content\Pages\Get::allUris();
 
-        if ($old_uri == 'home' && $old_uri != $new_uri) {
+        if ($old_uri == '/home' && $old_uri != $new_uri) {
             $this->errors[] = 'The home page URI cannot be edited';
             $this->checkAndThrowErrorException();
         }
@@ -593,7 +593,7 @@ class Submit
             VALUES(?);
         ";
 
-        $bind = [trim($uri, '/')];
+        $bind = [rtrim($uri, '/')];
 
         $transaction
             ->prepare($sql)
@@ -616,7 +616,7 @@ class Submit
             WHERE uri = ?
         ";
 
-        $bind   = [trim($uri, '/')];
+        $bind   = [rtrim($uri, '/')];
         $result = $transaction->prepare($sql);
 
         $result->execute($bind);
@@ -668,7 +668,7 @@ class Submit
         ";
 
         $bind = [
-            trim($updated_uri, '/'),
+            rtrim($updated_uri, '/'),
             $old_uri_uid,
         ];
 

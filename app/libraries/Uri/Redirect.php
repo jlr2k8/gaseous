@@ -56,7 +56,7 @@ class Redirect
     /**
      * @return array
      */
-    public function getAll($exclude_existing_redirects = false)
+    public function getAll()
     {
         $sql = "
             SELECT
@@ -76,25 +76,6 @@ class Redirect
             AND
                 uri_redirects.archived = '0'
         ";
-
-        if ($exclude_existing_redirects === true) {
-            $sql .= "
-                AND uri_uid NOT IN (
-                    SELECT
-                        uid
-                    FROM
-                        uri
-                    INNER JOIN
-                        uri_redirects
-                    ON
-                        uri_redirects.uri_uid = uri.uid
-                    WHERE
-                        uri_redirects.archived = '0'
-                    AND
-                        uri.archived = '0'
-                )
-            ";
-        }
 
         $db         = new \Db\Query($sql);
         $results    = $db->fetchAllAssoc();
@@ -168,7 +149,11 @@ class Redirect
     }
 
 
-
+    /**
+     * @param array $data
+     * @param \Db\PdoMySql|null $transaction
+     * @return bool
+     */
     public function insert(array $data, \Db\PdoMySql $transaction = null)
     {
         $uri_uid            = filter_var($data['uri_uid'], FILTER_SANITIZE_STRING);

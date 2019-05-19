@@ -7,7 +7,7 @@
             You are previewing "{$find_replace.page_identifier_label}"<br />Last modified by {$iteration.author} {$iteration.formatted_created}<br /><em>{$iteration.iteration_description}</em>
         </p>
 
-        <form method="post" action="{$full_web_url}/services/update_page_iteration.php">
+        <form method="post" action="{$full_web_url}/controllers/services/update_page_iteration.php">
             <input type="hidden" name="page_iteration_uid" value="{$page_iteration_uid}" />
             <input type="hidden" name="page_master_uid" value="{$page_master_uid}" />
             <input type="hidden" name="return_url_encoded" value="{$return_url_encoded}" />

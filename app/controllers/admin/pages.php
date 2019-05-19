@@ -10,26 +10,37 @@
  *
  */
 
+use \Content\Pages\Get;
+use \Content\Pages\Templator;
+use \Content\Pages\Diff;
+use \Content\Pages\GetHomePage;
+use \Content\Pages\Utilities;
+use \Content\Pages\Breadcrumbs;
+use \User\Roles;
+use \User\Account;
+use \Wysiwyg\CkEditor;
+use \Wysiwyg\Codemirror;
+
 // check setting/role privileges
 if (!\Settings::value('add_pages') && !\Settings::value('edit_pages') && !\Settings::value('archive_pages')) {
     \Content\Pages\HTTP::error(401);
 }
 
 $settings           = new \Settings();
-$pages              = new \Content\Pages\Get();
-$templator          = new \Content\Pages\Templator();
-$roles              = new \User\Roles();
-$account            = new \User\Account();
-$diff               = new \Content\Pages\Diff();
-$ck_editor          = new \Wysiwyg\CkEditor();
-$codemirror         = new \Wysiwyg\Codemirror();
+$pages              = new Get();
+$templator          = new Templator();
+$roles              = new Roles();
+$account            = new Account();
+$diff               = new Diff();
+$ck_editor          = new CkEditor();
+$codemirror         = new Codemirror();
 
 $all_active_pages   = $pages->allPages();
 $all_inactive_pages = $pages->allPages('inactive');
 $my_account         = $account->getAccountFromSessionValidation();
 $full_web_url       = \Settings::value('full_web_url');
-$all_uris           = \Content\Pages\Get::allUris();
-$statuses           = \Content\Pages\Get::statuses();
+$all_uris           = Get::allUris();
+$statuses           = Get::statuses();
 $page_uri           = !empty($_GET['page_uri_urlencoded']) ? (string)filter_var($_GET['page_uri_urlencoded'], FILTER_SANITIZE_STRING) : false;
 $this_page          = $pages->pageContent($page_uri) ?: $pages->pageContent($page_uri, 'inactive');
 $is_home_page       = !empty($this_page['uri']) && $this_page['uri'] == '/home';
@@ -82,12 +93,12 @@ if (!empty($_POST)) {
 
 } elseif (!empty($this_page)) {
     $specific_title = $title . ' - ' . (empty($this_page['page_title_h1']) ? $this_page['uri'] : $this_page['page_title_h1']);
-    $uri_as_array   = \Content\Pages\Utilities::uriAsArray($this_page['uri']);
-    $this_uri_piece = \Content\Pages\Utilities::getLastPartOfUri($uri_as_array);
-    $parent_uri     = \Content\Pages\Utilities::generateParentUri($uri_as_array);
+    $uri_as_array   = Utilities::uriAsArray($this_page['uri']);
+    $this_uri_piece = Utilities::getLastPartOfUri($uri_as_array);
+    $parent_uri     = Utilities::generateParentUri($uri_as_array);
     $iterations     = $diff->getPageIterations($this_page['page_master_uid']);
     $page_roles     = $pages->pageRoles($this_page['uid']);
-    $home_page_uris = \Content\Pages\GetHomePage::$home_pages;
+    $home_page_uris = GetHomePage::$home_pages;
 
     $templator->assign('uri_as_array', $uri_as_array);
     $templator->assign('this_uri_piece', $this_uri_piece);
@@ -119,9 +130,9 @@ if (!empty($_POST)) {
     $page_find_replace = [
         'page_title_seo'    => $title,
         'page_title_h1'     => $title,
-        'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
+        'breadcrumbs'       => (new Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
         'body'              => $templator->fetch('admin/pages.tpl'),
     ];
 }
 
-echo \Content\Pages\Templator::page($page_find_replace, true);
+echo Templator::page($page_find_replace, true);

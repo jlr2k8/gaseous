@@ -2,7 +2,7 @@
 /**
  * Created by Josh L. Rogers.
  * Copyright (c) 2018 All Rights Reserved.
- * 10/20/18
+ * 5/19/18
  *
  * redirects.php
  *
@@ -11,6 +11,7 @@
  *
  **/
 
+use \Content\Pages\Get;
 use \Content\Pages\Breadcrumbs;
 use \Content\Pages\HTTP;
 use \Content\Pages\Templator;
@@ -29,7 +30,7 @@ $redirects          = $uri_redirect->getAll();
 $unused_redirects   = $uri_redirect->getAllNotRedirected();
 $error              = null;
 $http_status_codes  = HTTP::$status_codes;
-$all_uris           = \Content\Pages\Get::allUris();
+$all_uris           = Get::allUris();
 
 $add_uri_redirects      = \Settings::value('add_redirects');
 $edit_redirect_uris     = \Settings::value('edit_redirects');

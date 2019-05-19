@@ -138,4 +138,191 @@ class Route
 
         return true;
     }
+
+
+    /**
+     * @return array
+     */
+    public function getAll()
+    {
+        $sql = "
+            SELECT
+                uid,
+                regex_pattern,
+                destination_controller,
+                description
+            FROM
+                uri_routes
+            WHERE
+                archived = '0'
+        ";
+
+        $db         = new \Db\Query($sql);
+        $results    = $db->fetchAllAssoc();
+
+        return $results;
+    }
+
+
+    /**
+     * @param array $data
+     * @param \Db\PdoMySql|null $transaction
+     * @return bool
+     */
+    public function insert(array $data, \Db\PdoMySql $transaction = null)
+    {
+        $regex_pattern          = filter_var($data['regex_pattern'], FILTER_SANITIZE_STRING);
+        $destination_controller = filter_var($data['destination_controller'], FILTER_SANITIZE_STRING);
+        $description            = filter_var($data['description'], FILTER_SANITIZE_STRING);
+
+        $sql = "
+            INSERT INTO
+                uri_routes (
+                    regex_pattern,
+                    destination_controller,
+                    description
+                ) VALUES (
+                    ?,
+                    ?,
+                    ?
+                );
+        ";
+
+        $bind = [
+            $regex_pattern,
+            $destination_controller,
+            $description,
+        ];
+
+        if (empty($transaction)) {
+            $db         = new \Db\Query($sql, $bind);
+            $ran        = $db->run();
+        } else {
+            $ran = $transaction
+                ->prepare($sql)
+                ->execute($bind);
+        }
+
+        return $ran;
+    }
+
+
+    /**
+     * @param array $data
+     * @return bool
+     * @throws \Exception
+     */
+    public function update(array $data)
+    {
+        $uid                    = filter_var($data['uid'], FILTER_SANITIZE_STRING);
+        $regex_pattern          = filter_var($data['regex_pattern'], FILTER_SANITIZE_STRING);
+        $destination_controller = filter_var($data['destination_controller'], FILTER_SANITIZE_STRING);
+        $description            = filter_var($data['description'], FILTER_SANITIZE_STRING);
+
+        $transaction = new \Db\PdoMySql();
+
+        $transaction->beginTransaction();
+
+        try {
+            $this->archive($uid, $transaction);
+
+            $data = [
+                'regex_pattern'     => $regex_pattern,
+                'destination_controller'   => $destination_controller,
+                'description'       => $description,
+            ];
+
+            $this->insert($data, $transaction);
+        } catch(\ErrorException $e) {
+            $transaction->rollBack();
+
+            $this->errors[] = $e->getMessage();
+
+            $this->generateJsonUpsertStatus('status', $e->getMessage());
+            $this->checkAndThrowErrorException();
+
+            return false;
+        }
+
+        $transaction->commit();
+
+        return true;
+    }
+
+
+    /**
+     * @param $uid
+     * @param \Db\PdoMySql|null $transaction
+     * @return bool
+     */
+    public function archive($uid, \Db\PdoMySql $transaction = null)
+    {
+        $sql = "
+            UPDATE
+                uri_routes
+            SET
+                archived = '1',
+                archived_datetime = NOW()
+            WHERE
+                uid = ?
+            AND
+                archived = '0';
+        ";
+
+        $bind = [
+            $uid,
+        ];
+
+        if (empty($transaction)) {
+            $db         = new \Db\Query($sql, $bind);
+            $ran        = $db->run();
+        } else {
+            $ran    = $transaction
+                ->prepare($sql)
+                ->execute($bind);
+        }
+
+        return $ran;
+    }
+
+
+    /**
+     * @param $status
+     * @param $message
+     * @return bool
+     */
+    private function generateJsonUpsertStatus($status, $message)
+    {
+        $status_message = [
+            $status => $message,
+        ];
+
+        $this->json_upsert_status = json_encode($status_message);
+
+        return true;
+    }
+
+
+    /**
+     * @throws \Exception
+     */
+    private function checkAndThrowErrorException()
+    {
+        if (!empty($this->errors)) {
+            $errors = implode('; ', $this->errors);
+
+            throw new \ErrorException($errors);
+        }
+
+        return true;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getErrors()
+    {
+        return implode('; ', $this->errors);
+    }
 }

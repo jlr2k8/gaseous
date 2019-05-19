@@ -100,6 +100,9 @@
                             HTTP Status Code
                         </th>
                         <th>
+                            Description
+                        </th>
+                        <th>
                             {* Action (No Header) *}
                         </th>
                     </thead>
@@ -131,11 +134,15 @@
                                 </select>
                             </td>
                             <td>
-                                <button class="uri_redirect_update" data-setting-key="{$redir.uri_uid}" name="new" type="submit">Submit new redirect rule &#187;</button>
+                                <input type="text" name="description" />
+                            </td>
+                            <td>
+                                <button class="uri_redirect_update" type="submit">Submit new redirect rule &#187;</button>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </form>
-        {/if}
-    </div>
+        </div>
+    {/if}
+</div>

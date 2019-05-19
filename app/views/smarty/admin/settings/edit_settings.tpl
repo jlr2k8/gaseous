@@ -7,7 +7,7 @@
             <input type="hidden" name="codemirror" value="true" />
             <textarea id="value_{$setting.key}" name="value">{htmlspecialchars($setting.value, ENT_SUBSTITUTE)}</textarea>
             {if $edit_settings}
-                <button class="setting_update" data-setting-key="{$setting.key}" name="update" type="input">Update</button>
+                <button class="setting_update" data-setting-key="{$setting.key}" name="update" type="button">Update</button>
             {/if}
 
             {$codemirror->cdn}
@@ -28,7 +28,7 @@
         </td>
         <td class="no_border">
             {if $edit_settings}
-                <button class="setting_update" data-setting-key="{$setting.key}" name="update" type="input">Update</button>
+                <button class="setting_update" data-setting-key="{$setting.key}" name="update" type="button">Update</button>
             {/if}
         </td>
     {/if}

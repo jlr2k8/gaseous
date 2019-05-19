@@ -11,24 +11,74 @@
  *
  **/
 
+use \Content\Pages\Breadcrumbs;
+use \Content\Pages\HTTP;
+use \Content\Pages\Templator;
+use \Uri\Redirect;
+
 // check setting/role privileges
 if (!\Settings::value('add_redirects') && !\Settings::value('edit_redirects') && !\Settings::value('archive_redirects')) {
-    \Content\Pages\HTTP::error(401);
+    HTTP::error(401);
 }
 
-$templator = new \Content\Pages\Templator();
+$templator      = new Templator();
+$uri_redirect   = new Redirect();
+
+$title              = 'Site Redirects';
+$redirects          = $uri_redirect->getAll();
+$unused_redirects   = $uri_redirect->getAllNotRedirected();
+$error              = null;
+$http_status_codes  = HTTP::$status_codes;
+$all_uris           = \Content\Pages\Get::allUris();
+
+$add_uri_redirects      = \Settings::value('add_redirects');
+$edit_redirect_uris     = \Settings::value('edit_redirects');
+$archive_redirect_uris  = \Settings::value('archive_redirects');
+
+if (!empty($_POST) && $edit_redirect_uris) {
+    foreach ($_POST as $key => $val) {
+        $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+    }
+
+    $submit_redir = false;
+
+    if (isset($post['update'])) {
+        $submit_redir = $uri_redirect->update($post);
+    } elseif (isset($post['new'])) {
+        $submit_redir = $uri_redirect->insert($post);
+    }
+
+    if ($submit_redir) {
+        header('Location: ' . \Settings::value('full_web_url') . '/admin/redirects/');
+    } else {
+        $error = $uri_redirect->getErrors();
+    }
+}
+
+if (!empty($_GET['archive']) && $archive_redirect_uris) {
+    $uri_uid        = filter_var($_GET['archive'], FILTER_SANITIZE_STRING);
+    $uri_redirect->archive($uri_uid);
+    exit;
+}
 
 $templator->assign('full_web_url', \Settings::value('full_web_url'));
+$templator->assign('uri_redirects', $redirects);
+$templator->assign('http_status_codes', $http_status_codes);
+$templator->assign('add_uri_redirects', $add_uri_redirects);
+$templator->assign('edit_uri_redirects', $edit_redirect_uris);
+$templator->assign('archive_uri_redirects', $archive_redirect_uris);
+$templator->assign('all_uris', $all_uris);
+$templator->assign('all_unused_uris', $unused_redirects);
 
-$title = 'Site Redirects';
+$templator->assign('error', $error);
 
 $page_find_replace = [
     'page_title_seo'    => $title,
     'page_title_h1'     => $title,
-    'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())
+    'breadcrumbs'       => (new Breadcrumbs())
         ->crumb('Site Administration', '/admin/')
         ->crumb($title),
     'body'              => $templator->fetch('admin/redirects.tpl'),
 ];
 
-echo \Content\Pages\Templator::page($page_find_replace);
+echo Templator::page($page_find_replace);

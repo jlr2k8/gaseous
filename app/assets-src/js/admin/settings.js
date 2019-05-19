@@ -10,8 +10,9 @@ $(document).ready( function() {
         this_update_button.text('Updating...').attr('disabled','disabled');
 
         var data = $('#setting_' + setting_key).serialize() + '&update';
-
-        $.post('/admin/settings/', data, function() {
+        console.log(data);
+        $.post('/admin/settings/', data, function(x) {
+            console.log(x);
             this_update_button
                 .html('Updated&#160;<i class="fas fa-check"></i>')
                 .delay(1000)

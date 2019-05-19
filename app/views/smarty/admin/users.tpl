@@ -94,18 +94,3 @@
     </a>
     the access code)
 </p>
-
-<div class="clear_both">&#160;</div>
-
-<h3>See also:</h3>
-<ul>
-    <li>
-        <a href="{$full_web_url}/admin/roles/">Set up roles</a>
-    </li>
-    <li>
-        <a href="{$full_web_url}/admin/pages/">Edit pages and role access per page</a>
-    </li>
-    <li>
-        <a href="{$full_web_url}/admin/settings/">Manage site configuration and role association</a>
-    </li>
-</ul>

@@ -23,7 +23,7 @@ class GetHomePage extends \Content\Pages\Get
         '/index.html',
         '/index.htm',
         '/index.php',
-        '/home',
+        '/home/',
     ];
 
 

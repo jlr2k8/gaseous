@@ -17,7 +17,7 @@ class HTTP
     public static $status_codes = array (
         300 => 'Multiple Choices',
         301 => 'Moved Permanently',
-        302 => 'Found',
+        302 => 'Moved Temporarily',
         304 => 'Not Modified',
         400 => 'Bad Request',
         401 => 'Unauthorized',
@@ -54,16 +54,20 @@ class HTTP
 
     /**
      * @param $url
-     * @param bool $header
+     * @param int $http_response_code
      * @return bool
      * @throws \Exception
      */
-    public static function redirect($url, $header = false)
+    public static function redirect($url, $http_response_code = false)
     {
         $url = !empty($url) ? filter_var($url, FILTER_SANITIZE_URL) : false;
 
         if (!$url) {
             throw new \Exception('Cannot redirect to "' . $url . '"');
+        }
+
+        if ($http_response_code) {
+            http_response_code($http_response_code);
         }
 
         header('Location: ' . $url);

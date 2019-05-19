@@ -65,7 +65,7 @@ class Get
     {
         $uri = !$uri ? $_SERVER['REQUEST_URI'] : $uri;
 
-        $sql       = '                
+        $sql       = '
             SELECT uri.uri
             FROM page AS p
             INNER JOIN uri ON p.uri_uid = uri.uid

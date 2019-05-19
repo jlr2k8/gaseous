@@ -89,14 +89,14 @@ class Submit
                 $this->archivePageRoles($transaction);
             }
 
-            $this->generate_json_upsert_status('status', 'success');
+            $this->generateJsonUpsertStatus('status', 'success');
 
         } catch(\ErrorException $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getMessage();
 
-            $this->generate_json_upsert_status('status', $e->getMessage());
+            $this->generateJsonUpsertStatus('status', $e->getMessage());
 
             return false;
         }
@@ -112,7 +112,7 @@ class Submit
      * @param $message
      * @return bool
      */
-    private function generate_json_upsert_status($status, $message)
+    private function generateJsonUpsertStatus($status, $message)
     {
         $status_message = [
             $status => $message,
@@ -499,7 +499,8 @@ class Submit
 
     /**
      * @param \Db\PdoMySql $transaction
-     * @return null
+     * @return bool
+     * @throws \Exception
      */
     function processUri(\Db\PdoMySql $transaction)
     {
@@ -519,12 +520,16 @@ class Submit
 
         // user changed URI and it matches an existing
         if ($old_uri != $new_uri && self::uriExists($new_uri)) {
-            $this->errors[] = 'The URI, /' . $new_uri . '/, already exists';
             $this->checkAndThrowErrorException();
 
         // user changed URI and it's unique
         } elseif($old_uri != $new_uri && !self::uriExists($new_uri)) {
-            $this->archiveOldUri($transaction);
+            /*
+             * NOTE
+             * instead of archiving the old URI, we simply want to add an entry in the uri_redirects table and keep it
+             * active. that way, the old URI still exists, but redirects to the new one (301 Moved Permanently)
+             */
+            $this->insertRedirectUri($transaction, $new_uri . '/');
             $this->insertUri($transaction, $new_uri);
             $this->uri_uid = $this->getUriUid($transaction, $new_uri);
             $this->updatePage($transaction);
@@ -552,6 +557,31 @@ class Submit
         }
 
         return true;
+    }
+
+
+    /**
+     * @param \Db\PdoMySql $transaction
+     * @param $destination_url
+     * @return bool
+     */
+    function insertRedirectUri(\Db\PdoMySql $transaction, $destination_url)
+    {
+        $uri_redirect       = new \Uri\Redirect();
+
+        $data               = [
+            'uri_uid'           => $this->uri_uid,
+            'destination_url'   => $destination_url,
+            'http_status_code'  => 301,
+            'description'       => 'Page URI was updated via the page editor',
+        ];
+
+        $inserted_redirect  = $uri_redirect->insert(
+            $data,
+            $transaction
+        );
+
+        return $inserted_redirect;
     }
 
 
@@ -720,11 +750,73 @@ class Submit
      */
     private function uriExists($uri)
     {
+        $exists_as_page     = $this->uriExistsAsPage($uri);
+        $exists_as_redirect = $this->uriExistsAsRedirect($uri);
+        $return             = false;
+
+        if ($exists_as_page) {
+            $this->errors[] = 'The URI, ' . $uri . ', already exists for another page.';
+            $return         = true;
+        } elseif ($exists_as_redirect) {
+            $this->errors[] = 'The URI, ' . $uri . ', already exists as a redirect to another URL.';
+            $return         = true;
+        }
+
+        return $return;
+    }
+
+
+    /**
+     * @param $uri
+     * @return bool
+     */
+    private function uriExistsAsPage($uri)
+    {
         $sql = "
-            SELECT COUNT(*)
-            FROM uri 
-            WHERE uri = ?
-            AND archived = '0';
+            SELECT
+                COUNT(*)
+            FROM
+                uri
+            INNER JOIN
+                page
+            ON
+                page.uri_uid = uri.uid
+            WHERE
+                uri = ?
+            AND
+                uri.archived = '0'
+            AND
+                page.archived = '0';
+        ";
+
+        $db     = new \Db\Query($sql, [$uri]);
+        $count  = $db->fetch();
+
+        return ($count > 0);
+    }
+
+
+    /**
+     * @param $uri
+     * @return bool
+     */
+    private function uriExistsAsRedirect($uri)
+    {
+        $sql = "
+            SELECT
+                COUNT(*)
+            FROM
+                uri
+            INNER JOIN
+                uri_redirects
+            ON
+                uri_redirects.uri_uid = uri.uid
+            WHERE
+                uri = ?
+            AND
+                uri.archived = '0'
+            AND
+                uri_redirects.archived = '0';
         ";
 
         $db     = new \Db\Query($sql, [$uri]);

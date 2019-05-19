@@ -10,24 +10,31 @@
  *
  */
 
+use \Content\Pages\Breadcrumbs;
+use \Content\Pages\HTTP;
+use \Content\Pages\Templator;
+use \User\Roles;
+use \User\Account;
+use \Wysiwyg\Codemirror;
+
 // check setting/role privileges
 if (!\Settings::value('edit_settings')) {
-    \Content\Pages\HTTP::error(401);
+    HTTP::error(401);
 }
 
 $settings           = new \Settings();
-$templator          = new \Content\Pages\Templator();
-$roles              = new \User\Roles();
-$account            = new \User\Account();
+$templator          = new Templator();
+$roles              = new Roles();
+$account            = new Account();
 
 $all_roles          = $roles->getAll();
 $all_settings       = \Settings::getAllFromDB();
 $all_accounts       = $account->getAll();
 $setting_categories = $settings->getSettingCategories();
 
-$codemirror         = new \Wysiwyg\Codemirror();
+$codemirror         = new Codemirror();
 
-$my_username        = \User\Account::getUsername();
+$my_username        = Account::getUsername();
 
 $role_name_value    = null;
 $description_value  = null;
@@ -75,7 +82,7 @@ $title = 'Site Settings';
 $page_find_replace = [
     'page_title_seo'    => $title,
     'page_title_h1'     => $title,
-    'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
+    'breadcrumbs'       => (new Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
     'body'              => $templator->fetch('admin/settings.tpl'),
 ];
 

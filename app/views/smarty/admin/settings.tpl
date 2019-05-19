@@ -48,18 +48,3 @@
 
     <div class="clear_both">&#160;</div>
 </div>
-
-<div class="clear_both">&#160;</div>
-
-<h3>See also:</h3>
-<ul>
-    <li>
-        <a href="{$full_web_url}/admin/users/">Modify users (manage accounts and users' roles)</a>
-    </li>
-    <li>
-        <a href="{$full_web_url}/admin/pages/">Edit pages and role access per page</a>
-    </li>
-    <li>
-        <a href="{$full_web_url}/admin/settings/">Manage site settings and role association</a>
-    </li>
-</ul>

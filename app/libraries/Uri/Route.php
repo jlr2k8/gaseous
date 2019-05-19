@@ -6,11 +6,13 @@
  *
  * UriRoute.php
  *
- * Map URI pattern to database-stored controllers
+ * Map URI pattern to database-stored controllers/endpoints
  *
  **/
 
-class UriRoute
+namespace Uri;
+
+class Route
 {
     public $routing_map;
 
@@ -28,6 +30,12 @@ class UriRoute
     {
         $parsed_uri_raw = parse_url($uri);
         $path_raw       = $parsed_uri_raw['path'];
+        $real_file      = $_SERVER['WEB_ROOT'] . $path_raw;
+
+        // requests to index.php should go to an empty path
+        if ($path_raw == '/index.php') {
+            $path_raw = '/';
+        }
 
         $matched_uri_pattern    = $this->matchUriRegex($path_raw);
         $path                   = null;
@@ -37,9 +45,17 @@ class UriRoute
             $parse_url  = parse_url($matched_uri_pattern);
             $path       = (string)filter_var($parse_url['path'], FILTER_SANITIZE_URL);
 
+            // convert querystring to array, if present
             if (!empty($parse_url['query'])) {
                 parse_str($parse_url['query'], $query);
             }
+        } elseif (is_readable($real_file)) {
+            /*
+             * NOTE
+             * if the path exists as a physical file on the server, try that next. that means, in this world, routes
+             * override files/endpoints that physically exist (for better or worse, that's the current logic)
+             */
+            $path = $real_file;
         }
 
         $parsed_uri = [

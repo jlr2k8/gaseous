@@ -11,7 +11,6 @@ $(document).ready( function() {
         var data = $('#route_' + route_key).serialize() + '&update';
 
         $.post('/admin/routes/', data, function() {
-            console.log();
             this_update_button
                 .html('Updated&#160;<i class="fas fa-check"></i>')
                 .delay(1000)

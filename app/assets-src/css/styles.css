@@ -160,6 +160,10 @@ button.archive {
     cursor: pointer
 }
 
+.cursor_move {
+    cursor: move;
+}
+
 .link:hover {
     text-decoration: underline
 }

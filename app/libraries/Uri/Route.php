@@ -49,7 +49,7 @@ class Route
             if (!empty($parse_url['query'])) {
                 parse_str($parse_url['query'], $query);
             }
-        } elseif (is_readable($real_file)) {
+        } elseif (is_readable($real_file) && is_file($real_file)) {
             /*
              * NOTE
              * if the path exists as a physical file on the server, try that next. that means, in this world, routes
@@ -101,23 +101,7 @@ class Route
      */
     private function getUriRoutes()
     {
-        $sql = "
-            SELECT DISTINCT
-                uid,
-                regex_pattern,
-                destination_controller,
-                description,
-                priority_order
-            FROM
-                uri_routes
-            WHERE
-                archived = '0'
-            ORDER BY
-                priority_order ASC;
-        ";
-
-        $db         = new \Db\Query($sql);
-        $results    = $db->fetchAllAssoc();
+        $results = $this->getAll();
 
         $this->setRoutingMap($results);
 
@@ -150,11 +134,14 @@ class Route
                 uid,
                 regex_pattern,
                 destination_controller,
-                description
+                description,
+                priority_order
             FROM
                 uri_routes
             WHERE
                 archived = '0'
+            ORDER BY
+                priority_order;
         ";
 
         $db         = new \Db\Query($sql);
@@ -165,23 +152,62 @@ class Route
 
 
     /**
+     * @return array
+     */
+    public function getRoute($uid)
+    {
+        $sql = "
+            SELECT
+                uid,
+                regex_pattern,
+                destination_controller,
+                description,
+                priority_order
+            FROM
+                uri_routes
+            WHERE
+                archived = '0'
+            AND 
+                uid = ?
+            ORDER BY
+                priority_order;
+        ";
+
+        $bind = [
+            $uid,
+        ];
+
+        $db     = new \Db\Query($sql, $bind);
+        $result = $db->fetchAssoc();
+
+        return $result;
+    }
+
+
+    /**
      * @param array $data
      * @param \Db\PdoMySql|null $transaction
      * @return bool
      */
     public function insert(array $data, \Db\PdoMySql $transaction = null)
     {
+        $uid                    = !empty($data['uid']) ? filter_var($data['uid'], FILTER_SANITIZE_STRING) : \Db\Query::getUuid();
         $regex_pattern          = filter_var($data['regex_pattern'], FILTER_SANITIZE_STRING);
         $destination_controller = filter_var($data['destination_controller'], FILTER_SANITIZE_STRING);
         $description            = filter_var($data['description'], FILTER_SANITIZE_STRING);
+        $priority_order         = isset($data['priority_order']) ? (int)filter_var($data['priority_order'], FILTER_SANITIZE_NUMBER_INT) : self::getNextAvailablePriority();
 
         $sql = "
             INSERT INTO
                 uri_routes (
+                    uid,
                     regex_pattern,
                     destination_controller,
-                    description
+                    description,
+                    priority_order
                 ) VALUES (
+                    ?,
+                    ?,
                     ?,
                     ?,
                     ?
@@ -189,14 +215,16 @@ class Route
         ";
 
         $bind = [
+            $uid,
             $regex_pattern,
             $destination_controller,
             $description,
+            $priority_order,
         ];
 
         if (empty($transaction)) {
-            $db         = new \Db\Query($sql, $bind);
-            $ran        = $db->run();
+            $db     = new \Db\Query($sql, $bind);
+            $ran    = $db->run();
         } else {
             $ran = $transaction
                 ->prepare($sql)
@@ -218,6 +246,9 @@ class Route
         $regex_pattern          = filter_var($data['regex_pattern'], FILTER_SANITIZE_STRING);
         $destination_controller = filter_var($data['destination_controller'], FILTER_SANITIZE_STRING);
         $description            = filter_var($data['description'], FILTER_SANITIZE_STRING);
+        $priority_order         = !empty($data['priority_order'])
+            ? filter_var($data['priority_order'], FILTER_SANITIZE_NUMBER_INT)
+            : self::getNextAvailablePriority();
 
         $transaction = new \Db\PdoMySql();
 
@@ -227,9 +258,10 @@ class Route
             $this->archive($uid, $transaction);
 
             $data = [
-                'regex_pattern'     => $regex_pattern,
-                'destination_controller'   => $destination_controller,
-                'description'       => $description,
+                'regex_pattern'             => $regex_pattern,
+                'destination_controller'    => $destination_controller,
+                'description'               => $description,
+                'priority_order'            => $priority_order,
             ];
 
             $this->insert($data, $transaction);
@@ -274,8 +306,8 @@ class Route
         ];
 
         if (empty($transaction)) {
-            $db         = new \Db\Query($sql, $bind);
-            $ran        = $db->run();
+            $db     = new \Db\Query($sql, $bind);
+            $ran    = $db->run();
         } else {
             $ran    = $transaction
                 ->prepare($sql)
@@ -325,4 +357,74 @@ class Route
     {
         return implode('; ', $this->errors);
     }
+
+
+    /**
+     * @param array $priority_to_uuids
+     * @return bool
+     * @throws \Exception
+     */
+    public function sortPriorityBulk(array $priority_to_uuids)
+    {
+        $transaction = new \Db\PdoMySql();
+
+        $transaction->beginTransaction();
+
+        foreach ($priority_to_uuids as $key => $uid) {
+            $key                = filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+            $uid                = filter_var($uid, FILTER_SANITIZE_STRING);
+            $current_route_data = $this->getRoute($uid);
+
+            $data['uid']                    = $uid;
+            $data['regex_pattern']          = $current_route_data['regex_pattern'];
+            $data['destination_controller'] = $current_route_data['destination_controller'];
+            $data['description']            = $current_route_data['description'];
+            $data['priority_order']         = (int)$key;
+
+            try {
+                $this->archive($uid, $transaction);
+                $this->insert($data, $transaction);
+            } catch(\ErrorException $e) {
+                $transaction->rollBack();
+
+                $this->errors[] = $e->getMessage();
+
+                $this->generateJsonUpsertStatus('status', $e->getMessage());
+                $this->checkAndThrowErrorException();
+
+                return false;
+            }
+        }
+
+        $transaction->commit();
+
+        return true;
+    }
+
+
+    /**
+     * @return int
+     */
+    public static function getNextAvailablePriority()
+    {
+        $sql = "
+            SELECT
+                priority_order
+            FROM
+                uri_routes
+            WHERE
+                archived = '0'
+            ORDER BY priority_order DESC
+            LIMIT 1;
+        ";
+
+        $db     = new \Db\Query($sql);
+        $result = $db->fetch();
+
+        // now increment that result by +1
+        $priority_order = (int)($result+1);
+
+        return (int)$priority_order;
+    }
+
 }

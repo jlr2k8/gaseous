@@ -22,8 +22,6 @@ class Utilities
     /**
      * $uri can be an array (each uri piece making up the array element values) or a string (the uri string itself)
      *
-     * TODO - refactor uri normalization
-     *
      * @param $uri
      * @return string
      */
@@ -45,8 +43,6 @@ class Utilities
 
     /**
      * $uri can be an array (each uri piece making up the array element values) or a string (the uri string itself)
-     *
-     * TODO - refactor uri normalization
      *
      * @param array | string $uri
      * @return string
@@ -88,7 +84,7 @@ class Utilities
      */
     static function arrayAsUri(array $uri_pieces)
     {
-        $uri = '/';
+        $uri = null;
 
         if (!empty($uri_pieces)) {
             $uri .= implode('/', $uri_pieces);

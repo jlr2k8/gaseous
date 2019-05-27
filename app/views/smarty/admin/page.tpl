@@ -70,14 +70,18 @@
                             <option value="">/</option>
                             {foreach from=$all_uris item=uri}
                                 <option value="{$uri.uid}"
-                                    {if !empty($parent_uri) && $uri.uri == trim($parent_uri,'/')}
+                                    {if !empty($parent_uri) && $uri.uri == rtrim($parent_uri,'/')}
                                         selected="selected"
                                     {/if}
 
                                     {if !empty($page) && $uri.uid == $page.uri_uid}
                                         disabled="disabled"
                                     {/if}
-                                >/{$uri.uri}/</option>
+
+                                    {if $uri.uri == '/home'}
+                                        {continue}
+                                    {/if}
+                                >{$uri.uri}/</option>
                             {/foreach}
                         </select>
                     </div>
@@ -92,7 +96,7 @@
                             Constructed URL:
                         </label><br />
                         <span class="green_text">
-                            {$full_web_url}<span id="preview_full_parent_uri">{if !empty($parent_uri)}{$parent_uri}{/if}</span><span id="preview_this_url_piece">{if !empty($this_uri_piece)}{$this_uri_piece}{/if}</span>/
+                            {$full_web_url}<span id="preview_full_parent_uri">{if !empty($parent_uri)}{$parent_uri}{/if}</span>/<span id="preview_this_url_piece">{if !empty($this_uri_piece)}{$this_uri_piece}{/if}</span>
                         </span>
                         <h3 id="preview_hint">&#160;</h3>
                     </div>

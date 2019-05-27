@@ -22,14 +22,14 @@ class Get
 
 
     /**
+     * @param $uri
      * @return string
      * @throws \Exception
      */
-    public function byUri()
+    public function byUri($uri = null)
     {
-        $uri = $_SERVER['REQUEST_URI'];
-
-        $find_replace = [];
+        $find_replace   = [];
+        $uri            = filter_var($uri ?? $_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
 
         return self::page($uri, $find_replace);
     }
@@ -46,11 +46,11 @@ class Get
         $querystring    = !empty($parsed_uri['query']) ? '?' . $parsed_uri['query'] : null;
 
         if (!empty($querystring) && $_SERVER['REQUEST_URI'] != $current_uri . $querystring) {
-            \Content\Pages\HTTP::redirect($current_uri . $querystring, 301);
+            HTTP::redirect($current_uri . $querystring, 301);
         }
 
         if (!stristr($current_uri, '?') && substr($current_uri, -1) != '/') {
-            \Content\Pages\HTTP::redirect($current_uri . '/' . $querystring, 301);
+            HTTP::redirect($current_uri . '/' . $querystring, 301);
         }
 
         return false;
@@ -108,7 +108,7 @@ class Get
         }
 
         if (empty($content)) {
-            \Content\Pages\HTTP::error(404);
+            HTTP::error(404);
         }
 
         return $content;
@@ -124,7 +124,7 @@ class Get
      */
     public function pagePreviewByIterationUid($page_iteration_uid, $page_master_uid, $content_only = false)
     {
-        $diff                   = new \Content\Pages\Diff();
+        $diff                   = new Diff();
         $iteration              = $diff->getPageIteration($page_iteration_uid);
         $find_replace           = $this->pageContentForPreview($page_iteration_uid);
         $content                = $this->templatedPage($find_replace);
@@ -133,13 +133,13 @@ class Get
         $is_current_iteration   = ($current_iteration == $page_iteration_uid);
 
         if (empty($content)) {
-            $content = \Content\Pages\HTTP::error(404);
+            $content = HTTP::error(404);
         } else {
             $content = $this->templatedPage($find_replace);
         }
 
         if ($content_only == false) {
-            $templator = new \Content\Pages\Templator();
+            $templator = new Templator();
 
             $templator->assign('find_replace', $find_replace);
             $templator->assign('page_iteration_uid', $page_iteration_uid);
@@ -414,21 +414,23 @@ class Get
      */
     public function templatedPage($find_replace = array())
     {
-        $templator  = new \Content\Pages\Templator();
-        $assets     = new \Content\Pages\Assets();
+        $templator  = new Templator();
+        $assets     = new Assets();
 
         // core template items
-        $find_replace['page_title_seo']     = !empty($find_replace['page_title_seo']) ? $find_replace['page_title_seo'] : \Settings::value('default_page_seo_title');
-        $find_replace['page_title_h1']      = !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : \Settings::value('default_page_title_h1');
-        $find_replace['meta_description']   = !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : \Settings::value('default_meta_description');
-        $find_replace['meta_robots']        = !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : \Settings::value('default_meta_robots');
-        $find_replace['css']                = $assets->css;
-        $find_replace['js']                 = !empty($find_replace['js']) ? $find_replace['js'] : $assets->js;
-        $find_replace['breadcrumbs']        = !empty($find_replace['breadcrumbs']) ? $find_replace['breadcrumbs'] : null;
-        $find_replace['nav']                = $this->nav($templator, $find_replace);
-        $find_replace['body']               = $this->renderTemplate($find_replace['body'], $templator);
-        $find_replace['footer']             = $this->footer($templator, $find_replace);
-        $find_replace['debug_footer']       = $this->debugFooter();
+        $find_replace = [
+            'page_title_seo'    => !empty($find_replace['page_title_seo']) ? $find_replace['page_title_seo'] : \Settings::value('default_page_seo_title'),
+            'page_title_h1'     => !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : \Settings::value('default_page_title_h1'),
+            'meta_description'  => !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : \Settings::value('default_meta_description'),
+            'meta_robots'       => !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : \Settings::value('default_meta_robots'),
+            'css'               => $assets->css,
+            'js'                => $assets->js,
+            'breadcrumbs'       => !empty($find_replace['breadcrumbs']) ? $find_replace['breadcrumbs'] : $this->cmsBreadcrumbs($_SERVER['REQUEST_URI']),
+            'nav'               => $this->nav($templator, $find_replace),
+            'body'              => $this->renderTemplate($find_replace['body'], $templator),
+            'footer'            => $this->footer($templator, $find_replace),
+            'debug_footer'      => $this->debugFooter(),
+        ];
 
         return $this->main($templator, $find_replace);
     }
@@ -440,7 +442,7 @@ class Get
      * @return string|null
      * @throws \SmartyException
      */
-    private function renderTemplate($string, \Content\Pages\Templator $templator = null)
+    private function renderTemplate($string, Templator $templator = null)
     {
         if (!empty($templator)) {
             $templator->security->php_functions         = ['date'];
@@ -500,7 +502,7 @@ class Get
      * @return string
      * @throws \SmartyException
      */
-    private function main(\Content\Pages\Templator $templator, array $find_replace)
+    private function main(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
@@ -519,7 +521,7 @@ class Get
      * @return string
      * @throws \SmartyException
      */
-    private function nav(\Content\Pages\Templator $templator, array $find_replace)
+    private function nav(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
@@ -538,7 +540,7 @@ class Get
      * @return string
      * @throws \SmartyException
      */
-    private function footer(\Content\Pages\Templator $templator, array $find_replace)
+    private function footer(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
@@ -640,5 +642,63 @@ class Get
         ];
 
         return $statuses;
+    }
+
+
+    /**
+     * @param $uri
+     * @param array $crumb_array
+     * @return array
+     */
+    private function buildBreadcrumbArray($uri, $crumb_array = [])
+    {
+        $base_url       = \Settings::value('full_web_url');
+        $parsed_uri     = parse_url($uri);
+        $valid_uri      = $this->validUri($parsed_uri['path']);
+
+        if ($valid_uri) {
+            $uri_pieces     = Utilities::uriAsArray($valid_uri);
+            $parent_uri     = Utilities::generateParentUri($uri_pieces);
+
+            $page           = $this->pageContent($valid_uri);
+
+            if (!empty($page)) {
+                $crumb_array[]  = [
+                    'label' => $page['page_title_h1'],
+                    'url'   => $base_url . $valid_uri .'/',
+                ];
+            }
+
+            if (!empty($parent_uri)) {
+                return $this->buildBreadcrumbArray($parent_uri, $crumb_array);
+            }
+        }
+
+        return $crumb_array;
+    }
+
+
+    /**
+     * To build the breadcrumbs for the current CMS page, we parse/break up the URI and work our way up to the top.
+     * Since the breadcrumbs are built from the top down, however, we have to build the array then reverse it (before
+     * we feed it to the \Content\Pages\Breadcrumbs() class). Once we pass off the reversed array, then that class will
+     * apply the "Home" breadcrumb at the very beginning.
+     *
+     * @param $uri
+     * @return Breadcrumbs
+     */
+    private function cmsBreadcrumbs($uri)
+    {
+        $crumb_array    = array_reverse($this->buildBreadcrumbArray($uri));
+        $breadcrumbs    = new Breadcrumbs();
+
+        foreach ($crumb_array as $crumb) {
+            $breadcrumbs->crumb (
+                $crumb['label'],
+                $crumb['url']
+            );
+        }
+
+        return $breadcrumbs;
     }
 }

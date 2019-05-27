@@ -70,9 +70,9 @@ class GetHomePage extends \Content\Pages\Get
      * @return bool|string
      * @throws \Exception
      */
-    public function byUri()
+    public function byUri($uri = null)
     {
-        return self::isHomepage() ? $this->page('/home', [], false) : parent::byUri();
+        return self::isHomepage() ? $this->page('/home', [], false) : parent::byUri($uri);
     }
 
 

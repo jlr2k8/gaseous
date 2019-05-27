@@ -14,8 +14,13 @@ namespace Seo;
 
 class Breadcrumbs
 {
+    public function __construct()
+    {
+    }
+
+
     /**
-     * @param array $item_list_elements
+     * @param array $crumbs
      * @return string
      */
     public static function breadCrumbList(array $crumbs)
@@ -59,9 +64,7 @@ class Breadcrumbs
         // TODO - put in template
         $item = $arrow . '
             <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"> 
-                <a itemscope itemtype="http://schema.org/Thing" itemprop="item" href="' . $url . '">
-                    <span itemprop="name">' . $label . '</span>
-                </a>
+                <a itemscope itemtype="http://schema.org/Thing" itemprop="item" href="' . $url . '"><span itemprop="name">' . $label . '</span></a>
                 <meta itemprop="position" content="' . $position . '" />
             </li>
         ';

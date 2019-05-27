@@ -123,6 +123,7 @@ class Submit
         return true;
     }
 
+
     /**
      * @return bool
      * @throws \Exception
@@ -133,7 +134,7 @@ class Submit
 
         $transaction    = new \Db\PdoMySql();
         $this->uri_uid  = $this->post_data['original_uri_uid'];
-        $uri            = \Content\Pages\Get::uri($this->post_data['original_uri_uid']);
+        $uri            = Get::uri($this->post_data['original_uri_uid']);
 
         $transaction->beginTransaction();
 
@@ -285,6 +286,7 @@ class Submit
     /**
      * @param \Db\PdoMySql $transaction
      * @return bool
+     * @throws \Exception
      */
     private function insertPage(\Db\PdoMySql $transaction)
     {
@@ -309,6 +311,7 @@ class Submit
 
     /**
      * @param \Db\PdoMySql $transaction
+     * @return bool
      */
     private function insertCurrentIteration(\Db\PdoMySql $transaction)
     {
@@ -390,6 +393,9 @@ class Submit
 
     /**
      * @param \Db\PdoMySql $transaction
+     * @param bool $page_iteration_uid
+     * @param bool $page_master_uid
+     * @return bool
      */
     public function updateCurrentIteration(\Db\PdoMySql $transaction, $page_iteration_uid = false, $page_master_uid = false)
     {
@@ -417,6 +423,7 @@ class Submit
 
     /**
      * @param \Db\PdoMySql $transaction
+     * @return bool
      */
     private function archiveCurrentIteration(\Db\PdoMySql $transaction)
     {
@@ -440,6 +447,7 @@ class Submit
 
     /**
      * @param \Db\PdoMySql $transaction
+     * @return bool
      */
     private function archivePage(\Db\PdoMySql $transaction)
     {
@@ -463,6 +471,7 @@ class Submit
 
     /**
      * @param \Db\PdoMySql $transaction
+     * @return bool
      */
     private function updatePage(\Db\PdoMySql $transaction)
     {
@@ -502,16 +511,16 @@ class Submit
      * @return bool
      * @throws \Exception
      */
-    function processUri(\Db\PdoMySql $transaction)
+    private function processUri(\Db\PdoMySql $transaction)
     {
         $this->uri_uid          = $this->post_data['original_uri_uid'];
-        $old_uri                = \Content\Pages\Get::uri($this->uri_uid);
-        $old_uri_as_array       = \Content\Pages\Utilities::uriAsArray($old_uri);
-        $parent_page_uri        = \Content\Pages\Get::uri($this->post_data['parent_page_uri']);
+        $old_uri                = Get::uri($this->uri_uid);
+        $old_uri_as_array       = Utilities::uriAsArray($old_uri);
+        $parent_page_uri        = Get::uri($this->post_data['parent_page_uri']);
         $this_uri_piece         = $this->post_data['this_uri_piece'];
         $new_uri                = rtrim($parent_page_uri . '/' . $this_uri_piece, '/');
-        $new_uri_as_array       = \Content\Pages\Utilities::uriAsArray($new_uri);
-        $all_uris               = \Content\Pages\Get::allUris();
+        $new_uri_as_array       = Utilities::uriAsArray($new_uri);
+        $all_uris               = Get::allUris();
 
         if ($old_uri == '/home' && $old_uri != $new_uri) {
             $this->errors[] = 'The home page URI cannot be edited';
@@ -529,7 +538,10 @@ class Submit
              * instead of archiving the old URI, we simply want to add an entry in the uri_redirects table and keep it
              * active. that way, the old URI still exists, but redirects to the new one (301 Moved Permanently)
              */
-            $this->insertRedirectUri($transaction, $new_uri . '/');
+            if (!empty($this->uri_uid)) {
+                $this->insertRedirectUri($transaction, $new_uri . '/');
+            }
+
             $this->insertUri($transaction, $new_uri);
             $this->uri_uid = $this->getUriUid($transaction, $new_uri);
             $this->updatePage($transaction);
@@ -539,7 +551,7 @@ class Submit
         if (!empty($old_uri) && $old_uri != $new_uri) {
             foreach ($all_uris as $uri_result) {
                 $result_uri             = $uri_result['uri'];
-                $result_uri_as_array    = \Content\Pages\Utilities::uriAsArray($result_uri);
+                $result_uri_as_array    = Utilities::uriAsArray($result_uri);
 
                 $matching_uri_bases = true;
 
@@ -565,7 +577,7 @@ class Submit
      * @param $destination_url
      * @return bool
      */
-    function insertRedirectUri(\Db\PdoMySql $transaction, $destination_url)
+    private function insertRedirectUri(\Db\PdoMySql $transaction, $destination_url)
     {
         $uri_redirect       = new \Uri\Redirect();
 
@@ -589,7 +601,7 @@ class Submit
      * @param \Db\PdoMySql $transaction
      * @return bool
      */
-    function archiveOldUri(\Db\PdoMySql $transaction)
+    private function archiveOldUri(\Db\PdoMySql $transaction)
     {
         $sql = "
             UPDATE uri
@@ -616,7 +628,7 @@ class Submit
      * @param $uri
      * @return bool
      */
-    function insertUri(\Db\PdoMySql $transaction, $uri)
+    private function insertUri(\Db\PdoMySql $transaction, $uri)
     {
         $sql = "
             INSERT INTO uri (uri)
@@ -638,7 +650,7 @@ class Submit
      * @param $uri
      * @return mixed
      */
-    function getUriUid(\Db\PdoMySql $transaction, $uri)
+    private function getUriUid(\Db\PdoMySql $transaction, $uri)
     {
         $sql = "
             SELECT uid
@@ -657,10 +669,9 @@ class Submit
 
     /**
      * @param \Db\PdoMySql $transaction
-     * @param $uri
      * @return mixed
      */
-    function getMasterPageId(\Db\PdoMySql $transaction)
+    private function getMasterPageId(\Db\PdoMySql $transaction)
     {
         $sql = "
             SELECT page_master_uid
@@ -685,10 +696,10 @@ class Submit
      */
     private function updateUri(\Db\PdoMySql $transaction, $old_uri_uid, array $new_uri_as_array)
     {
-        $old_uri            = \Content\Pages\Get::uri($old_uri_uid);                                            // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
-        $old_uri_as_array   = \Content\Pages\Utilities::uriAsArray($old_uri);                                   // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
+        $old_uri            = Get::uri($old_uri_uid);                                            // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
+        $old_uri_as_array   = Utilities::uriAsArray($old_uri);                                   // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
         $updated_uri_array  = array_replace($old_uri_as_array, $new_uri_as_array);                              // [0] => foo, [1] => bar, [2] => baz, [3] => lorem-ipsum ... [12] => upper-uri
-        $updated_uri        = trim(\Content\Pages\Utilities::arrayAsUri($updated_uri_array), '/');      // foo/bar/baz/lorem-ipsum
+        $updated_uri        = trim(Utilities::arrayAsUri($updated_uri_array), '/');      // foo/bar/baz/lorem-ipsum
 
         $sql = "
             UPDATE uri
@@ -711,11 +722,12 @@ class Submit
 
 
     /**
-     * @param array $post_data
      * @return bool
      */
-    function validatePostData()
+    private function validatePostData()
     {
+        // TODO - validatePostData() implies that we're validating all the $this->post_data. looks like we're only validating one field though - so rename the function to validateUriPiece() or actually do some more validation!
+
         preg_match('~[^a-z0-9\-]~', $this->post_data['this_uri_piece'],$fail_matches);
 
         if (!empty($fail_matches))

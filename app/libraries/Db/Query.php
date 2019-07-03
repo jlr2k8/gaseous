@@ -15,7 +15,7 @@ namespace Db;
 class Query extends \Db\PdoMySql
 {
     public $query, $con;
-    protected $sql, $bind_array;
+    protected $sql, $bind;
 
 
     /**
@@ -23,12 +23,12 @@ class Query extends \Db\PdoMySql
      * @param array $bind_array
      * @throws \PDOException
      */
-    public function __construct($sql, $bind_array = array())
+    public function __construct($sql, $bind = array())
     {
         parent::__construct();
 
         $this->sql			= $sql;
-        $this->bind_array	= $bind_array;
+        $this->bind_array	= $bind;
 
         $this->query = $this->runQuery();
     }

@@ -16,7 +16,7 @@ $css            = new \Css();
 $minify         = new \Seo\Minify();
 
 $latest_css             = $css->getCurrentCssIteration();
-$headers->last_modified = strtotime($latest_css['modified']);
+$headers->last_modified = strtotime($latest_css['modified_datetime']);
 
 $headers->css();
 

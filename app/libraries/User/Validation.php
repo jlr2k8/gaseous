@@ -42,8 +42,8 @@ class Validation
     public static function checkIfEmailExists($email, $ignore_guest = false)
     {
         $sql        = "SELECT COUNT(email) AS count_email FROM account WHERE email = ? ";
-        $bind_array = [$email];
-        $db         = new \Db\Query($sql, $bind_array);
+        $bind       = [$email];
+        $db         = new \Db\Query($sql, $bind);
         $result     = $db->fetchAssoc();
 
         return ($result['count_email'] > 0);

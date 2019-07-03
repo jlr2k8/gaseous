@@ -15,9 +15,13 @@ define('PAGE_LOAD_START', microtime(true));
 require_once $_SERVER['WEB_ROOT'] . '/libraries/Autoload.php';
 require_once $_SERVER['WEB_ROOT'] . '/setup/constants.php';
 
-session_name(SESSION_NAME);
-session_start();
+if (PHP_SAPI != 'cli') {
+    session_name(SESSION_NAME);
+    session_start();
+}
 
 // persist login if cookie is valid/exists
-$login = new \User\Login();
-$login->checkLogin();
+if (\Settings::checkCoreTables() === true) {
+    $login = new \User\Login();
+    $login->checkLogin();
+}

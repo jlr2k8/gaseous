@@ -31,11 +31,11 @@ class Diff extends \Utilities\GetDiff
               page_iteration_uid,
               author,
               iteration_description,
-              created
+              created_datetime
             FROM page_iteration_commits
             WHERE page_master_uid = ?
             AND archived = '0'
-            ORDER BY created DESC;
+            ORDER BY created_datetime DESC;
         ";
 
         $bind = [
@@ -47,7 +47,7 @@ class Diff extends \Utilities\GetDiff
 
         if (count($results)) {
             foreach ($results as $key => $result) {
-                $results[$key]['formatted_created'] = \Utilities\DateTime::formatDateTime($result['created']);
+                $results[$key]['formatted_created'] = \Utilities\DateTime::formatDateTime($result['created_datetime']);
             }
 
             return $results;
@@ -68,7 +68,7 @@ class Diff extends \Utilities\GetDiff
                 page_iteration_uid,
                 author,
                 iteration_description,
-                created
+                created_datetime
             FROM page_iteration_commits
             WHERE page_iteration_uid = ?
             AND archived = '0';
@@ -81,7 +81,7 @@ class Diff extends \Utilities\GetDiff
         $db     = new \Db\Query($sql, $bind);
         $result = $db->fetchAssoc();
 
-        $result['formatted_created'] = \Utilities\DateTime::formatDateTime($result['created']);
+        $result['formatted_created'] = \Utilities\DateTime::formatDateTime($result['created_datetime']);
 
         return $result;
     }

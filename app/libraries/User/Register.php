@@ -56,14 +56,14 @@ class Register
             //INSERT INTO account - (2016-05-27) for now, account.account_email and profile.email will be identical.
             $sql = "INSERT INTO account (firstname, lastname, username, email) VALUES (?,?,?,?);";
 
-            $bind_array = [
+            $bind = [
                 $account_data->firstname,
                 $account_data->lastname,
                 $account_data->username,
                 $account_data->email
             ];
 
-            $db                 = new \Db\Query($sql, $bind_array);
+            $db                 = new \Db\Query($sql, $bind);
             $it_ran             = $db->run();
             $create_password    = $this->createAccountPassword($account_data->username);
 

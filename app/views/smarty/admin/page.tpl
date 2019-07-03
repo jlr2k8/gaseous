@@ -69,6 +69,9 @@
                         <select class="uri_preview_setter" name="parent_page_uri">
                             <option value="">/</option>
                             {foreach from=$all_uris item=uri}
+                                {if $uri.uri == '/home'}
+                                    {continue}
+                                {/if}
                                 <option value="{$uri.uid}"
                                     {if !empty($parent_uri) && $uri.uri == rtrim($parent_uri,'/')}
                                         selected="selected"
@@ -76,10 +79,6 @@
 
                                     {if !empty($page) && $uri.uid == $page.uri_uid}
                                         disabled="disabled"
-                                    {/if}
-
-                                    {if $uri.uri == '/home'}
-                                        {continue}
                                     {/if}
                                 >{$uri.uri}/</option>
                             {/foreach}

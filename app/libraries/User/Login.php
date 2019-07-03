@@ -70,7 +70,7 @@ class Login
             FROM account
 			INNER JOIN token_email ON token_email.email=account.account_email
 			WHERE token= ?
-			AND token_email.created >= NOW() - INTERVAL 12 HOUR;
+			AND token_email.created_datetime >= NOW() - INTERVAL 12 HOUR;
         ";
 
         $db     = new \Db\Query($sql, [$token]);
@@ -85,9 +85,9 @@ class Login
      */
     public function checkLogin()
     {
-        if (!empty($_SESSION[\Settings::LOGIN_COOKIE]) && $this->validateSession()) {
+        if (!empty($_SESSION[LOGIN_COOKIE]) && $this->validateSession()) {
             return true;
-        } elseif (!empty($_COOKIE[\Settings::LOGIN_COOKIE]) && $this->validateCookie()) {
+        } elseif (!empty($_COOKIE[LOGIN_COOKIE]) && $this->validateCookie()) {
             $account    = $this->account->getAccountFromCookieValidation();
             $username   = $account['username'];
 
@@ -255,7 +255,7 @@ class Login
      */
     public static function clearLoginCookie()
     {
-        return (setcookie(\Settings::LOGIN_COOKIE, null, time() - 3600, '/', \Settings::value('cookie_domain')));
+        return (setcookie(LOGIN_COOKIE, null, time() - 3600, '/', \Settings::value('cookie_domain')));
     }
 
 
@@ -304,7 +304,7 @@ class Login
         $login_cookie_value = (new \User\Login())->hashCookie($username, $uid, $expire);
 
         $set_cookie = setcookie (
-            \Settings::LOGIN_COOKIE,
+            LOGIN_COOKIE,
             $login_cookie_value,
             time() + (3600*24*$days_int),
             '/',
@@ -312,7 +312,7 @@ class Login
         );
 
         if ($set_cookie) {
-            $_SESSION[\Settings::LOGIN_COOKIE] = $login_cookie_value;
+            $_SESSION[LOGIN_COOKIE] = $login_cookie_value;
             return true;
         }
 

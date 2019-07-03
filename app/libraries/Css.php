@@ -23,10 +23,10 @@ class Css
     public function getAllIterations()
     {
         $sql = "
-            SELECT uid, css, author, description, is_selected, preview_only, modified
+            SELECT uid, css, author, description, is_selected, preview_only, modified_datetime
             FROM css_iteration
             WHERE archived = '0'
-            ORDER BY modified DESC;
+            ORDER BY modified_datetime DESC;
         ";
 
         $db         = new \Db\Query($sql);
@@ -34,7 +34,7 @@ class Css
 
         foreach ($results as $key => $result)
         {
-            $results[$key]['formatted_modified'] = \Utilities\DateTime::formatDateTime($result['modified'], 'm/d/Y g:i A e');
+            $results[$key]['formatted_modified'] = \Utilities\DateTime::formatDateTime($result['modified_datetime'], 'm/d/Y g:i A e');
 
             if ($result['preview_only'] == '1' && $result['author'] != \User\Account::getUsername())
             {
@@ -55,7 +55,7 @@ class Css
             $result = $this->getCssIteration($_SESSION['css_preview']);
         } else {
             $sql = "
-                SELECT uid, css, author, description, is_selected, preview_only, modified
+                SELECT uid, css, author, description, is_selected, preview_only, modified_datetime
                 FROM css_iteration
                 WHERE archived = '0'
                 AND is_selected = '1';
@@ -80,7 +80,7 @@ class Css
     public function getCssIteration($uid)
     {
         $sql = "
-            SELECT uid, css, author, description, is_selected, preview_only, modified
+            SELECT uid, css, author, description, is_selected, preview_only, modified_datetime
             FROM css_iteration
             WHERE archived = '0'
             AND uid = ?;

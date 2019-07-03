@@ -15,7 +15,6 @@ $upload_root            = \Settings::value('upload_root');
 $upload_url_relative    = \Settings::value('upload_url_relative');
 
 if ($file_upload && $file_reference) {
-
     $token                      = \Utilities\Token::generate();
     $file_pathinfo              = pathinfo($file_reference);
     $tokenized_file_reference   = $file_pathinfo['filename'] . '-' . $token . '.' . $file_pathinfo['extension'];

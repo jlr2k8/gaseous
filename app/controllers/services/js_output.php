@@ -16,7 +16,7 @@ $js             = new \Js();
 $minify         = new \Seo\Minify();
 
 $latest_js              = $js->getCurrentJsIteration();
-$headers->last_modified = strtotime($latest_js['modified']);
+$headers->last_modified = strtotime($latest_js['modified_datetime']);
 
 $headers->js();
 

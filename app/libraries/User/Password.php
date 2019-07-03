@@ -79,7 +79,7 @@ class Password
     public static function lastModified($username)
     {
         $sql = "
-            SELECT account_password.modified FROM account_password
+            SELECT account_password.modified_datetime FROM account_password
 			INNER JOIN account ON account_password..account_username = account.username
 			WHERE username= ? AND archived='0'
         ";
@@ -87,6 +87,6 @@ class Password
         $db     = new \Db\Query($sql, [$username]);
         $result = $db->fetchAssoc();
 
-        return !empty($result['modified']) ? date('YmdHis', strtotime($result['modified'])) : false;
+        return !empty($result['modified_datetime']) ? date('YmdHis', strtotime($result['modified_datetime'])) : false;
     }
 }

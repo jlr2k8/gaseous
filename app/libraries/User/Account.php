@@ -96,7 +96,7 @@ class Account
      */
     public function getAccountFromCookieValidation()
     {
-        $cookie = !empty($_COOKIE[\Settings::LOGIN_COOKIE]) ? $_COOKIE[\Settings::LOGIN_COOKIE] : false;
+        $cookie = !empty($_COOKIE[LOGIN_COOKIE]) ? $_COOKIE[LOGIN_COOKIE] : false;
 
         return $this->getAccountFromLoginSession($cookie);
     }
@@ -107,7 +107,7 @@ class Account
      */
     public function getAccountFromSessionValidation()
     {
-        $session = !empty($_SESSION[\Settings::LOGIN_COOKIE]) ? $_SESSION[\Settings::LOGIN_COOKIE] : false;
+        $session = !empty($_SESSION[LOGIN_COOKIE]) ? $_SESSION[LOGIN_COOKIE] : false;
 
         return $this->getAccountFromLoginSession($session);
     }
@@ -134,7 +134,6 @@ class Account
         $result = $db->fetchAllAssoc();
 
         foreach ($result as $key => $row) {
-
             $username   = $row['login_session_account_username'];
             $uid        = $row['uid'];
             $exp        = date('Y-m-d', strtotime($row['expiration']));

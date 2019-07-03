@@ -12,14 +12,331 @@
 
 class Settings
 {
-    const LOGIN_COOKIE = LOGIN_COOKIE;
-
     public $full_web_url;
 
+    public static $settings = [
+        'web_url' =>    [
+            'display'       => 'Web URL',
+            'category_key'  => 'administrative',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'cookie_domain' => [
+            'display'       => 'Cookie domain',
+            'category_key'  => 'cookie',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'login_cookie_expire_days' => [
+            'display'       => 'Expiration for login cookies',
+            'category_key'  => 'cookie',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'enable_template_caching' => [
+            'display'       => 'Enable Template Caching',
+            'category_key'  => 'administrative',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'enable_ssl' => [
+            'display'       => 'Enable SSL',
+            'category_key'  => 'administrative',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'recaptcha_public_key' => [
+            'display'       => 'ReCaptcha Public Key',
+            'category_key'  => 'recaptcha',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'recaptcha_private_key' => [
+            'display'       => 'ReCaptcha Private Key',
+            'category_key'  => 'recaptcha',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'require_recaptcha' => [
+            'display'       => 'Require ReCaptcha',
+            'category_key'  => 'recaptcha',
+            'role_based'    => false,
+            'description'   => 'Any page that has a ReCaptcha, make the validation required.',
+        ],
+        'maintenance_mode' => [
+            'display'       => 'Maintenance Mode',
+            'category_key'  => 'recaptcha',
+            'role_based'    => false,
+            'description'   => 'When enabled, this will set the HTTP 503 header and prevent every page from being displayed, instead, showing a temporary site downtime on every URI. Search engines, if caching the site during this time, will simply receive this as a temporary downtime then return later. This mode is especially useful when the site\'s software is undergoing updates or the site is intentionally being maintained.',
+        ],
+        'show_debug' => [
+            'display'       => 'Show Debug Footer',
+            'category_key'  => 'development',
+            'role_based'    => true,
+            'description'   => 'Per role, this allows an app-level troubleshooting footer (below the site\'s footer) to display information such as page load time, server globals and session globals.',
+        ],
+        'smtp_host' => [
+            'display'       => 'SMTP Server Hostname/IP',
+            'category_key'  => 'email',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'smtp_port' => [
+            'display'       => 'SMTP Host\'s Port',
+            'category_key'  => 'email',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'smtp_user' => [
+            'display'       => 'SMTP User',
+            'category_key'  => 'email',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'smtp_password' => [
+            'display'       => 'SMTP Password',
+            'category_key'  => 'email',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'registration_access_code' => [
+            'display'       => 'Registration Access Code',
+            'category_key'  => 'administrative',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'main_template' => [
+            'display'       => 'Main Template',
+            'category_key'  => 'templates',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'http_error_template' => [
+            'display'       => 'HTTP Error Page Template',
+            'category_key'  => 'templates',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'nav_template' => [
+            'display'       => 'Nav Template',
+            'category_key'  => 'templates',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'footer_template' => [
+            'display'       => 'Footer Template',
+            'category_key'  => 'templates',
+            'role_based'    => false,
+            'description'   => '',
+        ],
+        'add_redirects' => [
+            'display'       => 'Add Redirects',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => '',
+        ],
+        'edit_redirects' => [
+            'display'       => 'Edit Redirects',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => '',
+        ],
+        'archive_redirects' => [
+            'display'       => 'Archive Redirects',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => '',
+        ],
+        'add_routes' => [
+            'display'       => 'Add URI Routes',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => '',
+        ],
+        'edit_routes' => [
+            'display'       => 'Edit URI Routes',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => '',
+        ],
+        'archive_routes' => [
+            'display'       => 'Archive URI Routes',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => '',
+        ],
+        'log_file' => [
+            'display'       => 'Log File',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Location of the system\'s log file. Use {{today}} as a variable in the filename. e.g. log-{{today}}.log will render a log file as log-2001-01-01.log on January 1st of 2001.',
+        ],
+        'archive_users' => [
+            'display'       => 'Archive Users',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Ability to archive users',
+        ],
+        'edit_users' => [
+            'display'       => 'Edit Users',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Ability to edit users',
+        ],
+        'archive_roles' => [
+            'display'       => 'Archive Roles',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Ability to archive roles',
+        ],
+        'edit_roles' => [
+            'display'       => 'Edit Roles',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Ability to edit roles',
+        ],
+        'add_roles' => [
+            'display'       => 'Add Roles',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Ability to add roles',
+        ],
+        'edit_settings' => [
+            'display'       => 'Edit Settings',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Ability to edit settings',
+        ],
+        'add_pages' => [
+            'display'       => 'Add Pages',
+            'category_key'  => 'cms',
+            'role_based'    => true,
+            'description'   => 'Ability to add CMS pages',
+        ],
+        'edit_pages' => [
+            'display'       => 'Edit Pages',
+            'category_key'  => 'cms',
+            'role_based'    => true,
+            'description'   => 'Ability to edit CMS pages',
+        ],
+        'archive_pages' => [
+            'display'       => 'Archive Pages',
+            'category_key'  => 'cms',
+            'role_based'    => true,
+            'description'   => 'Ability to archive CMS pages',
+        ],
+        'upload_root' => [
+            'display'       => 'Upload Root Directory',
+            'category_key'  => 'cms',
+            'role_based'    => false,
+            'description'   => 'Filesystem directory for uploaded/pasted CMS files',
+        ],
+        'upload_url_relative' => [
+            'display'       => 'Upload URL Relative Path (relative to site URL)',
+            'category_key'  => 'cms',
+            'role_based'    => false,
+            'description'   => 'Relative path (client-facing/browser) for files',
+        ],
+        'manage_css' => [
+            'display'       => 'Upload Root Directory',
+            'category_key'  => 'cms',
+            'role_based'    => true,
+            'description'   => 'Allow site-wide management of custom CSS',
+        ],
+        'robots_txt_value' => [
+            'display'       => 'robots.txt value',
+            'category_key'  => 'administrative',
+            'role_based'    => false,
+            'description'   => 'The site\'s top level /robots.txt output',
+        ],
+    ];
+
+
+    public static $properties = [
+        'boolean'       => 'True or false',
+        'ckeditor'      => 'Uses CK Editor to manage value',
+        'codemirror'    =>'Uses CodeMirror to manage value',
+    ];
+
+
+    /*
+     * TODO - put values into their own sub-array. Someday, the default settings could have multiple properties.
+     * e.g.
+     * 'add_pages'  => [
+     *     'boolean',
+     *     'some-other-property',
+     *  ]
+     */
+
+    public static $settings_properties = [
+        'add_pages'                 => 'boolean',
+        'add_redirects'             => 'boolean' ,
+        'add_roles'                 => 'boolean' ,
+        'add_routes'                => 'boolean' ,
+        'archive_pages'             => 'boolean' ,
+        'archive_redirects'         => 'boolean' ,
+        'archive_roles'             => 'boolean' ,
+        'archive_routes'            => 'boolean' ,
+        'archive_users'             => 'boolean' ,
+        'edit_pages'                => 'boolean' ,
+        'edit_redirects'            => 'boolean' ,
+        'edit_roles'                => 'boolean' ,
+        'edit_routes'               => 'boolean' ,
+        'edit_settings'             => 'boolean' ,
+        'edit_users'                => 'boolean' ,
+        'enable_ssl'                => 'boolean' ,
+        'enable_template_caching'   => 'boolean' ,
+        'footer_template'           => 'codemirror' ,
+        'http_error_template'       => 'codemirror' ,
+        'main_template'             => 'codemirror' ,
+        'maintenance_mode'          => 'boolean' ,
+        'manage_css'                => 'boolean' ,
+        'manage_menu'               => 'boolean' ,
+        'nav_template'              => 'codemirror' ,
+        'pdo_debug'                 => 'boolean' ,
+        'require_recaptcha'         => 'boolean' ,
+        'robots_txt_value'          => 'codemirror' ,
+        'show_debug'                => 'boolean'
+    ];
+
+
+    public static $core_tables = [
+        'current_page_iteration',
+        'page',
+        'page_iteration',
+        'property',
+        'settings',
+        'settings_properties',
+        'uri',
+        'uri_routes',
+    ];
 
     public function __construct()
     {
         $this->getFullWebURL();
+    }
+
+
+    /***
+     * TODO (next three functions)
+     * Using the arrays above, a script can be written to replace any settings, properties or settings_properties that may have been removed from the database.
+     ***/
+
+    public function resetSettings()
+    {
+
+    }
+
+
+    public function resetProperties()
+    {
+
+    }
+
+
+    public function resetSettingsProperties()
+    {
+
     }
 
 
@@ -133,7 +450,7 @@ class Settings
             AND s.archived='0'
         ";
 
-        $bind_array[] = $key;
+        $bind[] = $key;
 
         if ($username) {
             $sql .= "
@@ -144,7 +461,7 @@ class Settings
                 )
             ";
 
-            $bind_array[] = $username;
+            $bind[] = $username;
         } else {
             $sql .= " AND (sr.role_name IS NULL OR sr.archived = '1') AND s.role_based = 'false'";
         }
@@ -152,22 +469,43 @@ class Settings
         if ($value) {
             $sql .= " AND sv.value = ? ";
 
-            $bind_array[] = $value;
+            $bind[] = $value;
         }
 
-        $sql .= "
-            AND (
-              sv.configuration_scheme = ?
-              OR sv.configuration_scheme IS NULL
-            )
-        ";
-
-        $bind_array[] = $_SERVER['CONFIGURATION_SCHEME'];
-
-        $db     = new \Db\Query($sql, $bind_array);
+        $db     = new \Db\Query($sql, $bind);
         $result = $db->fetchAssoc();
 
         return self::processDbResult($result);
+    }
+
+
+    /**
+     * @return bool
+     * @throws ErrorException
+     */
+    public static function checkCoreTables()
+    {
+        $core_tables        = "'" . implode("','", self::$core_tables) . "'";
+        $count_core_tables  = (int)count(self::$core_tables);
+
+        $sql = "
+            SELECT COUNT(*)
+            FROM
+                information_schema.TABLES
+            WHERE
+                table_schema = ?
+            AND
+                table_name IN($core_tables);
+        ";
+
+        $bind = [
+            \Settings::environmentIni('mysql_database'),
+        ];
+
+        $db     = new \Db\Query($sql, $bind);
+        $result = (int)$db->fetch();
+
+        return ($result == $count_core_tables);
     }
 
 
@@ -183,15 +521,9 @@ class Settings
             INNER JOIN settings_values AS sv
               ON s.key = sv.settings_key
             WHERE s.archived='0'
-            AND (
-              sv.configuration_scheme = ?
-              OR sv.configuration_scheme IS NULL
-            )
         ";
 
-        $bind_array[] = $_SERVER['CONFIGURATION_SCHEME'];
-
-        $db         = new \Db\Query($sql, $bind_array);
+        $db         = new \Db\Query($sql);
         $results    = $db->fetchAllAssoc();
 
         return self::processDbResults($results, $values_only);
@@ -214,6 +546,10 @@ class Settings
     }
 
 
+    /**
+     * @param $setting_key
+     * @return array
+     */
     public static function getSettingRoles($setting_key)
     {
         $sql = "
@@ -261,6 +597,10 @@ class Settings
     }
 
 
+    /**
+     * @param $setting_key
+     * @return array
+     */
     protected static function getSettingProperties($setting_key)
     {
         $sql = "
@@ -359,14 +699,11 @@ class Settings
             SET
               value = ?
             WHERE settings_key = ?
-            AND (configuration_scheme = ? OR configuration_scheme IS NULL)
-            
         ";
 
         $bind = [
             $settings_data['value'],
             $settings_data['key'],
-            $_SERVER['CONFIGURATION_SCHEME'],
         ];
 
         return $transaction
@@ -438,5 +775,41 @@ class Settings
         }
 
         return true;
+    }
+
+
+    /**
+     * @param $value
+     * @return mixed
+     * @throws ErrorException
+     */
+    public static function environmentIni($value)
+    {
+        $environment_ini_file = $_SERVER['WEB_ROOT'] . '/setup/environment.ini';
+
+        if (is_file($environment_ini_file) && is_readable($environment_ini_file)) {
+            $parsed_environment_ini_file    = parse_ini_file($environment_ini_file, true);
+            $this_section                   = $parsed_environment_ini_file[ENVIRONMENT];
+
+            if (empty($this_section)) {
+                if (PHP_SAPI == 'cli') {
+                    throw new \ErrorException(
+                        'Since you are running this script via CLI, you\'ll need to pass in the environment name as the first argument'
+                    );
+                } else {
+                    throw new \ErrorException(
+                        'Empty or missing ' . $_SERVER['ENVIRONMENT'] . ' section in ' . $environment_ini_file
+                    );
+                }
+            }
+        } else {
+            throw new \ErrorException(
+                'Missing '
+                . $environment_ini_file
+                . '. Please create that file and an array section that matches your Apache ENVIRONMENT directive.'
+            );
+        }
+
+        return $this_section[$value];
     }
 }

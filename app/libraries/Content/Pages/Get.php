@@ -14,10 +14,29 @@ namespace Content\Pages;
 
 class Get
 {
-    public $is_cms_editor = false;
+    public $is_cms_editor   = false;
+
+    /*
+     * TODO
+     * Need array of pages to be installed by default
+     */
+    public static $pages    = [
+
+    ];
 
     public function __construct()
     {
+    }
+
+
+    /***
+     * TODO
+     * Using the "array of pages" above, a script can be written to replace any routes that may have been removed from the database.
+     ***/
+
+    public function resetPages()
+    {
+
     }
 
 
@@ -343,8 +362,8 @@ class Get
                 pi.status,
                 pi.include_in_sitemap,
                 pic.author,
-                p.created AS page_created,
-                pi.created AS page_modified,
+                p.created_datetime AS page_created,
+                pi.created_datetime AS page_modified,
                 COALESCE(
                   NULLIF(pi.page_title_h1, ''),
                   NULLIF(pi.page_title_seo, ''),
@@ -354,7 +373,7 @@ class Get
             INNER JOIN uri ON uri.uid = p.uri_uid
             INNER JOIN current_page_iteration AS cpi ON cpi.page_master_uid = p.page_master_uid
             INNER JOIN page_iteration AS pi ON pi.uid = cpi.page_iteration_uid
-            INNER JOIN page_iteration_commits AS pic ON pi.uid = pic.page_iteration_uid
+            LEFT JOIN page_iteration_commits AS pic ON pi.uid = pic.page_iteration_uid
             LEFT JOIN page_roles AS pr
               ON pr.page_iteration_uid = pi.uid
             LEFT JOIN account_roles AS ar
@@ -365,7 +384,6 @@ class Get
             AND p.archived = '0'
             AND pi.archived = '0'
             AND cpi.archived = '0'
-            AND pic.archived = '0'
         ";
 
         $bind = [

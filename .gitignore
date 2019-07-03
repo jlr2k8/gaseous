@@ -2,3 +2,4 @@
 /node_modules*
 **templates_c
 /app/controllers/test.php
+/app/setup/environment.ini

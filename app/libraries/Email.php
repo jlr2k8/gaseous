@@ -42,11 +42,11 @@ class Email extends \Swift_Mailer
      * @throws Exception
      */
     public function sendEmail(
+        $sender_email,
+        array $recipient_emails,
         $subject = '(No Subject)',
         $sender_name = 'Unnamed',
-        $sender_email,
         $recipient_names = array(),
-        array $recipient_emails,
         $recipient_cc_names = array(),
         $recipient_cc_emails = array(),
         $body = '(No Content)'

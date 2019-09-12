@@ -32,11 +32,9 @@ class Route
         '/admin/?'                      => 'controllers/admin/index.php',
         '/admin/css/?'                  => 'controllers/admin/css.php',
         '/admin/roles/?'                => 'controllers/admin/roles.php',
-        '/admin/menu/?'                 => 'controllers/admin/menu.php',
         '/admin/routes/?'               => 'controllers/admin/routes.php',
         '/admin/pages/?'                => 'controllers/admin/pages.php',
         '/admin/users/?'                => 'controllers/admin/users.php',
-        '/admin/js/?'                   => 'controllers/admin/js.php',
         '/admin/redirects/?'            => 'controllers/admin/redirects.php',
         '/([\\w\\/\\-]+(\\.html)?)?'    => 'controllers/cms/index.php?page=$1',
     ];

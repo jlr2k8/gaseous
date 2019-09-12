@@ -386,7 +386,6 @@ class Settings
         'main_template'             => 'codemirror',
         'maintenance_mode'          => 'boolean',
         'manage_css'                => 'boolean',
-        'manage_menu'               => 'boolean',
         'nav_template'              => 'codemirror',
         'pdo_debug'                 => 'boolean',
         'require_recaptcha'         => 'boolean',

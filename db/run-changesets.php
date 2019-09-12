@@ -21,7 +21,7 @@ $changesets_scandir             = scandir($_SERVER['WEB_ROOT'] .'/../db/changese
 $file_changesets                = [];
 $need_to_process                = [];
 $db_root                        = $_SERVER['WEB_ROOT'] . '/../db';
-$changeset_starting_point       = '20190526-init.sql';
+$changeset_starting_point       = '20190702-init.sql';
 
 // Build array of filenames from the changesets directory
 foreach ($changesets_scandir as $changeset_scandir) {

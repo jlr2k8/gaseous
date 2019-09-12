@@ -11,6 +11,7 @@
  */
 
 use \Content\Pages\Get;
+use \Content\Pages\HTTP;
 use \Content\Pages\Templator;
 use \Content\Pages\Diff;
 use \Content\Pages\GetHomePage;
@@ -23,7 +24,7 @@ use \Wysiwyg\Codemirror;
 
 // check setting/role privileges
 if (!\Settings::value('add_pages') && !\Settings::value('edit_pages') && !\Settings::value('archive_pages')) {
-    \Content\Pages\HTTP::error(401);
+    HTTP::error(401);
 }
 
 $settings           = new \Settings();

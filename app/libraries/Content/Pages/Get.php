@@ -12,31 +12,15 @@
 
 namespace Content\Pages;
 
+use Utilities\AdminView;
+use Utilities\DateTime;
+
 class Get
 {
     public $is_cms_editor   = false;
 
-    /*
-     * TODO
-     * Need array of pages to be installed by default
-     */
-    public static $pages    = [
-
-    ];
-
     public function __construct()
     {
-    }
-
-
-    /***
-     * TODO
-     * Using the "array of pages" above, a script can be written to replace any routes that may have been removed from the database.
-     ***/
-
-    public function resetPages()
-    {
-
     }
 
 
@@ -332,7 +316,7 @@ class Get
         $roles  = $this->pageRoles($result['uid']);
 
         $result['roles']                = $roles;
-        $result['formatted_modified']   = \Utilities\DateTime::formatDateTime($result['modified']);
+        $result['formatted_modified']   = DateTime::formatDateTime($result['modified']);
 
         if (empty($result['page_identifier_label']) && !empty($result['body'])) {
             $result['page_identifier_label'] = \Content\Utilities::snippet($result['body']);
@@ -417,8 +401,8 @@ class Get
         $results    = $db->fetchAllAssoc();
 
         foreach($results as $key => $val) {
-            $results[$key]['formatted_page_created']    = \Utilities\DateTime::formatDateTime($val['page_created'], 'm/d/Y g:i A e');
-            $results[$key]['formatted_page_modified']   = \Utilities\DateTime::formatDateTime($val['page_modified'], 'm/d/Y g:i A e');
+            $results[$key]['formatted_page_created']    = DateTime::formatDateTime($val['page_created'], 'm/d/Y g:i A e');
+            $results[$key]['formatted_page_modified']   = DateTime::formatDateTime($val['page_modified'], 'm/d/Y g:i A e');
         }
 
         return $results;
@@ -434,6 +418,7 @@ class Get
     {
         $templator  = new Templator();
         $assets     = new Assets();
+        $admin_view = new AdminView();
 
         // core template items
         $find_replace = [
@@ -447,6 +432,7 @@ class Get
             'nav'               => $this->nav($templator, $find_replace),
             'body'              => $this->renderTemplate($find_replace['body'], $templator),
             'footer'            => $this->footer($templator, $find_replace),
+            'administration'    => $admin_view->renderAdminList(),
             'debug_footer'      => $this->debugFooter(),
         ];
 

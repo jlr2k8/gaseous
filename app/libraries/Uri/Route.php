@@ -46,17 +46,6 @@ class Route
     }
 
 
-    /***
-     * TODO (next three functions)
-     * Using the arrays above, a script can be written to replace any routes that may have been removed from the database.
-     ***/
-
-    public function resetRoutes()
-    {
-
-    }
-
-
     /**
      * @param $uri
      * @return array

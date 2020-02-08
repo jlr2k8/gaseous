@@ -12,7 +12,7 @@
 
 namespace Db;
 
-class Query extends \Db\PdoMySql
+class Query extends PdoMySql
 {
     public $query, $con;
     protected $sql, $bind;
@@ -20,7 +20,7 @@ class Query extends \Db\PdoMySql
 
     /**
      * @param $sql
-     * @param array $bind_array
+     * @param array $bind
      * @throws \PDOException
      */
     public function __construct($sql, $bind = array())
@@ -119,6 +119,9 @@ class Query extends \Db\PdoMySql
     }
 
 
+    /**
+     * @return string
+     */
     public static function getUuid()
     {
         $sql = "SELECT UUID();";

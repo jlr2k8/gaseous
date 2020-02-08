@@ -17,8 +17,8 @@ class Codemirror
 {
     public $cdn_root    = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror';
     public $jquery_url  = '//code.jquery.com/jquery-2.2.4.min.js';
-    public $mode = 'css';
-    public $mode_src = 'mode/css/css.js';
+    public $mode        = 'css';
+    public $mode_src    = 'mode/css/css.js';
     private $version    = '5.39.0';
 
     /**
@@ -47,16 +47,6 @@ class Codemirror
         ';
 
         return true;
-    }
-
-
-    public function setMode($mode, $mode_src = false)
-    {
-        $mode_src = $mode_src ?: $mode;
-
-        $this->mode        = $mode;
-        $this->mode_src    = 'mode/' . $mode_src . '/' . $mode_src . '.js';
-        return '<script src="' . $this->cdn_root . '/' . $this->version . '/' . $this->mode_src . '"></script>';
     }
 
 

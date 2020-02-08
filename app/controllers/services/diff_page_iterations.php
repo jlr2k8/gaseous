@@ -10,9 +10,13 @@
  *
  **/
 
-$diff       = new \Content\Pages\Diff();
-$get        = new \Content\Pages\Get();
-$templator  = new \Content\Pages\Templator();
+use Content\Pages\Diff;
+use Content\Pages\Get;
+use Content\Pages\Templator;
+
+$diff       = new Diff();
+$get        = new Get();
+$templator  = new Templator();
 
 $old_uid    = !empty($_GET['old_uid']) ? (string)filter_var($_GET['old_uid'], FILTER_SANITIZE_STRING) : false;
 $new_uid    = !empty($_GET['new_uid']) ? (string)filter_var($_GET['new_uid'], FILTER_SANITIZE_STRING) : false;
@@ -32,9 +36,9 @@ $compare_fields = [
 
 foreach($compare_fields as $f) {
     if ($f != 'roles')
-        $compare[$f] = \Content\Pages\Diff::formattedHtml($old_page_content[$f], $new_page_content[$f]);
+        $compare[$f] = Diff::formattedHtml($old_page_content[$f], $new_page_content[$f]);
     else
-        $compare[$f] = \Content\Pages\Diff::formattedHtmlArray($old_page_content[$f], $new_page_content[$f]);
+        $compare[$f] = Diff::formattedHtmlArray($old_page_content[$f], $new_page_content[$f]);
 }
 
 $columns_for_comparison = array_keys($old_page_content); // old or new page content shouldn't make a difference. just need the fields.

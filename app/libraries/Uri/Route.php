@@ -16,30 +16,6 @@ class Route
 {
     public $routing_map;
 
-    public static $uri_routes = [
-        '/register/?'                   => 'controllers/user/register.php',
-        '/login/?'                      => 'controllers/user/login.php',
-        '/admin/settings/?'             => 'controllers/admin/settings.php',
-        '/sitemap.xml'                  => 'controllers/services/sitemap_output.php',
-        '/styles.gz.css'                => 'controllers/services/css_output.php',
-        '/js.gz.js'                     => 'controllers/services/js_output.php',
-        '/robots.txt'                   => 'controllers/services/robots.txt.php',
-        '/css-preview-check/?'          => 'controllers/services/css_preview_check.php',
-        '/js-preview-check/?'           => 'controllers/services/js_preview_check.php',
-        '/logout/?'                     => 'controllers/user/logout.php',
-        '/img/(.*)'                     => 'controllers/services/images.php?src=$1',
-        '/register/([\\w]+)/?'          => 'controllers/user/register.php?access_code=$1',
-        '/admin/?'                      => 'controllers/admin/index.php',
-        '/admin/css/?'                  => 'controllers/admin/css.php',
-        '/admin/roles/?'                => 'controllers/admin/roles.php',
-        '/admin/routes/?'               => 'controllers/admin/routes.php',
-        '/admin/pages/?'                => 'controllers/admin/pages.php',
-        '/admin/users/?'                => 'controllers/admin/users.php',
-        '/admin/redirects/?'            => 'controllers/admin/redirects.php',
-        '/([\\w\\/\\-]+(\\.html)?)?'    => 'controllers/cms/index.php?page=$1',
-    ];
-
-
     public function __construct()
     {
         $this->getUriRoutes();

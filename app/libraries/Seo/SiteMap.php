@@ -12,9 +12,11 @@
 
 namespace Seo;
 
+use Db\Query;
+
 class SiteMap
 {
-    public $sitemap, $xml, $urlset;
+    public $xml, $urlset;
 
     public function __construct()
     {
@@ -89,7 +91,7 @@ class SiteMap
             uri.uri
         ";
 
-        $db = new \Db\Query($sql);
+        $db = new Query($sql);
 
         return $db->fetchAllAssoc();
     }

@@ -12,6 +12,9 @@
 
 namespace Content\Pages;
 
+use Seo;
+use Utilities\AssetConcat;
+
 class Assets
 {
     public $css, $js;
@@ -25,22 +28,30 @@ class Assets
     /**
      * @return bool
      */
-    protected function get()
+    private function get()
     {
-        $asset_concat   = new \Utilities\AssetConcat();
+        $asset_concat   = new AssetConcat();
         $css_gz_file    = $_SERVER['WEB_ROOT'] . '/assets/styles.gz.css';
         $js_gz_file     = $_SERVER['WEB_ROOT'] . '/assets/js.gz.js';
+        $css_preview    = $_SESSION['css_preview']['css'] ?? [];
+
 
         $css_gz = file_exists($css_gz_file) && gzdecode(file_get_contents($css_gz_file))
             ? gzdecode(file_get_contents($css_gz_file))
             : false;
 
+        $this->css  = Seo\Minify::css($css_gz ? $css_gz : $asset_concat->mode('css'));
+
+        if (!empty($css_preview)) {
+            $this->css .= Seo\Minify::css($css_preview);
+        }
+
+        // TODO - JS preview mode
         $js_gz = file_exists($js_gz_file) && gzdecode(file_get_contents($js_gz_file))
             ? gzdecode(file_get_contents($js_gz_file))
             : false;
 
-        $this->css  = \Seo\Minify::css($css_gz ? $css_gz : $asset_concat->mode('css'));
-        $this->js   = $js_gz ? $js_gz : $asset_concat->mode('js');
+        $this->js   = Seo\Minify::js($js_gz ? $js_gz : $asset_concat->mode('js'));
 
         return true;
     }

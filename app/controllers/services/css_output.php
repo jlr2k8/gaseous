@@ -10,10 +10,12 @@
  *
  */
 
+use Seo\Minify;
+
 $client_headers = apache_request_headers();
 $headers        = new \Headers($client_headers);
 $css            = new \Css();
-$minify         = new \Seo\Minify();
+$minify         = new Minify();
 
 $latest_css             = $css->getCurrentCssIteration();
 $headers->last_modified = strtotime($latest_css['modified_datetime']);

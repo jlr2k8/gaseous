@@ -14,7 +14,7 @@ namespace Utilities;
 
 class Reset
 {
-    private static $settings = [
+    static $settings = [
         'web_url' =>    [
             'display'       => 'Web URL',
             'category_key'  => 'administrative',
@@ -137,7 +137,7 @@ class Reset
                 &lt;style&gt;{$css}&lt;/style&gt;
                 &lt;link href=&quot;https://fonts.googleapis.com/css?family=Open+Sans&quot; rel=&quot;stylesheet&quot;&gt; 
                 &lt;link href=&quot;/styles.gz.css&quot; rel=&quot;stylesheet&quot; /&gt;
-                &lt;link rel=&quot;shortcut icon&quot; href=&quot;https://www.joshlrogers.com/assets/img/favicon.ico&quot;&gt;
+                &lt;link rel=&quot;shortcut icon&quot; href=&quot;/favicon.ico&quot;&gt;
                 &lt;/head&gt;
                 &lt;body itemscope=&quot;itemscope&quot; itemtype=&quot;http://schema.org/WebPage&quot;&gt;
                 &lt;nav&gt;
@@ -347,14 +347,14 @@ class Reset
     ];
 
 
-    private static $properties = [
+    static $properties = [
         'boolean'       => 'True or false',
         'ckeditor'      => 'Uses CK Editor to manage value',
         'codemirror'    =>'Uses CodeMirror to manage value',
     ];
 
 
-    private static $settings_properties = [
+    static $settings_properties = [
         'add_pages'                 => 'boolean',
         'add_redirects'             => 'boolean',
         'add_roles'                 => 'boolean',
@@ -385,7 +385,7 @@ class Reset
     ];
 
 
-    public static $core_tables = [
+    static $core_tables = [
         'current_page_iteration',
         'page',
         'page_iteration',
@@ -394,6 +394,30 @@ class Reset
         'settings_properties',
         'uri',
         'uri_routes',
+    ];
+
+
+    static $uri_routes = [
+        '/register/?'                   => 'controllers/user/register.php',
+        '/login/?'                      => 'controllers/user/login.php',
+        '/admin/settings/?'             => 'controllers/admin/settings.php',
+        '/sitemap.xml'                  => 'controllers/services/sitemap_output.php',
+        '/styles.gz.css'                => 'controllers/services/css_output.php',
+        '/js.gz.js'                     => 'controllers/services/js_output.php',
+        '/robots.txt'                   => 'controllers/services/robots.txt.php',
+        '/css-preview-check/?'          => 'controllers/services/css_preview_check.php',
+        '/js-preview-check/?'           => 'controllers/services/js_preview_check.php',
+        '/logout/?'                     => 'controllers/user/logout.php',
+        '/img/(.*)'                     => 'controllers/services/images.php?src=$1',
+        '/register/([\\w]+)/?'          => 'controllers/user/register.php?access_code=$1',
+        '/admin/?'                      => 'controllers/admin/index.php',
+        '/admin/css/?'                  => 'controllers/admin/css.php',
+        '/admin/roles/?'                => 'controllers/admin/roles.php',
+        '/admin/routes/?'               => 'controllers/admin/routes.php',
+        '/admin/pages/?'                => 'controllers/admin/pages.php',
+        '/admin/users/?'                => 'controllers/admin/users.php',
+        '/admin/redirects/?'            => 'controllers/admin/redirects.php',
+        '/([\\w\\/\\-]+(\\.html)?)?'    => 'controllers/cms/index.php?page=$1',
     ];
 
 

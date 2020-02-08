@@ -10,7 +10,9 @@
  *
  **/
 
-$sitemap = new \Seo\SiteMap();
+use Seo\SiteMap;
+
+$sitemap = new SiteMap();
 
 $sitemap->outputHeaders();
 

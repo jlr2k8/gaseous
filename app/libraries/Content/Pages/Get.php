@@ -14,6 +14,8 @@ namespace Content\Pages;
 
 use Utilities\AdminView;
 use Utilities\DateTime;
+use Db\Query;
+use Utilities\SystemPages;
 
 class Get
 {
@@ -81,7 +83,7 @@ class Get
             rtrim($uri, '/'),
         ];
 
-        $db         = new \Db\Query($sql, $bind);
+        $db         = new Query($sql, $bind);
         $valid_uri  = $db->fetch();
 
         return $valid_uri;
@@ -101,6 +103,7 @@ class Get
         $valid_uri          = $this->validUri($parsed_uri['path']);
         $find_replace_page  = $this->pageContent($valid_uri);
         $find_replace       = array_merge($find_replace_page, $find_replace);
+        $content            = null;
 
         if (!empty($find_replace_page)) {
             if ($redirect_proper_uri === true) {
@@ -124,6 +127,7 @@ class Get
      * @param bool $content_only
      * @return bool|string
      * @throws \SmartyException
+     * @throws \Exception
      */
     public function pagePreviewByIterationUid($page_iteration_uid, $page_master_uid, $content_only = false)
     {
@@ -175,7 +179,7 @@ class Get
             $page_master_uid,
         ];
 
-        $db = new \Db\Query($sql, $bind);
+        $db = new Query($sql, $bind);
 
         return $db->fetch();
     }
@@ -244,7 +248,7 @@ class Get
             $sql .= " AND (pr.role_name IS NULL OR pr.archived = '1')";
         }
 
-        $db                 = new \Db\Query($sql, $bind);
+        $db                 = new Query($sql, $bind);
         $result             = $db->fetchAssoc();
         $roles              = $this->pageRoles($result['uid']);
         $result['roles']    = $roles;
@@ -270,7 +274,7 @@ class Get
             $uri_uid,
         ];
 
-        $db         = new \Db\Query($sql, $bind);
+        $db         = new Query($sql, $bind);
         $results    = $db->fetchAll();
 
         return $results;
@@ -299,8 +303,8 @@ class Get
                 pi.content AS body,
                 pi.status,
                 pi.include_in_sitemap,
-                pi.created,
-                pi.modified,
+                pi.created_datetime,
+                pi.modified_datetime,
                 COALESCE(pi.page_title_h1, pi.page_title_seo) AS page_identifier_label
             FROM page_iteration AS pi            
             WHERE pi.uid = ?
@@ -311,12 +315,12 @@ class Get
             $page_iteration_uid,
         ];
 
-        $db     = new \Db\Query($sql, $bind);
+        $db     = new Query($sql, $bind);
         $result = $db->fetchAssoc();
         $roles  = $this->pageRoles($result['uid']);
 
         $result['roles']                = $roles;
-        $result['formatted_modified']   = DateTime::formatDateTime($result['modified']);
+        $result['formatted_modified']   = DateTime::formatDateTime($result['modified_datetime']);
 
         if (empty($result['page_identifier_label']) && !empty($result['body'])) {
             $result['page_identifier_label'] = \Content\Utilities::snippet($result['body']);
@@ -397,7 +401,7 @@ class Get
             uri.uri
         ";
 
-        $db         = new \Db\Query($sql, $bind);
+        $db         = new Query($sql, $bind);
         $results    = $db->fetchAllAssoc();
 
         foreach($results as $key => $val) {
@@ -486,9 +490,7 @@ class Get
 
 
     /**
-     * @param Templator $templator
-     * @return string
-     * @throws \SmartyException
+     * @return false|string
      */
     private function debugFooter()
     {
@@ -602,11 +604,11 @@ class Get
           ORDER BY uri.uri ASC
         ";
 
-        $db         = new \Db\Query($sql);
+        $db         = new Query($sql);
         $results    = $db->fetchAllAssoc();
 
         if ($include_system_pages) {
-            $system_pages           = new \Utilities\SystemPages();
+            $system_pages           = new SystemPages();
             $system_pages_results   = $system_pages->getSystemPagesAsResultSet();
 
             $results = array_merge($results, $system_pages_results);
@@ -617,7 +619,8 @@ class Get
 
 
     /**
-     * @return array|bool
+     * @param $uri_uid
+     * @return string
      */
     public static function uri($uri_uid)
     {
@@ -628,7 +631,7 @@ class Get
           AND uid = ?
         ";
 
-        $db = new \Db\Query($sql, [$uri_uid]);
+        $db = new Query($sql, [$uri_uid]);
 
         return $db->fetch();
     }

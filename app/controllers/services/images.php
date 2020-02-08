@@ -14,13 +14,15 @@
  */
 
 // get src param
+use Content\Pages\HTTP;
+
 $upload_root    = \Settings::value('upload_root');
 $filetype       = !empty($_GET['filetype']) ? $_GET['filetype'] : false;
 $filename       = !empty($_GET['src']) && is_file($upload_root . '/' . $_GET['src']) ? $upload_root . '/' . $_GET['src'] : false;
 
 // 404 if img not provided or doesn't exist locally
 if (!$filename) {
-    \Content\Pages\HTTP::error(404);
+    HTTP::error(404);
 }
 
 $client_headers = apache_request_headers();

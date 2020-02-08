@@ -12,10 +12,15 @@
 
 namespace Content\Pages;
 
-class Diff extends \Utilities\GetDiff
+use Db\Query;
+use Utilities\DateTime;
+use Utilities\GetDiff;
+
+class Diff extends GetDiff
 {
     public function __construct()
     {
+        parent::__construct();
     }
 
 
@@ -42,12 +47,12 @@ class Diff extends \Utilities\GetDiff
             $page_master_uid,
         ];
 
-        $db         = new \Db\Query($sql, $bind);
+        $db         = new Query($sql, $bind);
         $results    = $db->fetchAllAssoc();
 
         if (count($results)) {
             foreach ($results as $key => $result) {
-                $results[$key]['formatted_created'] = \Utilities\DateTime::formatDateTime($result['created_datetime']);
+                $results[$key]['formatted_created'] = DateTime::formatDateTime($result['created_datetime']);
             }
 
             return $results;
@@ -78,10 +83,10 @@ class Diff extends \Utilities\GetDiff
             $page_iteration_uid,
         ];
 
-        $db     = new \Db\Query($sql, $bind);
+        $db     = new Query($sql, $bind);
         $result = $db->fetchAssoc();
 
-        $result['formatted_created'] = \Utilities\DateTime::formatDateTime($result['created_datetime']);
+        $result['formatted_created'] = DateTime::formatDateTime($result['created_datetime']);
 
         return $result;
     }

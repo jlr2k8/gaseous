@@ -5,8 +5,9 @@
 {/if}
 <form id="css" method="post">
     <select id="css_iteration_list" name="css_iteration_list">
+        <option></option>
         {foreach from=$css_iterations item=$css_iteration}
-            <option value="{$css_iteration.uid}" {if $css_iteration.is_selected == '1'}selected="selected"{/if}>
+            <option value="{$css_iteration.uid}" {if $editor_css_uid == $css_iteration.uid}selected="selected"{/if}>
                 {$css_iteration.author} {$css_iteration.formatted_modified} {if !empty($css_iteration.description)} - {$css_iteration.description}{/if}
             </option>
         {/foreach}
@@ -14,7 +15,8 @@
     <input type="submit" id="submit_option_to_preview" name="submit_option_to_preview" value="Preview Iteration" />
     <input type="submit" id="submit_option_to_editor" name="submit_option_to_editor" value="Load Iteration for Editing Below" />
 
-    <textarea id="css_iteration" name="css_iteration">{if !empty($selected_css_iteration.css)}{$selected_css_iteration.css}{/if}</textarea>
+
+    <textarea id="css_iteration" name="css_iteration">{$editor_css_content}</textarea>
     {$codemirror->cdn}
     {$codemirror->textarea("css_iteration")}
 

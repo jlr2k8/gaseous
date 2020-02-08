@@ -10,20 +10,24 @@
  *
  */
 
-$templator          = new \Content\Pages\Templator();
+use Content\Pages\Breadcrumbs;
+use Content\Pages\Templator;
+use User\Account;
+use User\Register;
+
+$templator          = new Templator();
 $access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['access_code'], FILTER_SANITIZE_STRING) : false;
 $has_valid_access   = ($access_code && $access_code == \Settings::value('registration_access_code'));
 
 $page_find_replace = [
     'page_title'    => 'User Registration',
-    'breadcrumbs'   => (new \Content\Pages\Breadcrumbs())->crumb('Register'),
+    'breadcrumbs'   => (new Breadcrumbs())->crumb('Register'),
 ];
 
 $body = null;
 
 if (!empty($_POST) && $has_valid_access) {
-
-    $registration   = new \User\Register($_POST);
+    $registration   = new Register($_POST);
     $create_account = $registration->createAccount();
 
     if ($create_account) {
@@ -50,7 +54,6 @@ if (!empty($_POST) && $has_valid_access) {
         $body = $templator->fetch('user/register.tpl');
     }
 } elseif (empty($_POST) && $has_valid_access) {
-
     $templator->assign('access_code', $access_code);
 
     $templator->assign('errors', null);
@@ -69,7 +72,7 @@ if (!empty($_POST) && $has_valid_access) {
 
 $page_find_replace['body'] = $body;
 
-$account = new \User\Account();
+$account = new Account();
 $account->getAll();
 
 echo $templator::page($page_find_replace);

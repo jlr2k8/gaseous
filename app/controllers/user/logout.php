@@ -10,7 +10,9 @@
  *
  */
 
-$login      = new \User\Login();
+use User\Login;
+
+$login      = new Login();
 $message    = 'You have been successfully logged out!';
 
 if (!$login->logout())

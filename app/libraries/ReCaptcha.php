@@ -54,7 +54,8 @@ class ReCaptcha
 
 
     /**
-     * @return mixed
+     * @return string|null
+     * @throws SmartyException
      */
     public static function draw()
     {

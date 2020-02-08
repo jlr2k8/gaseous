@@ -85,7 +85,6 @@ CREATE TABLE `css_iteration` (
   `author` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
   `is_selected` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
-  `preview_only` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
   `archived` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
   `created_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

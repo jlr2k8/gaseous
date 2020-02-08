@@ -11,18 +11,24 @@
  **/
 
 // restricted access
+use Content\Pages\Diff;
+use Content\Pages\Get;
+use Content\Pages\HTTP;
+use Content\Pages\Templator;
+use Content\Pages\Utilities;
+
 if (!\Settings::value('edit_pages')) {
-    \Content\Pages\HTTP::error(401);
+    HTTP::error(401);
 }
 
 $page_master_uid = !empty($_GET['page_master_uid']) ? (string)filter_var($_GET['page_master_uid'], FILTER_SANITIZE_STRING) : false;
 
 if ($page_master_uid) {
-    $templator  = new \Content\Pages\Templator();
-    $diff       = new \Content\Pages\Diff();
-    $get        = new \Content\Pages\Get();
+    $templator  = new Templator();
+    $diff       = new Diff();
+    $get        = new Get();
 
-    $uri        = \Content\Pages\Utilities::pageUriFromMasterUid($page_master_uid);
+    $uri        = Utilities::pageUriFromMasterUid($page_master_uid);
     $iterations = $diff->getPageIterations($page_master_uid);
     $page       = $get->pageContent($uri) ?: $get->pageContent($uri, 'inactive');
 
@@ -32,5 +38,5 @@ if ($page_master_uid) {
 
     echo $templator->fetch('admin/page_iterations.tpl');
 } else {
-    \Content\Pages\HTTP::error(400);
+    HTTP::error(400);
 }

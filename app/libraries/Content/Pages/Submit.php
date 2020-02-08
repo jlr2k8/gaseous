@@ -12,6 +12,10 @@
 
 namespace Content\Pages;
 
+use Db\PdoMySql;
+use Db\Query;
+use User\Account;
+
 class Submit
 {
     public $post_data       = [];
@@ -52,7 +56,7 @@ class Submit
         $old_uid        = $this->post_data['uid'];
         $this->new_uid  = $this->buildIterationHash();
 
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
@@ -91,7 +95,7 @@ class Submit
 
             $this->generateJsonUpsertStatus('status', 'success');
 
-        } catch(\ErrorException $e) {
+        } catch(\Exception $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getMessage();
@@ -132,7 +136,7 @@ class Submit
     {
         self::archivePageCheck();
 
-        $transaction    = new \Db\PdoMySql();
+        $transaction    = new PdoMySql();
         $this->uri_uid  = $this->post_data['original_uri_uid'];
         $uri            = Get::uri($this->post_data['original_uri_uid']);
 
@@ -167,10 +171,10 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function archivePageIteration(\Db\PdoMySql $transaction)
+    private function archivePageIteration(PdoMySql $transaction)
     {
         $sql = "
             UPDATE page_iteration
@@ -191,11 +195,11 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      * @throws \Exception
      */
-    function archivePageRoles(\Db\PdoMySql $transaction)
+    function archivePageRoles(PdoMySql $transaction)
     {
         self::editPageCheck();
 
@@ -217,11 +221,11 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      * @throws \Exception
      */
-    function insertPageRoles(\Db\PdoMySql $transaction)
+    function insertPageRoles(PdoMySql $transaction)
     {
         self::editPageCheck();
 
@@ -234,7 +238,6 @@ class Submit
             $bind   = [];
 
             if (in_array($role['role_name'], $page_roles)) {
-
                 $sql .= "
                   INSERT INTO page_roles (page_iteration_uid, role_name)
                   VALUES (?, ?);
@@ -284,11 +287,11 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      * @throws \Exception
      */
-    private function insertPage(\Db\PdoMySql $transaction)
+    private function insertPage(PdoMySql $transaction)
     {
         self::addPageCheck();
 
@@ -310,10 +313,10 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function insertCurrentIteration(\Db\PdoMySql $transaction)
+    private function insertCurrentIteration(PdoMySql $transaction)
     {
         $sql = "
             INSERT INTO current_page_iteration 
@@ -336,7 +339,7 @@ class Submit
     /**
      *
      */
-    private function insertIteration(\Db\PdoMySql $transaction)
+    private function insertIteration(PdoMySql $transaction)
     {
         $sql        = "
             INSERT INTO page_iteration
@@ -364,12 +367,12 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function insertIterationCommitInfo(\Db\PdoMySql $transaction)
+    private function insertIterationCommitInfo(PdoMySql $transaction)
     {
-        $account    = new \User\Account();
+        $account    = new Account();
         $my_account = $account->getAccountFromSessionValidation();
         $sql        = "
             INSERT INTO page_iteration_commits (page_master_uid, page_iteration_uid, author, iteration_description)
@@ -392,12 +395,12 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param bool $page_iteration_uid
      * @param bool $page_master_uid
      * @return bool
      */
-    public function updateCurrentIteration(\Db\PdoMySql $transaction, $page_iteration_uid = false, $page_master_uid = false)
+    public function updateCurrentIteration(PdoMySql $transaction, $page_iteration_uid = false, $page_master_uid = false)
     {
         $page_iteration_uid = $page_iteration_uid ?: $this->new_uid;
         $page_master_uid    = $page_master_uid ?: $this->page_master_uid;
@@ -422,10 +425,10 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function archiveCurrentIteration(\Db\PdoMySql $transaction)
+    private function archiveCurrentIteration(PdoMySql $transaction)
     {
         $sql = "
             UPDATE current_page_iteration
@@ -446,10 +449,10 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function archivePage(\Db\PdoMySql $transaction)
+    private function archivePage(PdoMySql $transaction)
     {
         $sql = "
             UPDATE page
@@ -470,10 +473,10 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function updatePage(\Db\PdoMySql $transaction)
+    private function updatePage(PdoMySql $transaction)
     {
         $sql = "
             UPDATE page
@@ -495,7 +498,6 @@ class Submit
 
 
     /**
-     * @param array $post_data
      * @return string
      */
     private function buildIterationHash()
@@ -507,11 +509,11 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      * @throws \Exception
      */
-    private function processUri(\Db\PdoMySql $transaction)
+    private function processUri(PdoMySql $transaction)
     {
         $this->uri_uid          = $this->post_data['original_uri_uid'];
         $old_uri                = Get::uri($this->uri_uid);
@@ -528,7 +530,8 @@ class Submit
         }
 
         // user changed URI and it matches an existing
-        if ($old_uri != $new_uri && self::uriExists($new_uri)) {
+        if (($old_uri != $new_uri && (self::uriExists($new_uri)) || empty($new_uri))) {
+            $this->errors = ['URI already exists'];
             $this->checkAndThrowErrorException();
 
         // user changed URI and it's unique
@@ -573,11 +576,11 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param $destination_url
      * @return bool
      */
-    private function insertRedirectUri(\Db\PdoMySql $transaction, $destination_url)
+    private function insertRedirectUri(PdoMySql $transaction, $destination_url)
     {
         $uri_redirect       = new \Uri\Redirect();
 
@@ -598,10 +601,10 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function archiveOldUri(\Db\PdoMySql $transaction)
+    private function archiveOldUri(PdoMySql $transaction)
     {
         $sql = "
             UPDATE uri
@@ -624,11 +627,11 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param $uri
      * @return bool
      */
-    private function insertUri(\Db\PdoMySql $transaction, $uri)
+    private function insertUri(PdoMySql $transaction, $uri)
     {
         $sql = "
             INSERT INTO uri (uri)
@@ -646,11 +649,11 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param $uri
      * @return mixed
      */
-    private function getUriUid(\Db\PdoMySql $transaction, $uri)
+    private function getUriUid(PdoMySql $transaction, $uri)
     {
         $sql = "
             SELECT uid
@@ -668,10 +671,10 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return mixed
      */
-    private function getMasterPageId(\Db\PdoMySql $transaction)
+    private function getMasterPageId(PdoMySql $transaction)
     {
         $sql = "
             SELECT page_master_uid
@@ -689,17 +692,17 @@ class Submit
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param $old_uri_uid
      * @param $new_uri_as_array
      * @return bool
      */
-    private function updateUri(\Db\PdoMySql $transaction, $old_uri_uid, array $new_uri_as_array)
+    private function updateUri(PdoMySql $transaction, $old_uri_uid, array $new_uri_as_array)
     {
-        $old_uri            = Get::uri($old_uri_uid);                                            // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
-        $old_uri_as_array   = Utilities::uriAsArray($old_uri);                                   // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
-        $updated_uri_array  = array_replace($old_uri_as_array, $new_uri_as_array);                              // [0] => foo, [1] => bar, [2] => baz, [3] => lorem-ipsum ... [12] => upper-uri
-        $updated_uri        = trim(Utilities::arrayAsUri($updated_uri_array), '/');      // foo/bar/baz/lorem-ipsum
+        $old_uri            = Get::uri($old_uri_uid);                                           // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
+        $old_uri_as_array   = Utilities::uriAsArray($old_uri);                                  // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
+        $updated_uri_array  = array_replace($old_uri_as_array, $new_uri_as_array);              // [0] => foo, [1] => bar, [2] => baz, [3] => lorem-ipsum ... [12] => upper-uri
+        $updated_uri        = trim(Utilities::arrayAsUri($updated_uri_array), '/');     // foo/bar/baz/lorem-ipsum
 
         $sql = "
             UPDATE uri
@@ -749,7 +752,7 @@ class Submit
             AND archived = '0';
         ";
 
-        $db     = new \Db\Query($sql, [$this->new_uid]);
+        $db     = new Query($sql, [$this->new_uid]);
         $count  = $db->fetch();
 
         return ($count > 0);
@@ -801,7 +804,7 @@ class Submit
                 page.archived = '0';
         ";
 
-        $db     = new \Db\Query($sql, [$uri]);
+        $db     = new Query($sql, [$uri]);
         $count  = $db->fetch();
 
         return ($count > 0);
@@ -831,7 +834,7 @@ class Submit
                 uri_redirects.archived = '0';
         ";
 
-        $db     = new \Db\Query($sql, [$uri]);
+        $db     = new Query($sql, [$uri]);
         $count  = $db->fetch();
 
         return ($count > 0);

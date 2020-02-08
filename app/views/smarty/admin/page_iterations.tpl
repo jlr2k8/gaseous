@@ -9,6 +9,16 @@
                         {if $page.uid == $iteration.page_iteration_uid}<span class="bold red_text">(Current)</span>{/if}
                         <p>
                             Change by {$iteration.author} {$iteration.formatted_created}
+                            {if !empty($iteration.iteration_description)}
+                                <br />
+                                <div class="gray_background">
+                                    <i class="fas fa-quote-left"></i>
+                                    <em class="slight_padding slight_margin">
+                                        {$iteration.iteration_description}
+                                    <i class="fas fa-quote-right padding_left_1em"></i>
+                                    </em>
+                                </div>
+                            {/if}
                             <br />
                             <a target="_blank" href="{$full_web_url}/controllers/services/preview_page_iteration.php?uid={$iteration.page_iteration_uid}&page_master_uid={$page.page_master_uid}">
                                 Preview

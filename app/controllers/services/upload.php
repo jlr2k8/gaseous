@@ -9,13 +9,15 @@
  * CK Editor upload image
  */
 
+use Utilities\Token;
+
 $file_upload            = !empty($_FILES['upload']['tmp_name']) ? $_FILES['upload']['tmp_name'] : false;
 $file_reference         = !empty($_FILES['upload']['name']) ? $_FILES['upload']['name'] : false;
 $upload_root            = \Settings::value('upload_root');
 $upload_url_relative    = \Settings::value('upload_url_relative');
 
 if ($file_upload && $file_reference) {
-    $token                      = \Utilities\Token::generate();
+    $token                      = Token::generate();
     $file_pathinfo              = pathinfo($file_reference);
     $tokenized_file_reference   = $file_pathinfo['filename'] . '-' . $token . '.' . $file_pathinfo['extension'];
 

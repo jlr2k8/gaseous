@@ -10,13 +10,16 @@
  *
  **/
 
+use Content\Pages\Get;
+use Content\Pages\HTTP;
+
 $get_uid                = !empty($_GET['uid']) ? (string)filter_var($_GET['uid'], FILTER_SANITIZE_STRING) : false;
 $get_page_master_uid    = !empty($_GET['page_master_uid']) ? (string)filter_var($_GET['page_master_uid'], FILTER_SANITIZE_STRING) : false;
 $content_only           = !empty($_GET['content_only']) && $_GET['content_only'] == 'true';
 
 if (empty($get_uid))
-    \Content\Pages\HTTP::error(400);
+    HTTP::error(400);
 
-$get = new \Content\Pages\Get();
+$get = new Get();
 
 echo $get->pagePreviewByIterationUid($get_uid, $get_page_master_uid, $content_only);

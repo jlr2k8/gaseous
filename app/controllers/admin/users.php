@@ -11,11 +11,14 @@
  */
 
 // check setting/role privileges
+use Content\Pages\HTTP;
+use Content\Pages\Templator;
+
 if (!\Settings::value('edit_users') && !\Settings::value('archive_users')) {
-    \Content\Pages\HTTP::error(401);
+    HTTP::error(401);
 }
 
-$templator      = new \Content\Pages\Templator();
+$templator      = new Templator();
 $account        = new \User\Account();
 $roles          = new \User\Roles();
 $all_roles      = $roles->getAll();
@@ -71,4 +74,4 @@ $page_find_replace = [
     'body'              => $templator->fetch('admin/users.tpl'),
 ];
 
-echo \Content\Pages\Templator::page($page_find_replace);
+echo Templator::page($page_find_replace);

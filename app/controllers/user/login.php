@@ -10,8 +10,11 @@
  *
  */
 
-$templator  = new \Content\Pages\Templator();
-$login      = new \User\Login();
+use Content\Pages\Templator;
+use User\Login;
+
+$templator  = new Templator();
+$login      = new Login();
 
 $page_find_replace  = [
     'page_title'        => 'Log In',

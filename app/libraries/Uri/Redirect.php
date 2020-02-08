@@ -12,6 +12,8 @@
 
 namespace Uri;
 
+use Db\Query;
+
 class Redirect
 {
     public $errors              = [];
@@ -46,7 +48,7 @@ class Redirect
             $uri_uid,
         ];
 
-        $db     = new \Db\Query($sql, $bind);
+        $db     = new Query($sql, $bind);
         $result = $db->fetchAssoc();
 
         return $result;
@@ -77,7 +79,7 @@ class Redirect
                 uri_redirects.archived = '0'
         ";
 
-        $db         = new \Db\Query($sql);
+        $db         = new Query($sql);
         $results    = $db->fetchAllAssoc();
 
         return $results;
@@ -107,7 +109,7 @@ class Redirect
             );
         ";
 
-        $db         = new \Db\Query($sql);
+        $db         = new Query($sql);
         $results    = $db->fetchAllAssoc();
 
         return $results;
@@ -141,7 +143,7 @@ class Redirect
             rtrim($uri, '/'),
         ];
 
-        $db         = new \Db\Query($sql, $bind);
+        $db         = new Query($sql, $bind);
         $uri_uid    = $db->fetch();
         $result     = $this->getByUriUid($uri_uid);
 
@@ -184,8 +186,8 @@ class Redirect
         ];
 
         if (empty($transaction)) {
-            $db         = new \Db\Query($sql, $bind);
-            $ran        = $db->run();
+            $db     = new Query($sql, $bind);
+            $ran    = $db->run();
         } else {
             $ran = $transaction
                 ->prepare($sql)
@@ -264,7 +266,7 @@ class Redirect
         ];
 
         if (empty($transaction)) {
-            $db         = new \Db\Query($sql, $bind);
+            $db         = new Query($sql, $bind);
             $ran        = $db->run();
         } else {
             $ran    = $transaction

@@ -53,7 +53,7 @@ $(document).ready( function() {
 
                         if(result.status == 'success') {
                             this_submit_button
-                                .html('Updated &#160;<i class="fas fa-check"></i>')
+                                .html('Updated &#160;<i class="fas fa-check"></i>');
 
                             hideSubmitError();
 
@@ -132,7 +132,6 @@ $(document).ready( function() {
                     this_submit_button.html(this_submit_button_html)
                         .removeAttr('disabled');
                     e();
-                    //console.log(response);
                 });
            window.location.replace('/admin/pages/');
         });

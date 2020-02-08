@@ -10,6 +10,11 @@
  *
  **/
 
+use Db\PdoMySql;
+use Db\Query;
+use Seo\Minify;
+use User\Account;
+
 class Css
 {
     public function __construct()
@@ -23,23 +28,18 @@ class Css
     public function getAllIterations()
     {
         $sql = "
-            SELECT uid, css, author, description, is_selected, preview_only, modified_datetime
+            SELECT uid, css, author, description, is_selected, created_datetime
             FROM css_iteration
             WHERE archived = '0'
-            ORDER BY modified_datetime DESC;
+            ORDER BY created_datetime DESC;
         ";
 
-        $db         = new \Db\Query($sql);
+        $db         = new Query($sql);
         $results    = $db->fetchAllAssoc();
 
         foreach ($results as $key => $result)
         {
-            $results[$key]['formatted_modified'] = \Utilities\DateTime::formatDateTime($result['modified_datetime'], 'm/d/Y g:i A e');
-
-            if ($result['preview_only'] == '1' && $result['author'] != \User\Account::getUsername())
-            {
-                unset($results[$key]);
-            }
+            $results[$key]['formatted_modified'] = \Utilities\DateTime::formatDateTime($result['created_datetime'], 'm/d/Y g:i A e');
         }
 
         return $results;
@@ -51,23 +51,18 @@ class Css
      */
     public function getCurrentCssIteration()
     {
-        if (!empty($_SESSION['css_preview'])) {
-            $result = $this->getCssIteration($_SESSION['css_preview']);
-        } else {
+        $result = [];
+
+        if (empty($_SESSION['css_preview'])) {
             $sql = "
-                SELECT uid, css, author, description, is_selected, preview_only, modified_datetime
+                SELECT uid, css, author, description, is_selected, modified_datetime
                 FROM css_iteration
                 WHERE archived = '0'
                 AND is_selected = '1';
             ";
 
-            $db     = new \Db\Query($sql);
+            $db     = new Query($sql);
             $result = $db->fetchAssoc();
-
-            if ($result['preview_only'] == '1' && $result['author'] != \User\Account::getUsername())
-            {
-                $result = [];
-            }
         }
 
         return $result;
@@ -75,36 +70,46 @@ class Css
 
 
     /**
+     * @param $uid
      * @return array
      */
     public function getCssIteration($uid)
     {
         $sql = "
-            SELECT uid, css, author, description, is_selected, preview_only, modified_datetime
+            SELECT uid, css, author, description, is_selected, modified_datetime
             FROM css_iteration
             WHERE archived = '0'
             AND uid = ?;
         ";
 
-        $db     = new \Db\Query($sql, [$uid]);
+        $db     = new Query($sql, [$uid]);
         $result = $db->fetchAssoc();
-
-        if ($result['preview_only'] == '1' && $result['author'] != \User\Account::getUsername())
-        {
-            $result = [];
-        }
 
         return $result;
     }
 
 
     /**
+     * @param $css_content
+     * @param $minify
      * @param $uid
      * @return bool
      */
-    public function setCssPreview($uid)
+    public function setCssPreview($css_content, $minify = true, $uid = null)
     {
-        return $_SESSION['css_preview'] = $uid;
+        $_SESSION['css_preview'] = [];
+
+        if (!empty($minify)) {
+            $css_content = Minify::css($css_content);
+        }
+
+        if (!empty($uid)) {
+            $this->setEditorCss($uid);
+
+            $_SESSION['css_preview']['uid'] = $uid;
+        }
+
+        return ($_SESSION['css_preview']['css'] = $css_content);
     }
 
 
@@ -112,28 +117,45 @@ class Css
      * @param $uid
      * @return bool
      */
-    public function saveCssIteration(array $data, $preview_only = false)
+    public function setEditorCss($uid)
     {
-        // uid is generated in database. it's simply a hash of the CSS itself
+        $css_iteration              = $this->getCssIteration($uid);
+        $css_iteration_uid_exists   = (!empty($css_iteration));
+        $_SESSION['editor_css']     = [];
+
+        if ($css_iteration_uid_exists) {
+            $_SESSION['editor_css']['uid'] = $uid;
+            $_SESSION['editor_css']['css'] = $css_iteration['css'];
+
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param array $data
+     * @return bool
+     */
+    public function saveCssIteration(array $data)
+    {error_reporting(-1);
+        // uid is simply a hash of the CSS itself
         $css_iteration_uid  = hash('md5', $data['css_iteration']);
         $css_iteration      = $this->getCssIteration($css_iteration_uid);
 
         // don't change is_selected in db. just put the uid in $_SESSION['css_preview']
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
         try {
             if (empty($css_iteration)) {
-                $this->insertIteration($transaction, $data, $preview_only);
+                $this->insertIteration($transaction, $data);
             }
 
-            if ($preview_only === false) {
-                $this->markAllIterationsAsUnselected($transaction);
-                $this->markIterationAsSelected($transaction, $css_iteration_uid);
-            } else {
-                $this->setCssPreview($css_iteration_uid);
-            }
+            $this->markAllIterationsAsUnselected($transaction);
+            $this->markIterationAsSelected($transaction, $css_iteration_uid);
         } catch (\Exception $e) {
             var_dump($e->getMessage(), $e->getTraceAsString());
 
@@ -149,10 +171,10 @@ class Css
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
-    private function markAllIterationsAsUnselected(\Db\PdoMySql $transaction)
+    private function markAllIterationsAsUnselected(PdoMySql $transaction)
     {
         $sql = "
             UPDATE css_iteration
@@ -169,11 +191,11 @@ class Css
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param $uid
      * @return bool
      */
-    private function markIterationAsSelected(\Db\PdoMySql $transaction, $uid)
+    private function markIterationAsSelected(PdoMySql $transaction, $uid)
     {
         $sql = "
             UPDATE css_iteration
@@ -191,27 +213,22 @@ class Css
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param array $data
-     * @param bool $preview_only
      * @return bool
      */
-    private function insertIteration(\Db\PdoMySql $transaction, array $data, $preview_only = false)
+    private function insertIteration(PdoMySql $transaction, array $data)
     {
-        $preview_only   = $preview_only !== false ? '1' : '0';
-        $is_selected    = $preview_only ? '0' : '1';
-
         $sql = "
-            INSERT INTO css_iteration (css, author, description, is_selected, preview_only)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO css_iteration (css, author, description, is_selected)
+            VALUES (?, ?, ?, ?)
         ";
 
         $bind = [
             $data['css_iteration'],
-            \User\Account::getUsername(),
+            Account::getUsername(),
             $data['description'],
-            $is_selected,
-            $preview_only,
+            '1',
         ];
 
         $transaction
@@ -220,5 +237,4 @@ class Css
 
         return true;
     }
-
 }

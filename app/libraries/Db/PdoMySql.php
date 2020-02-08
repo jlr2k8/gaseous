@@ -39,7 +39,7 @@ class PdoMySql extends \PDO
             ]
         );
 
-        if ($this->debug === true) {
+        if ($this->debug === true) { // TODO - create binary setting (true or false) for debug mode
             $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
         } else {
             $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);

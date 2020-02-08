@@ -10,6 +10,10 @@
  *
  **/
 
+use Db\PdoMySql;
+use Db\Query;
+use Utilities\Reset;
+
 class Settings
 {
     public $full_web_url;
@@ -49,23 +53,6 @@ class Settings
 
 
     /**
-     * Coalesce setting key values from the db, then (this) class' properties.
-     *
-     * @param $username
-     * @param $key
-     * @param bool $value
-     * @return array|bool
-     */
-    public static function valueByUsername($username, $key, $value = false)
-    {
-        $setting_from_db     = self::getFromDB($key, $value, $username);
-        $setting_from_class  = self::getFromSelfProperty($key, $value);
-
-        return !empty($setting_from_db) ? $setting_from_db : $setting_from_class;
-    }
-
-
-    /**
      * @param $key
      * @param bool $value
      * @return bool
@@ -81,25 +68,6 @@ class Settings
         }
 
         return false;
-    }
-
-
-    /**
-     * @return array
-     * @throws ReflectionException
-     */
-    protected static function getAllSelfProperties()
-    {
-        $setting    = new self();
-        $reflect    = new \ReflectionClass($setting);
-        $properties = $reflect->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED);
-        $return     = [];
-
-        foreach ($properties as $property) {
-            $return[$property->getName()] = $property->getValue($setting);
-        }
-
-        return $return;
     }
 
 
@@ -152,7 +120,7 @@ class Settings
             $bind[] = $value;
         }
 
-        $db     = new \Db\Query($sql, $bind);
+        $db     = new Query($sql, $bind);
         $result = $db->fetchAssoc();
 
         return self::processDbResult($result);
@@ -165,8 +133,8 @@ class Settings
      */
     public static function checkCoreTables()
     {
-        $core_tables        = "'" . implode("','", \Utilities\Reset::$core_tables) . "'";
-        $count_core_tables  = (int)count(\Utilities\Reset::$core_tables);
+        $core_tables        = "'" . implode("','", Reset::$core_tables) . "'";
+        $count_core_tables  = (int)count(Reset::$core_tables);
 
         $sql = "
             SELECT COUNT(*)
@@ -182,7 +150,7 @@ class Settings
             \Settings::environmentIni('mysql_database'),
         ];
 
-        $db     = new \Db\Query($sql, $bind);
+        $db     = new Query($sql, $bind);
         $result = (int)$db->fetch();
 
         return ($result == $count_core_tables);
@@ -203,7 +171,7 @@ class Settings
             WHERE s.archived='0'
         ";
 
-        $db         = new \Db\Query($sql);
+        $db         = new Query($sql);
         $results    = $db->fetchAllAssoc();
 
         return self::processDbResults($results, $values_only);
@@ -239,7 +207,7 @@ class Settings
             AND archived = '0';
         ";
 
-        $db = new \Db\Query($sql, [$setting_key]);
+        $db = new Query($sql, [$setting_key]);
 
         return $db->fetchAll();
     }
@@ -255,9 +223,7 @@ class Settings
         $processed_results = [];
 
         foreach ($results as $result) {
-
             if (!$values_only) {
-
                 foreach ($result as $col => $val) {
                     $processed_result[$col]  = $val;
                 }
@@ -265,7 +231,6 @@ class Settings
                 $processed_result['value']      = self::processDbResult($result);
                 $processed_result['properties'] = self::getSettingProperties($processed_result['key']);
                 $processed_result['roles']      = self::getSettingRoles($processed_result['key']);
-
             } else {
                 $processed_result = self::processDbResult($result);
             }
@@ -290,7 +255,7 @@ class Settings
             AND archived = '0';
         ";
 
-        $db = new \Db\Query($sql, [$setting_key]);
+        $db = new Query($sql, [$setting_key]);
 
         return $db->fetchAll();
     }
@@ -314,7 +279,7 @@ class Settings
                 OR c.archived IS NULL));
         ";
 
-        $db = new \Db\Query($sql);
+        $db = new Query($sql);
 
         return $db->fetchAllAssoc();
     }
@@ -329,12 +294,11 @@ class Settings
     {
         self::editSettingsCheck();
 
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
         try {
-
             self::updateSettingsValuesTable($transaction, $settings_data);
 
             // archive/re-add settings roles
@@ -342,7 +306,6 @@ class Settings
                 self::insertSettingsRoles($transaction, $settings_data['key'], $settings_data['settings_roles']);
 
         } catch (\Exception $e) {
-
             $transaction->rollBack();
 
             error_log($e->getMessage() . ' ' . $e->getTraceAsString());
@@ -365,12 +328,12 @@ class Settings
     }
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param array $settings_data
      * @return bool
      * @throws \Exception
      */
-    private function updateSettingsValuesTable(\Db\PdoMySql $transaction, array $settings_data)
+    private function updateSettingsValuesTable(PdoMySql $transaction, array $settings_data)
     {
         self::editSettingsCheck();
 
@@ -393,12 +356,12 @@ class Settings
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param string $key
      * @return bool
      * @throws \Exception
      */
-    private function archiveSettingsRoles(\Db\PdoMySql $transaction, $key)
+    private function archiveSettingsRoles(PdoMySql $transaction, $key)
     {
         self::editSettingsCheck();
 
@@ -420,13 +383,13 @@ class Settings
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param string $key
      * @param array $settings_roles
      * @return bool
      * @throws \Exception
      */
-    private function insertSettingsRoles(\Db\PdoMySql $transaction, $key, $settings_roles = array())
+    private function insertSettingsRoles(PdoMySql $transaction, $key, $settings_roles = array())
     {
         self::editSettingsCheck();
 

@@ -12,7 +12,7 @@
 
 namespace Content\Pages;
 
-class GetHomePage extends \Content\Pages\Get
+class GetHomePage extends Get
 {
     public function __construct()
     {
@@ -33,7 +33,7 @@ class GetHomePage extends \Content\Pages\Get
      */
     public function redirectHome()
     {
-        return \Content\Pages\HTTP::redirect('/', 301);
+        return HTTP::redirect('/', 301);
     }
 
 

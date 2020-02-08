@@ -85,12 +85,7 @@
 
 <p class="margin_on_top clear_both">
     Provide users with a registration link:<br />
-    <a class="break_word" href="{$full_web_url}/register/?access_code={$access_code}">
-        {$full_web_url}/register/?access_code={$access_code}
-    </a>
+    <a class="break_word" href="{$full_web_url}/register/?access_code={$access_code}">{$full_web_url}/register/?access_code={$access_code}</a>
     (or
-    <a href="{$full_web_url}/admin/settings/#registration_access_code">
-        update
-    </a>
-    the access code)
+    <a href="{$full_web_url}/admin/settings/#registration_access_code">update</a> the access code)
 </p>

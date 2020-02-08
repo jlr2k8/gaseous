@@ -12,6 +12,7 @@
 
 use \Content\Pages\Get;
 use \Content\Pages\HTTP;
+use Content\Pages\Submit;
 use \Content\Pages\Templator;
 use \Content\Pages\Diff;
 use \Content\Pages\GetHomePage;
@@ -27,7 +28,7 @@ if (!\Settings::value('add_pages') && !\Settings::value('edit_pages') && !\Setti
     HTTP::error(401);
 }
 
-$settings           = new \Settings();
+$settings           = new Settings();
 $pages              = new Get();
 $templator          = new Templator();
 $roles              = new Roles();
@@ -51,6 +52,31 @@ $all_roles          = $roles->getAll();
 $title              = 'Page CMS';
 $error              = null;
 
+if (!empty($_POST)) {
+    foreach($_POST as $key => $val) {
+        if ($key == 'page_roles') {
+            foreach($val as $account_role)
+                $post[$key][] = (string)filter_var($account_role, FILTER_SANITIZE_STRING);
+        } elseif ($key == 'body') {
+            $post['body'] = $val;
+        } else {
+            $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+        }
+    }
+
+    $submit = new Submit($post);
+
+    if(isset($post['archive'])) {
+        $submit->archive();
+    } else {
+        $submit->upsert();
+    }
+
+    echo $submit->json_upsert_status;
+
+    exit;
+}
+
 $templator->assign('all_uris', $all_uris);
 $templator->assign('ck_editor', $ck_editor);
 $templator->assign('codemirror', $codemirror);
@@ -68,31 +94,7 @@ $templator->assign('new_page', $new_page);
 $templator->assign('all_roles', $all_roles);
 $templator->assign('is_home_page', $is_home_page);
 
-if (!empty($_POST)) {
-    foreach($_POST as $key => $val) {
-        if ($key == 'page_roles') {
-            foreach($val as $account_role)
-                $post[$key][] = (string)filter_var($account_role, FILTER_SANITIZE_STRING);
-        } elseif ($key == 'body') {
-            $post['body'] = $val;
-        } else {
-            $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
-        }
-    }
-
-    $submit = new \Content\Pages\Submit($post);
-
-    if(isset($post['archive'])) {
-        $submit->archive();
-    } else {
-        $submit->upsert();
-    }
-
-    echo $submit->json_upsert_status;
-
-    exit;
-
-} elseif (!empty($this_page)) {
+if (!empty($this_page)) {
     $specific_title = $title . ' - ' . (empty($this_page['page_title_h1']) ? $this_page['uri'] : $this_page['page_title_h1']);
     $uri_as_array   = Utilities::uriAsArray($this_page['uri']);
     $this_uri_piece = Utilities::getLastPartOfUri($uri_as_array);
@@ -111,7 +113,7 @@ if (!empty($_POST)) {
     $page_find_replace = [
         'page_title_seo'    => $specific_title,
         'page_title_h1'     => $specific_title,
-        'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())
+        'breadcrumbs'       => (new Breadcrumbs())
                                 ->crumb('Site Administration', '/admin/')
                                 ->crumb($title, '/admin/pages/')
                                 ->crumb($specific_title),
@@ -121,7 +123,7 @@ if (!empty($_POST)) {
     $page_find_replace = [
         'page_title_seo'    => $title,
         'page_title_h1'     => $title,
-        'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())
+        'breadcrumbs'       => (new Breadcrumbs())
             ->crumb('Site Administration', '/admin/')
             ->crumb($title, '/admin/pages/')
             ->crumb('New Page'),

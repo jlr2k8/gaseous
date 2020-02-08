@@ -86,4 +86,4 @@ $page_find_replace = [
     'body'              => $templator->fetch('admin/settings.tpl'),
 ];
 
-echo \Content\Pages\Templator::page($page_find_replace);
+echo Templator::page($page_find_replace);

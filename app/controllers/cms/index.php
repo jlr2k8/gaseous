@@ -10,9 +10,11 @@
  *
  **/
 
-$get = new \Content\Pages\GetHomePage();
+use Content\Pages\GetHomePage;
 
-if (in_array($_SERVER['REQUEST_URI'], \Content\Pages\GetHomePage::$home_pages)) {
+$get = new GetHomePage();
+
+if (in_array($_SERVER['REQUEST_URI'], GetHomePage::$home_pages)) {
     $get->redirectHome(); exit;
 }
 

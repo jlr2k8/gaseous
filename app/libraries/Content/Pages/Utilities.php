@@ -12,6 +12,8 @@
 
 namespace Content\Pages;
 
+use Db\Query;
+
 class Utilities
 {
     public function __construct()
@@ -110,7 +112,7 @@ class Utilities
             AND page.archived = '0'
         ";
 
-        $db = new \Db\Query($sql, [$page_master_uid]);
+        $db = new Query($sql, [$page_master_uid]);
 
         return $db->fetch();
     }

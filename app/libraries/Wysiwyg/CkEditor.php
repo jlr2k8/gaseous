@@ -14,8 +14,8 @@ namespace Wysiwyg;
 
 class CkEditor
 {
-    const DIST=4;
-    const SKIN=0;
+    const DIST = 4;
+    const SKIN = 0;
 
     public $cdn;
 

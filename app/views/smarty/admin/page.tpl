@@ -1,3 +1,5 @@
+{include file="font-awesome-cdn-link-href.tpl"}
+
 <div id="form">
     {*
         ^^  Avoid using a form wrapper so that a form can be submitted within the editor.

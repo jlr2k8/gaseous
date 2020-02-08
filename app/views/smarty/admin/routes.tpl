@@ -1,11 +1,3 @@
-{include file="font-awesome-cdn-link-href.tpl"}
-
-{if $edit_routes}
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
-    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
-    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-{/if}
-
 <p class="red_text">{$error}</p>
 
 <div class="clear_both">&#160;</div>
@@ -124,20 +116,24 @@
     {/if}
 </div>
 
-{literal}
-    <script>
-        $("#sortable").sortable({
-            update: function() {
-                var sorted = [];
+{if $edit_routes}
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
-                $('.route_row').each(function(i) {
-                    sorted[i] = $(this).attr('data-route-key');
-                });
+    {literal}
+        <script>
+            $("#sortable").sortable({
+                update: function() {
+                    var sorted = [];
 
-                $.post('/admin/routes/?sort', {sorted}, function(x) {
-                    console.log(x);
-                });
-            }
-        });
-    </script>
-{/literal}
+                    $('.route_row').each(function(i) {
+                        sorted[i] = $(this).attr('data-route-key');
+                    });
+
+                    $.post('/admin/routes/?sort', {sorted});
+                }
+            });
+        </script>
+    {/literal}
+{/if}

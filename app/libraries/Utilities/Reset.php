@@ -136,7 +136,7 @@ class Reset
                 &lt;title&gt;{$page_title_seo}&lt;/title&gt;
                 &lt;style&gt;{$css}&lt;/style&gt;
                 &lt;link href=&quot;https://fonts.googleapis.com/css?family=Open+Sans&quot; rel=&quot;stylesheet&quot;&gt; 
-                &lt;link href=&quot;/styles.gz.css&quot; rel=&quot;stylesheet&quot; /&gt;
+                {$css_iterator_output}
                 &lt;link rel=&quot;shortcut icon&quot; href=&quot;/favicon.ico&quot;&gt;
                 &lt;/head&gt;
                 &lt;body itemscope=&quot;itemscope&quot; itemtype=&quot;http://schema.org/WebPage&quot;&gt;
@@ -398,26 +398,26 @@ class Reset
 
 
     static $uri_routes = [
-        '/register/?'                   => 'controllers/user/register.php',
-        '/login/?'                      => 'controllers/user/login.php',
-        '/admin/settings/?'             => 'controllers/admin/settings.php',
-        '/sitemap.xml'                  => 'controllers/services/sitemap_output.php',
-        '/styles.gz.css'                => 'controllers/services/css_output.php',
-        '/js.gz.js'                     => 'controllers/services/js_output.php',
-        '/robots.txt'                   => 'controllers/services/robots.txt.php',
-        '/css-preview-check/?'          => 'controllers/services/css_preview_check.php',
-        '/js-preview-check/?'           => 'controllers/services/js_preview_check.php',
-        '/logout/?'                     => 'controllers/user/logout.php',
-        '/img/(.*)'                     => 'controllers/services/images.php?src=$1',
-        '/register/([\\w]+)/?'          => 'controllers/user/register.php?access_code=$1',
-        '/admin/?'                      => 'controllers/admin/index.php',
-        '/admin/css/?'                  => 'controllers/admin/css.php',
-        '/admin/roles/?'                => 'controllers/admin/roles.php',
-        '/admin/routes/?'               => 'controllers/admin/routes.php',
-        '/admin/pages/?'                => 'controllers/admin/pages.php',
-        '/admin/users/?'                => 'controllers/admin/users.php',
-        '/admin/redirects/?'            => 'controllers/admin/redirects.php',
-        '/([\\w\\/\\-]+(\\.html)?)?'    => 'controllers/cms/index.php?page=$1',
+        '/register/?'                           => 'controllers/user/register.php',
+        '/login/?'                              => 'controllers/user/login.php',
+        '/admin/settings/?'                     => 'controllers/admin/settings.php',
+        '/sitemap.xml'                          => 'controllers/services/sitemap_output.php',
+        '/styles(\\-([\\w]{32}))?.gz.css'       => 'controllers/services/css_output.php?iteration=$2',
+        '/js(\\-([\\w]{32}))?.gz.js'            => 'controllers/services/js_output.php?iteration=$2',
+        '/robots.txt'                           => 'controllers/services/robots.txt.php',
+        '/css-preview-check/?'                  => 'controllers/services/css_preview_check.php',
+        '/js-preview-check/?'                   => 'controllers/services/js_preview_check.php',
+        '/logout/?'                             => 'controllers/user/logout.php',
+        '/img/(.*)'                             => 'controllers/services/images.php?src=$1',
+        '/register/([\\w]+)/?'                  => 'controllers/user/register.php?access_code=$1',
+        '/admin/?'                              => 'controllers/admin/index.php',
+        '/admin/css/?'                          => 'controllers/admin/css.php',
+        '/admin/roles/?'                        => 'controllers/admin/roles.php',
+        '/admin/routes/?'                       => 'controllers/admin/routes.php',
+        '/admin/pages/?'                        => 'controllers/admin/pages.php',
+        '/admin/users/?'                        => 'controllers/admin/users.php',
+        '/admin/redirects/?'                    => 'controllers/admin/redirects.php',
+        '/([\\w\\/\\-]+(\\.html)?)?'            => 'controllers/cms/index.php?page=$1',
     ];
 
 

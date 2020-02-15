@@ -14,6 +14,7 @@
  */
 
 // get src param
+use Assets\Headers;
 use Content\Pages\HTTP;
 
 $upload_root    = \Settings::value('upload_root');
@@ -25,10 +26,7 @@ if (!$filename) {
     HTTP::error(404);
 }
 
-$client_headers = apache_request_headers();
-$headers        = new \Headers($client_headers, $filename, $filetype);
-
-$headers->images();
+$headers    = (new Headers($filename))->images($filetype);
 
 // compress with gz (if available)
 if (!ob_start('ob_gzhandler') || !stristr($client_headers['Accept-Encoding'], 'gzip'))

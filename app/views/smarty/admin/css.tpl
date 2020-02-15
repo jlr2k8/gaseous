@@ -25,6 +25,10 @@
     </label>
     <input type="text" id="description" name="description" />
 
+    {if empty($editor_css_uid) && !empty($editor_css_content)}
+        <input type="submit" id="revert_editor_css" name="revert_editor_css" value="Revert Changes" class="revert" />
+    {/if}
+
     <input type="submit" id="submit_textarea_to_preview" name="submit_textarea_to_preview" value="Preview Changes" />
     <input type="submit" id="submit_textarea" name="submit_textarea" value="Submit Changes" />
 </form>

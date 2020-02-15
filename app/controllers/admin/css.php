@@ -11,6 +11,8 @@
  *
  */
 
+use Assets\CssIterator;
+use Assets\Headers;
 use Content\Pages\Breadcrumbs;
 use Content\Pages\HTTP;
 use Content\Pages\Templator;
@@ -21,16 +23,23 @@ if (!\Settings::value('manage_css')) {
     HTTP::error(401);
 }
 
-if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
-    //$_SESSION['editor_css']['css'] = $_SESSION['css_preview']['css'];
-    //$_SESSION['editor_css']['uid'] = $_SESSION['css_preview']['uid'];
+$css    = new CssIterator();
 
+if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
     unset($_SESSION['css_preview']);
 
+    $headers        = new Headers();
+
+    $latest_css     = $css->getCurrentCssIteration();
+    $preview        = $_SESSION['css_preview'] ?? null;
+
+    $headers->last_modified = strtotime($latest_css['modified_datetime']);
+
     header('Location: ' . \Settings::value('full_web_url') . '/admin/css/');
+
+    exit;
 }
 
-$css            = new Css();
 $templator      = new Templator();
 $codemirror     = new Codemirror();
 
@@ -46,36 +55,35 @@ if (!empty($_POST)) {
         }
     }
 
-    if(isset($post['submit_option_to_preview'])) {
-        $css_iteration_content = $css->getCssIteration($post['css_iteration_list']);
+    if(!empty($post['submit_option_to_preview']) && !empty($post['css_iteration_list'])) {
+        $css_iteration_content = $css->getCssIteration($post['css_iteration_list'], true);
 
         $css->setCssPreview($css_iteration_content['css'], false, $post['css_iteration_list']);
-        $css->setEditorCss($post['css_iteration_list']);
-    } elseif(isset($post['submit_option_to_editor'])) {
-        $css->setEditorCss($post['css_iteration_list']);
+    } elseif(!empty($post['submit_option_to_editor'])) {
+        $css_iteration_content = $css->getCssIteration($post['css_iteration_list'], true);
+
+        $css->setEditorCss($css_iteration_content['css'], $post['css_iteration_list']);
         unset($_SESSION['css_preview']);
-    } elseif(isset($post['submit_textarea_to_preview'])) {
+    } elseif(!empty($post['submit_textarea_to_preview'])) {
         $css->setCssPreview($post['css_iteration']);
-    } elseif(isset($post['submit_textarea'])) {
+        $css->setEditorCss($post['css_iteration']);
+    } elseif(!empty($post['submit_textarea'])) {
         $save_iteration = $css->saveCssIteration($post);
 
         unset($_SESSION['css_preview'], $_SESSION['editor_css']);
-
-        if ($save_iteration) {
-            header('Location: ' . \Settings::value('full_web_url') . '/admin/css/');
-        } else {
-            throw new \Exception('There was an error saving the iteration.');
-        }
+    } elseif(!empty($post['revert_editor_css'])) {
+        unset($_SESSION['css_preview'], $_SESSION['editor_css']);
     }
 
     header('Location: ' . \Settings::value('full_web_url') . '/admin/css/');
+    exit;
 }
 
 if (empty($_SESSION['editor_css'])) {
-    $editor_css             = !empty($_SESSION['editor_css']['uid']) ? $css->getCssIteration($_SESSION['editor_css']['uid']) : $css->getCurrentCssIteration();
+    $editor_css                     = !empty($_SESSION['editor_css']['uid']) ? $css->getCssIteration($_SESSION['editor_css']['uid']) : $css->getCurrentCssIteration();
 
-    $_SESSION['editor_css']['css'] = $editor_css['css'];
-    $_SESSION['editor_css']['uid'] = $editor_css['uid'];
+    $_SESSION['editor_css']['css']  = $editor_css['css'];
+    $_SESSION['editor_css']['uid']  = $editor_css['uid'];
 }
 
 $templator->assign('css_iterations', $css_iterations);

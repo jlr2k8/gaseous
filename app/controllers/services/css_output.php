@@ -6,25 +6,35 @@
  *
  * css_output.php
  *
- * Outputs DB stored CSS and sets headers (requires rewrite rules)
+ * Outputs DB (CSS Iterator) CSS
  *
  */
 
+use Assets\Css;
+use Assets\CssIterator;
+use Assets\Headers;
 use Seo\Minify;
 
-$client_headers = apache_request_headers();
-$headers        = new \Headers($client_headers);
-$css            = new \Css();
-$minify         = new Minify();
 
-$latest_css             = $css->getCurrentCssIteration();
-$headers->last_modified = strtotime($latest_css['modified_datetime']);
+$headers    = new Headers();
+$css_output = null;
+$iteration  = !empty($_GET['iteration']) ? filter_var($_GET['iteration'], FILTER_SANITIZE_STRING) : false;
 
 $headers->css();
 
-$minified   = $minify->css($latest_css['css']);
-$gzencoded  = gzencode($minified);
+if (empty($iteration)) {
+    $css_output = (new Css())->get();
+} else {
+    $css_iterator   = new CssIterator();
+    $css            = $css_iterator->getCssIteration($iteration, true);
+    $headers->last_modified = strtotime($css['modified_datetime']);
 
-echo $gzencoded;
+    if (!empty($_SESSION['css_preview'])) {
+        $css_output = $_SESSION['css_preview']['css'];
+    } else {
+        header('Content-Encoding: gzip');
+        $css_output = gzencode(Minify::css($css['css']));
+    }
+}
 
-ob_end_flush();
+echo $css_output;

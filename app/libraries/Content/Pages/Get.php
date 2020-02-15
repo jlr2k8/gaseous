@@ -12,6 +12,9 @@
 
 namespace Content\Pages;
 
+use Assets\Css;
+use Assets\CssIterator;
+use Assets\Js;
 use Utilities\AdminView;
 use Utilities\DateTime;
 use Db\Query;
@@ -420,24 +423,34 @@ class Get
      */
     public function templatedPage($find_replace = array())
     {
-        $templator  = new Templator();
-        $assets     = new Assets();
-        $admin_view = new AdminView();
+        $templator      = new Templator();
+        $admin_view     = new AdminView();
+        $css            = new Css();
+        $css_iterator   = new CssIterator();
+
+        $latest_css     = $css_iterator->getCurrentCssIteration();
+        $latest_css_uid = $latest_css['uid'] ?? null;
+
+        // TODO js iterator
+        $latest_js     = null;//$js_iterator->getCurrentJsIteration();
+        $latest_js_uid = null;//$latest_js['uid'] ?? null;
 
         // core template items
         $find_replace = [
-            'page_title_seo'    => !empty($find_replace['page_title_seo']) ? $find_replace['page_title_seo'] : \Settings::value('default_page_seo_title'),
-            'page_title_h1'     => !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : \Settings::value('default_page_title_h1'),
-            'meta_description'  => !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : \Settings::value('default_meta_description'),
-            'meta_robots'       => !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : \Settings::value('default_meta_robots'),
-            'css'               => $assets->css,
-            'js'                => $assets->js,
-            'breadcrumbs'       => !empty($find_replace['breadcrumbs']) ? $find_replace['breadcrumbs'] : $this->cmsBreadcrumbs($_SERVER['REQUEST_URI']),
-            'nav'               => $this->nav($templator, $find_replace),
-            'body'              => $this->renderTemplate($find_replace['body'], $templator),
-            'footer'            => $this->footer($templator, $find_replace),
-            'administration'    => $admin_view->renderAdminList(),
-            'debug_footer'      => $this->debugFooter(),
+            'page_title_seo'        => !empty($find_replace['page_title_seo']) ? $find_replace['page_title_seo'] : \Settings::value('default_page_seo_title'),
+            'page_title_h1'         => !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : \Settings::value('default_page_title_h1'),
+            'meta_description'      => !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : \Settings::value('default_meta_description'),
+            'meta_robots'           => !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : \Settings::value('default_meta_robots'),
+            'css_output'            => '/styles.gz.css',
+            'css_iterator_output'   => !empty($latest_css_uid) ? '/styles-' . $latest_css_uid . '.gz.css' : null,
+            'js_output'             => '/js.gz.js',
+            'js_iterator_output'    => !empty($latest_js_uid) ? '/js-' . $latest_js_uid . '.gz.js' : null,
+            'breadcrumbs'           => !empty($find_replace['breadcrumbs']) ? $find_replace['breadcrumbs'] : $this->cmsBreadcrumbs($_SERVER['REQUEST_URI']),
+            'nav'                   => $this->nav($templator, $find_replace),
+            'body'                  => $this->renderTemplate($find_replace['body'], $templator),
+            'footer'                => $this->footer($templator, $find_replace),
+            'administration'        => $admin_view->renderAdminList(),
+            'debug_footer'          => $this->debugFooter(),
         ];
 
         return $this->main($templator, $find_replace);

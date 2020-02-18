@@ -4,9 +4,9 @@
  * Copyright (c) 2020 All Rights Reserved.
  * 2/9/20
  *
- * CssIterator.php
+ * JsIterator.php
  *
- * DB stored CSS management/output
+ * DB stored JS management/output
  *
  **/
 
@@ -18,7 +18,7 @@ use Seo\Minify;
 use User\Account;
 use Utilities\DateTime;
 
-class CssIterator
+class JsIterator
 {
     public function __construct()
     {
@@ -31,8 +31,8 @@ class CssIterator
     public function getAllIterations()
     {
         $sql = "
-            SELECT uid, css, author, description, is_selected, created_datetime
-            FROM css_iteration
+            SELECT uid, js, author, description, is_selected, created_datetime
+            FROM js_iteration
             WHERE archived = '0'
             ORDER BY created_datetime DESC;
         ";
@@ -53,24 +53,20 @@ class CssIterator
      * @param $decode
      * @return array
      */
-    public function getCurrentCssIteration($decode = false)
+    public function getCurrentJsIteration($decode = false)
     {
-        //$result = [];
+        $sql = "
+            SELECT uid, js, author, description, is_selected, modified_datetime
+            FROM js_iteration
+            WHERE archived = '0'
+            AND is_selected = '1';
+        ";
 
-        //if (empty($_SESSION['css_preview'])) {
-            $sql = "
-                SELECT uid, css, author, description, is_selected, modified_datetime
-                FROM css_iteration
-                WHERE archived = '0'
-                AND is_selected = '1';
-            ";
-
-            $db     = new Query($sql);
-            $result = $db->fetchAssoc();
-        //}
+        $db     = new Query($sql);
+        $result = $db->fetchAssoc();
 
         if ($decode === true) {
-            $result['css'] = htmlspecialchars_decode($result['css']);
+            $result['js'] = htmlspecialchars_decode($result['js']);
         }
 
         return $result;
@@ -82,11 +78,11 @@ class CssIterator
      * @param $decode
      * @return array
      */
-    public function getCssIteration($uid, $decode = false)
+    public function getJsIteration($uid, $decode = false)
     {
         $sql = "
-            SELECT uid, css, author, description, is_selected, modified_datetime
-            FROM css_iteration
+            SELECT uid, js, author, description, is_selected, modified_datetime
+            FROM js_iteration
             WHERE archived = '0'
             AND uid = ?;
         ";
@@ -95,7 +91,7 @@ class CssIterator
         $result = $db->fetchAssoc();
 
         if ($decode === true) {
-            $result['css'] = htmlspecialchars_decode($result['css']);
+            $result['js'] = htmlspecialchars_decode($result['js']);
         }
 
         return $result;
@@ -103,45 +99,45 @@ class CssIterator
 
 
     /**
-     * @param $css_content
+     * @param $js_content
      * @param $minify
      * @param $uid
      * @return bool
      */
-    public function setCssPreview($css_content, $minify = true, $uid = null)
+    public function setJsPreview($js_content, $minify = true, $uid = null)
     {
-        $_SESSION['css_preview'] = [];
+        $_SESSION['js_preview'] = [];
 
         if (!empty($minify)) {
-            $css_content = Minify::css($css_content);
+            $js_content = Minify::js($js_content);
         }
 
         if (!empty($uid)) {
-            $_SESSION['editor_css']     = [];
+            $_SESSION['editor_js']     = [];
 
-            $css_iteration              = $this->getCssIteration($uid);
-            $css_iteration_uid_exists   = (!empty($css_iteration));
+            $js_iteration               = $this->getJsIteration($uid);
+            $js_iteration_uid_exists    = (!empty($js_iteration));
 
-            if ($css_iteration_uid_exists) {
-                $this->setEditorCss($css_iteration['css'], $uid);
+            if ($js_iteration_uid_exists) {
+                $this->setEditorJs($js_iteration['js'], $uid);
             }
 
-            $_SESSION['css_preview']['uid'] = $uid;
+            $_SESSION['js_preview']['uid'] = $uid;
         }
 
-        return ($_SESSION['css_preview']['css'] = $css_content);
+        return ($_SESSION['js_preview']['js'] = $js_content);
     }
 
 
     /**
-     * @param $css_content
+     * @param $js_content
      * @param $uid
      * @return bool
      */
-    public function setEditorCss($css_content, $uid = false)
+    public function setEditorJs($js_content, $uid = false)
     {
-        $_SESSION['editor_css']['uid'] = $uid;
-        $_SESSION['editor_css']['css'] = $css_content;
+        $_SESSION['editor_js']['uid'] = $uid;
+        $_SESSION['editor_js']['js'] = $js_content;
 
         return true;
     }
@@ -151,24 +147,24 @@ class CssIterator
      * @param array $data
      * @return bool
      */
-    public function saveCssIteration(array $data)
+    public function saveJsIteration(array $data)
     {
-        // uid is simply a hash of the CSS itself
-        $css_iteration_uid  = hash('md5', $data['css_iteration']);
-        $css_iteration      = $this->getCssIteration($css_iteration_uid);
+        // uid is simply a hash of the JS itself
+        $js_iteration_uid   = hash('md5', $data['js_iteration']);
+        $js_iteration       = $this->getJsIteration($js_iteration_uid);
 
-        // don't change is_selected in db. just put the uid in $_SESSION['css_preview']
+        // don't change is_selected in db. just put the uid in $_SESSION['js_preview']
         $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
         try {
-            if (empty($css_iteration)) {
+            if (empty($js_iteration)) {
                 $this->insertIteration($transaction, $data);
             }
 
             $this->markAllIterationsAsUnselected($transaction);
-            $this->markIterationAsSelected($transaction, $css_iteration_uid);
+            $this->markIterationAsSelected($transaction, $js_iteration_uid);
         } catch (\Exception $e) {
             var_dump($e->getMessage(), $e->getTraceAsString());
 
@@ -190,7 +186,7 @@ class CssIterator
     private function markAllIterationsAsUnselected(PdoMySql $transaction)
     {
         $sql = "
-            UPDATE css_iteration
+            UPDATE js_iteration
             SET is_selected = '0'
             WHERE archived = '0';
         ";
@@ -211,7 +207,7 @@ class CssIterator
     private function markIterationAsSelected(PdoMySql $transaction, $uid)
     {
         $sql = "
-            UPDATE css_iteration
+            UPDATE js_iteration
             SET is_selected = '1'
             WHERE archived = '0'
             AND uid = ?;
@@ -233,12 +229,12 @@ class CssIterator
     private function insertIteration(PdoMySql $transaction, array $data)
     {
         $sql = "
-            INSERT INTO css_iteration (css, author, description, is_selected)
+            INSERT INTO js_iteration (js, author, description, is_selected)
             VALUES (?, ?, ?, ?)
         ";
 
         $bind = [
-            $data['css_iteration'],
+            $data['js_iteration'],
             Account::getUsername(),
             $data['description'],
             '1',

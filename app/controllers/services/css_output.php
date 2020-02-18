@@ -20,21 +20,25 @@ $headers    = new Headers();
 $css_output = null;
 $iteration  = !empty($_GET['iteration']) ? filter_var($_GET['iteration'], FILTER_SANITIZE_STRING) : false;
 
-$headers->css();
-
 if (empty($iteration)) {
-    $css_output = (new Css())->get();
+    $css_obj                = new Css();
+
+    $headers->last_modified = $css_obj->concat->directory_modified;
+    $css_output             = $css_obj->get();
 } else {
-    $css_iterator   = new CssIterator();
-    $css            = $css_iterator->getCssIteration($iteration, true);
-    $headers->last_modified = strtotime($css['modified_datetime']);
+    $css_iterator           = new CssIterator();
+    $css                    = $css_iterator->getCssIteration($iteration, true);
 
     if (!empty($_SESSION['css_preview'])) {
         $css_output = $_SESSION['css_preview']['css'];
     } else {
+        $headers->last_modified = $css['modified_datetime'];
+
         header('Content-Encoding: gzip');
-        $css_output = gzencode(Minify::css($css['css']));
+        $css_output             = gzencode(Minify::css($css['css']));
     }
 }
+
+$headers->css();
 
 echo $css_output;

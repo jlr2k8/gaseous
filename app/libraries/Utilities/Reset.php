@@ -134,8 +134,8 @@ class Reset
                 &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
                 &lt;meta name=&quot;robots&quot; content=&quot;{$meta_robots}&quot; /&gt;
                 &lt;title&gt;{$page_title_seo}&lt;/title&gt;
-                &lt;style&gt;{$css}&lt;/style&gt;
                 &lt;link href=&quot;https://fonts.googleapis.com/css?family=Open+Sans&quot; rel=&quot;stylesheet&quot;&gt; 
+                {$css_output}
                 {$css_iterator_output}
                 &lt;link rel=&quot;shortcut icon&quot; href=&quot;/favicon.ico&quot;&gt;
                 &lt;/head&gt;
@@ -166,9 +166,8 @@ class Reset
                 &lt;/footer&gt;
                 {$debug_footer}
                 &lt;/body&gt;
-                &lt;script async=&quot;async&quot; defer=&quot;defer&quot;&gt;
-                    {$js}
-                &lt;/script&gt;
+                {$js_output}
+                {$js_iterator_output}
                 &lt;/html&gt;
             '
         ],
@@ -328,10 +327,17 @@ class Reset
             'value'         => '0'
         ],
         'manage_css' => [
-            'display'       => 'Upload Root Directory',
-            'category_key'  => 'cms',
+            'display'       => 'Manage CSS',
+            'category_key'  => 'administrative',
             'role_based'    => true,
             'description'   => 'Allow site-wide management of custom CSS',
+            'value'         => '0'
+        ],
+        'manage_js' => [
+            'display'       => 'Manage JS',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Allow site-wide management of custom JS',
             'value'         => '0'
         ],
         'robots_txt_value' => [
@@ -377,6 +383,7 @@ class Reset
         'main_template'             => 'codemirror',
         'maintenance_mode'          => 'boolean',
         'manage_css'                => 'boolean',
+        'manage_js'                => 'boolean',
         'nav_template'              => 'codemirror',
         'pdo_debug'                 => 'boolean',
         'require_recaptcha'         => 'boolean',

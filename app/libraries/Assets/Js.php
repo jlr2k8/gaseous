@@ -4,7 +4,7 @@
  * Copyright (c) 2020 All Rights Reserved.
  * 2/9/20
  *
- * Css.php
+ * Js.php
  *
  *
  **/
@@ -13,7 +13,7 @@ namespace Assets;
 
 use Seo\Minify;
 
-class Css
+class Js
 {
     public $concat;
 
@@ -28,12 +28,13 @@ class Css
      */
     public function get()
     {
-        $css_gz_file    = $_SERVER['WEB_ROOT'] . '/assets/styles.gz.css';
+        $asset_concat   = new Concat();
+        $js_gz_file    = $_SERVER['WEB_ROOT'] . '/assets/js.gz.js';
 
-        $css_gz = file_exists($css_gz_file) && gzdecode(file_get_contents($css_gz_file))
-            ? gzdecode(file_get_contents($css_gz_file))
+        $js_gz = file_exists($js_gz_file) && gzdecode(file_get_contents($js_gz_file))
+            ? gzdecode(file_get_contents($js_gz_file))
             : false;
 
-        return Minify::css($css_gz ? $css_gz : $this->concat->css());
+        return Minify::js($js_gz ? $js_gz : $asset_concat->js());
     }
 }

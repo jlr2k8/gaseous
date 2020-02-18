@@ -43,6 +43,7 @@ class AdminView
         $templator->assign('archive_pages', \Settings::value('archive_pages'));
 
         $templator->assign('manage_css', \Settings::value('manage_css'));
+        $templator->assign('manage_js', \Settings::value('manage_js'));
 
         $templator->assign('edit_settings', \Settings::value('edit_settings'));
 

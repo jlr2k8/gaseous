@@ -15,6 +15,7 @@ namespace Content\Pages;
 use Assets\Css;
 use Assets\CssIterator;
 use Assets\Js;
+use Assets\JsIterator;
 use Utilities\AdminView;
 use Utilities\DateTime;
 use Db\Query;
@@ -425,15 +426,6 @@ class Get
     {
         $templator      = new Templator();
         $admin_view     = new AdminView();
-        $css            = new Css();
-        $css_iterator   = new CssIterator();
-
-        $latest_css     = $css_iterator->getCurrentCssIteration();
-        $latest_css_uid = $latest_css['uid'] ?? null;
-
-        // TODO js iterator
-        $latest_js     = null;//$js_iterator->getCurrentJsIteration();
-        $latest_js_uid = null;//$latest_js['uid'] ?? null;
 
         // core template items
         $find_replace = [
@@ -441,10 +433,10 @@ class Get
             'page_title_h1'         => !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : \Settings::value('default_page_title_h1'),
             'meta_description'      => !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : \Settings::value('default_meta_description'),
             'meta_robots'           => !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : \Settings::value('default_meta_robots'),
-            'css_output'            => '/styles.gz.css',
-            'css_iterator_output'   => !empty($latest_css_uid) ? '/styles-' . $latest_css_uid . '.gz.css' : null,
-            'js_output'             => '/js.gz.js',
-            'js_iterator_output'    => !empty($latest_js_uid) ? '/js-' . $latest_js_uid . '.gz.js' : null,
+            'css_output'            => $this->outputCss($templator),
+            'css_iterator_output'   => $this->outputLatestCss($templator),
+            'js_output'             => $this->outputJs($templator),
+            'js_iterator_output'    => $this->outputLatestJs($templator),
             'breadcrumbs'           => !empty($find_replace['breadcrumbs']) ? $find_replace['breadcrumbs'] : $this->cmsBreadcrumbs($_SERVER['REQUEST_URI']),
             'nav'                   => $this->nav($templator, $find_replace),
             'body'                  => $this->renderTemplate($find_replace['body'], $templator),
@@ -454,6 +446,92 @@ class Get
         ];
 
         return $this->main($templator, $find_replace);
+    }
+
+
+    /**
+     * @param Templator $templator
+     * @param CssIterator|null $css_iterator
+     * @param bool $uid
+     * @return string
+     * @throws \SmartyException
+     */
+    private function outputCss(Templator $templator, CssIterator $css_iterator = null, $uid = false)
+    {
+        $href   = '/styles.gz.css';
+
+        if (!empty($uid)) {
+            $css_iterator   = $css_iterator ?? new CssIterator();
+            $css_iteration  = $css_iterator->getCssIteration($uid, true);
+            $href           = !empty($css_iteration) ? '/styles-' . $css_iteration['uid'] . '.gz.css' : null;
+        }
+
+        $templator->assign('href', $href);
+
+        return $templator->fetch('link-href.tpl');
+    }
+
+
+    /**
+     * @param Templator $templator
+     * @return string|null
+     * @throws \SmartyException
+     */
+    private function outputLatestCss(Templator $templator)
+    {
+        $css_iterator       = new CssIterator();
+        $latest_css         = $css_iterator->getCurrentCssIteration(true);
+        $latest_css_output  = null;
+
+        if (!empty($latest_css)) {
+            $latest_css_output  = $this->outputCss($templator, $css_iterator, $latest_css['uid']);
+        }
+
+        return $latest_css_output;
+    }
+
+
+    /**
+     * @param Templator $templator
+     * @param JsIterator|null $js_iterator
+     * @param bool $uid
+     * @return string
+     * @throws \SmartyException
+     */
+    private function outputJs(Templator $templator, JsIterator $js_iterator = null, $uid = false, $async = true, $defer = true)
+    {
+        $src    = '/js.gz.js';
+
+        if (!empty($uid)) {
+            $js_iterator    = $js_iterator ?? new JsIterator();
+            $js_iteration   = $js_iterator->getJsIteration($uid, true);
+            $src            = !empty($js_iteration) ? '/js-' . $js_iteration['uid'] . '.gz.js' : null;
+        }
+
+        $templator->assign('src', $src);
+        $templator->assign('async', $async);
+        $templator->assign('defer', $defer);
+
+        return $templator->fetch('script-src.tpl');
+    }
+
+
+    /**
+     * @param Templator $templator
+     * @return string|null
+     * @throws \SmartyException
+     */
+    private function outputLatestJs(Templator $templator)
+    {
+        $js_iterator        = new JsIterator();
+        $latest_js          = $js_iterator->getCurrentJsIteration(true);
+        $latest_js_output   = null;
+
+        if (!empty($latest_js)) {
+            $latest_js_output  = $this->outputJs($templator, $js_iterator, $latest_js['uid']);
+        }
+
+        return $latest_js_output;
     }
 
 

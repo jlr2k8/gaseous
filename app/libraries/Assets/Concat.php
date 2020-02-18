@@ -14,12 +14,13 @@ namespace Assets;
 
 class Concat
 {
-    public $scope, $recursive_iterator;
+    public $scope, $recursive_iterator, $directory_modified;
 
     public function __construct()
     {
         $this->scope                = $_SERVER['WEB_ROOT'] . '/assets-src';
         $this->recursive_iterator   = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->scope));
+        $this->directory_modified   = filemtime($this->scope);
     }
 
 

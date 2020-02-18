@@ -101,6 +101,29 @@ BEGIN
 END;
 
 
+CREATE TABLE `js_iteration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `js` text COLLATE utf8mb4_unicode_ci,
+  `author` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `is_selected` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
+  `archived` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
+  `created_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `modified_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `archived_datetime` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uid` (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TRIGGER `before_insert_js` BEFORE INSERT ON `js_iteration` FOR EACH ROW
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = UUID();
+    END IF;
+END;
+
+
 CREATE TABLE `current_page_iteration` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `page_master_uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -277,7 +300,8 @@ INSERT INTO `settings` (`id`, `key`, `display`, `category_key`, `role_based`, `d
 (35,	'upload_root',	'Upload root',	'cms',	'false',	'Filesystem directory for uploaded/pasted CMS images',	'0',	'2018-09-21 01:45:58',	'2018-09-21 02:22:00',	'0000-00-00 00:00:00'),
 (36,	'upload_url_relative',	'Upload URL relative path (relative to site URL)',	'cms',	'false',	'Relative path (client-facing/browser) for images.',	'0',	'2018-09-21 01:46:33',	'2018-09-21 02:21:52',	'0000-00-00 00:00:00'),
 (37,	'manage_css',	'Manage CSS',	'administrative',	'true',	'Allow site-wide management of custom CSS',	'0',	'2018-10-21 19:22:15',	'2018-10-21 19:24:13',	'0000-00-00 00:00:00'),
-(38,	'robots_txt_value',	'robots.txt value',	'administrative',	'false',	'The site\'s top level /robots.txt output',	'0',	'2018-11-03 19:16:41',	'2018-11-03 19:23:02',	'0000-00-00 00:00:00'),
+(38,	'manage_js',	'Manage JS',	'administrative',	'true',	'Allow site-wide management of custom JS',	'0',	'2018-10-21 19:22:15',	'2018-10-21 19:24:13',	'0000-00-00 00:00:00'),
+(39,	'robots_txt_value',	'robots.txt value',	'administrative',	'false',	'The site\'s top level /robots.txt output',	'0',	'2018-11-03 19:16:41',	'2018-11-03 19:23:02',	'0000-00-00 00:00:00'),
 (40,	'nav_template',	'Nav Template',	'templates',	'false',	'Template for navigation <nav /> area',	'0',	'2018-11-06 15:47:45',	'2018-11-06 15:47:45',	'0000-00-00 00:00:00'),
 (41,	'footer_template',	'Footer Template',	'templates',	'false',	'Template for <footer /> region',	'0',	'2018-11-06 15:49:05',	'2018-11-06 15:49:05',	'0000-00-00 00:00:00'),
 (42,	'add_redirects',	'Add Redirects',	'administrative',	'true',	'Ability to add URI redirects',	'0',	'2019-05-18 18:37:41',	'2019-05-18 18:41:53',	'0000-00-00 00:00:00'),
@@ -328,7 +352,8 @@ INSERT INTO `settings_properties` (`id`, `settings_key`, `property`, `archived`,
 (27,	'archive_redirects',	'boolean',	'0',	'2019-05-18 18:43:20',	'2019-05-18 18:43:20',	'0000-00-00 00:00:00'),
 (28,	'add_routes',	'boolean',	'0',	'2019-05-19 22:50:33',	'2019-05-19 22:50:33',	'0000-00-00 00:00:00'),
 (29,	'edit_routes',	'boolean',	'0',	'2019-05-19 22:50:39',	'2019-05-19 22:50:39',	'0000-00-00 00:00:00'),
-(30,	'archive_routes',	'boolean',	'0',	'2019-05-19 22:50:46',	'2019-05-19 22:50:46',	'0000-00-00 00:00:00');
+(30,	'archive_routes',	'boolean',	'0',	'2019-05-19 22:50:46',	'2019-05-19 22:50:46',	'0000-00-00 00:00:00'),
+(31,	'manage_js',	'boolean',	'0',	'2018-10-21 19:22:42',	'2018-10-21 19:22:42',	'0000-00-00 00:00:00');
 
 
 CREATE TABLE `settings_roles` (

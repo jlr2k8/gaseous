@@ -27,6 +27,13 @@
             </a>
         </li>
     {/if}
+    {if $manage_css}
+        <li>
+            <a href="/admin/js">
+                JS Script Management
+            </a>
+        </li>
+    {/if}
     {if $edit_settings}
         <li>
             <a href="/admin/settings">

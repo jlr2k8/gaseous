@@ -14,6 +14,7 @@ namespace Content\Pages;
 
 use Db\PdoMySql;
 use Db\Query;
+use Uri\Redirect;
 use User\Account;
 
 class Submit
@@ -288,21 +289,35 @@ class Submit
 
     /**
      * @param PdoMySql $transaction
+     * @param $page_master_uid
+     * @param $uri_uid
      * @return bool
      * @throws \Exception
      */
-    private function insertPage(PdoMySql $transaction)
+    private function insertPage(PdoMySql $transaction, $page_master_uid = null, $uri_uid = null)
     {
         self::addPageCheck();
 
-        $sql = "
-            INSERT INTO page (uri_uid)
-            VALUES (?);
-        ";
+        if (empty($page_master_uid)) {
+            $sql = "
+                INSERT INTO page (uri_uid)
+                VALUES (?);
+            ";
 
-        $bind = [
-            $this->uri_uid,
-        ];
+            $bind = [
+                $uri_uid ?? $this->uri_uid,
+            ];
+        } else {
+            $sql = "
+                INSERT INTO page (page_master_uid, uri_uid)
+                VALUES (?, ?);
+            ";
+
+            $bind = [
+                $page_master_uid,
+                $uri_uid ?? $this->uri_uid,
+            ];
+        }
 
         $transaction
             ->prepare($sql)
@@ -450,9 +465,10 @@ class Submit
 
     /**
      * @param PdoMySql $transaction
+     * @param $page_master_uid
      * @return bool
      */
-    private function archivePage(PdoMySql $transaction)
+    private function archivePage(PdoMySql $transaction, $page_master_uid = null)
     {
         $sql = "
             UPDATE page
@@ -461,7 +477,7 @@ class Submit
         ";
 
         $bind = [
-            $this->page_master_uid,
+            $page_master_uid ?? $this->page_master_uid,
         ];
 
         $transaction
@@ -474,24 +490,22 @@ class Submit
 
     /**
      * @param PdoMySql $transaction
+     * @param $old_uri_uid
+     * @param $new_uri_uid
      * @return bool
+     * @throws \Exception
      */
-    private function updatePage(PdoMySql $transaction)
+    private function updatePage(PdoMySql $transaction, $old_uri_uid = null, $new_uri_uid = null)
     {
-        $sql = "
-            UPDATE page
-            SET uri_uid = ?
-            WHERE uri_uid = ?;
-        ";
+        // TODO - revise functionality here
+        $old_uri_uid        = $old_uri_uid ?? $this->post_data['original_uri_uid'];
+        $new_uri_uid        = $new_uri_uid ?? $this->uri_uid;
+        $page_master_uid    = $this->getMasterPageId($transaction, $old_uri_uid);
 
-        $bind = [
-            $this->uri_uid,
-            $this->post_data['original_uri_uid'],
-        ];
-
-        $transaction
-            ->prepare($sql)
-            ->execute($bind);
+        if (!empty($this->post_data['original_uri_uid'])) {
+            $this->archivePage($transaction, $page_master_uid);
+            $this->insertPage($transaction, $page_master_uid, $new_uri_uid);
+        }
 
         return true;
     }
@@ -534,7 +548,7 @@ class Submit
             $this->errors = ['URI already exists'];
             $this->checkAndThrowErrorException();
 
-        // user changed URI and it's unique
+        // user changed URI and it's unique (or it doesn't exist)
         } elseif($old_uri != $new_uri && !self::uriExists($new_uri)) {
             /*
              * NOTE
@@ -542,11 +556,12 @@ class Submit
              * active. that way, the old URI still exists, but redirects to the new one (301 Moved Permanently)
              */
             if (!empty($this->uri_uid)) {
-                $this->insertRedirectUri($transaction, $new_uri . '/');
+                $this->insertRedirectUri($transaction, $this->uri_uid, $new_uri . '/');
             }
 
             $this->insertUri($transaction, $new_uri);
             $this->uri_uid = $this->getUriUid($transaction, $new_uri);
+
             $this->updatePage($transaction);
         }
 
@@ -556,17 +571,12 @@ class Submit
                 $result_uri             = $uri_result['uri'];
                 $result_uri_as_array    = Utilities::uriAsArray($result_uri);
 
-                $matching_uri_bases = true;
-
                 foreach($old_uri_as_array as $key => $val) {
-                    if (empty($result_uri_as_array[$key]) || $old_uri_as_array[$key] != $result_uri_as_array[$key]) {
-                        $matching_uri_bases = false;
-                        break;
-                    }
-                }
+                    $ignore_uid = $this->getUriUid($transaction, $old_uri);
 
-                if ($matching_uri_bases === true) {
-                    $this->updateUri($transaction, $uri_result['uid'], $new_uri_as_array);
+                    if (!empty($result_uri_as_array[$key]) && ($old_uri_as_array[$key] == $result_uri_as_array[$key]) && $uri_result['uid'] != $ignore_uid) {
+                        $this->updateUri($transaction, $uri_result['uid'], $new_uri_as_array);
+                    }
                 }
             }
         }
@@ -577,15 +587,16 @@ class Submit
 
     /**
      * @param PdoMySql $transaction
+     * @param $uri_uid
      * @param $destination_url
      * @return bool
      */
-    private function insertRedirectUri(PdoMySql $transaction, $destination_url)
+    private function insertRedirectUri(PdoMySql $transaction, $uri_uid, $destination_url)
     {
-        $uri_redirect       = new \Uri\Redirect();
+        $uri_redirect       = new Redirect();
 
         $data               = [
-            'uri_uid'           => $this->uri_uid,
+            'uri_uid'           => $uri_uid,
             'destination_url'   => $destination_url,
             'http_status_code'  => 301,
             'description'       => 'Page URI was updated via the page editor',
@@ -672,9 +683,10 @@ class Submit
 
     /**
      * @param PdoMySql $transaction
+     * @param $uri_uid
      * @return mixed
      */
-    private function getMasterPageId(PdoMySql $transaction)
+    private function getMasterPageId(PdoMySql $transaction, $uri_uid = null)
     {
         $sql = "
             SELECT page_master_uid
@@ -682,7 +694,7 @@ class Submit
             WHERE uri_uid = ?
         ";
 
-        $bind   = [$this->uri_uid];
+        $bind   = [$uri_uid ?? $this->uri_uid];
         $result = $transaction->prepare($sql);
 
         $result->execute($bind);
@@ -696,31 +708,21 @@ class Submit
      * @param $old_uri_uid
      * @param $new_uri_as_array
      * @return bool
+     * @throws \Exception
      */
     private function updateUri(PdoMySql $transaction, $old_uri_uid, array $new_uri_as_array)
     {
         $old_uri            = Get::uri($old_uri_uid);                                           // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
         $old_uri_as_array   = Utilities::uriAsArray($old_uri);                                  // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
         $updated_uri_array  = array_replace($old_uri_as_array, $new_uri_as_array);              // [0] => foo, [1] => bar, [2] => baz, [3] => lorem-ipsum ... [12] => upper-uri
-        $updated_uri        = trim(Utilities::arrayAsUri($updated_uri_array), '/');     // foo/bar/baz/lorem-ipsum
+        $updated_uri        = Utilities::arrayAsUri($updated_uri_array);                        // foo/bar/baz/lorem-ipsum
 
-        $sql = "
-            UPDATE uri
-            SET uri = ?
-            WHERE uid = ?
-            AND archived = '0';
-        ";
+        $insert_new_uri = $this->insertUri($transaction, $updated_uri);
+        $new_uri_uid    = $this->getUriUid($transaction, $updated_uri);
+        $add_redirect   = $this->insertRedirectUri($transaction, $old_uri_uid, $updated_uri);
+        $update_pages   = $this->updatePage($transaction, $old_uri_uid, $new_uri_uid);
 
-        $bind = [
-            rtrim($updated_uri, '/'),
-            $old_uri_uid,
-        ];
-
-        $transaction
-            ->prepare($sql)
-            ->execute($bind);
-
-        return true;
+        return ($insert_new_uri && $add_redirect && $update_pages);
     }
 
 

@@ -195,8 +195,6 @@ class Redirect
                 ->execute($bind);
         }
 
-        var_dump($sql, $bind);
-
         return $ran;
     }
 

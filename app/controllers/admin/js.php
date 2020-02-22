@@ -40,11 +40,13 @@ if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
     exit;
 }
 
-$templator      = new Templator();
-$codemirror     = new Codemirror();
+$templator          = new Templator();
+$codemirror         = new Codemirror();
 
-$js_iterations = $js->getAllIterations();
-$post           = [];
+$codemirror->mode   = 'javascript';
+
+$js_iterations      = $js->getAllIterations();
+$post               = [];
 
 if (!empty($_POST)) {
     foreach($_POST as $key => $val) {

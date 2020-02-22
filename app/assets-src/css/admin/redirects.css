@@ -1,0 +1,7 @@
+form#redir_new #custom_uri {
+    display: inline-block;
+}
+
+form#redir_new #custom_uri_input_container {
+    display: none;
+}

@@ -1,4 +1,15 @@
 $(document).ready( function() {
+    $('select[name="uri_uid"]').on('change', function(){
+       if ($(this).find('option:selected').val() == 'custom') {
+           $('#custom_uri_input_container').show(function() {
+                $('#custom_uri').attr('required', 'required');
+           });
+       } else {
+           $('#custom_uri_input_container').hide(function() {
+               $('#custom_uri').removeAttr('required').val('');
+           });
+       }
+    });
     $('button[name="update"].uri_redirect_update').on('click', function(e) {
         e.preventDefault();
 
@@ -11,7 +22,6 @@ $(document).ready( function() {
         var data = $('#redir_' + redir_key).serialize() + '&update';
 
         $.post('/admin/redirects/', data, function() {
-            console.log();
             this_update_button
                 .html('Updated&#160;<i class="fas fa-check"></i>')
                 .delay(1000)

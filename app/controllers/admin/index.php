@@ -14,14 +14,13 @@ use \Content\Pages\Breadcrumbs;
 use \Content\Pages\Templator;
 use \Utilities\AdminView;
 
-$admin_view = new AdminView();
 $title      = 'Administration';
 
 $page_find_replace = [
     'page_title_seo'    => $title,
     'page_title_h1'     => $title,
     'breadcrumbs'       => (new Breadcrumbs())->crumb($title),
-    'body'              => $admin_view->renderAdminList(),
+    'body'              => AdminView::renderAdminList(),
 ];
 
 echo Templator::page($page_find_replace);

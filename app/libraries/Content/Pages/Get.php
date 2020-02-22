@@ -16,6 +16,7 @@ use Assets\Css;
 use Assets\CssIterator;
 use Assets\Js;
 use Assets\JsIterator;
+use Seo\Url;
 use Utilities\AdminView;
 use Utilities\DateTime;
 use Db\Query;
@@ -424,8 +425,7 @@ class Get
      */
     public function templatedPage($find_replace = array())
     {
-        $templator      = new Templator();
-        $admin_view     = new AdminView();
+        $templator  = new Templator();
 
         // core template items
         $find_replace = [
@@ -433,16 +433,16 @@ class Get
             'page_title_h1'         => !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : \Settings::value('default_page_title_h1'),
             'meta_description'      => !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : \Settings::value('default_meta_description'),
             'meta_robots'           => !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : \Settings::value('default_meta_robots'),
-            'css_output'            => $this->outputCss($templator),
-            'css_iterator_output'   => $this->outputLatestCss($templator),
-            'js_output'             => $this->outputJs($templator),
-            'js_iterator_output'    => $this->outputLatestJs($templator),
+            'css_output'            => self::outputCss($templator),
+            'css_iterator_output'   => self::outputLatestCss($templator),
+            'js_output'             => self::outputJs($templator),
+            'js_iterator_output'    => self::outputLatestJs($templator),
             'breadcrumbs'           => !empty($find_replace['breadcrumbs']) ? $find_replace['breadcrumbs'] : $this->cmsBreadcrumbs($_SERVER['REQUEST_URI']),
-            'nav'                   => $this->nav($templator, $find_replace),
+            'nav'                   => self::nav($templator, $find_replace),
             'body'                  => $this->renderTemplate($find_replace['body'], $templator),
-            'footer'                => $this->footer($templator, $find_replace),
-            'administration'        => $admin_view->renderAdminList(),
-            'debug_footer'          => $this->debugFooter(),
+            'footer'                => self::footer($templator, $find_replace),
+            'administration'        => AdminView::renderAdminList(),
+            'debug_footer'          => self::debugFooter(),
         ];
 
         return $this->main($templator, $find_replace);
@@ -456,7 +456,7 @@ class Get
      * @return string
      * @throws \SmartyException
      */
-    private function outputCss(Templator $templator, CssIterator $css_iterator = null, $uid = false)
+    private static function outputCss(Templator $templator, CssIterator $css_iterator = null, $uid = false)
     {
         $href   = '/styles.gz.css';
 
@@ -477,14 +477,14 @@ class Get
      * @return string|null
      * @throws \SmartyException
      */
-    private function outputLatestCss(Templator $templator)
+    private static function outputLatestCss(Templator $templator)
     {
         $css_iterator       = new CssIterator();
         $latest_css         = $css_iterator->getCurrentCssIteration(true);
         $latest_css_output  = null;
 
         if (!empty($latest_css)) {
-            $latest_css_output  = $this->outputCss($templator, $css_iterator, $latest_css['uid']);
+            $latest_css_output  = self::outputCss($templator, $css_iterator, $latest_css['uid']);
         }
 
         return $latest_css_output;
@@ -495,10 +495,12 @@ class Get
      * @param Templator $templator
      * @param JsIterator|null $js_iterator
      * @param bool $uid
+     * @param $async
+     * @param $defer
      * @return string
      * @throws \SmartyException
      */
-    private function outputJs(Templator $templator, JsIterator $js_iterator = null, $uid = false, $async = true, $defer = true)
+    private static function outputJs(Templator $templator, JsIterator $js_iterator = null, $uid = false, $async = true, $defer = true)
     {
         $src    = '/js.gz.js';
 
@@ -521,14 +523,14 @@ class Get
      * @return string|null
      * @throws \SmartyException
      */
-    private function outputLatestJs(Templator $templator)
+    private static function outputLatestJs(Templator $templator)
     {
         $js_iterator        = new JsIterator();
         $latest_js          = $js_iterator->getCurrentJsIteration(true);
         $latest_js_output   = null;
 
         if (!empty($latest_js)) {
-            $latest_js_output  = $this->outputJs($templator, $js_iterator, $latest_js['uid']);
+            $latest_js_output  = self::outputJs($templator, $js_iterator, $latest_js['uid']);
         }
 
         return $latest_js_output;
@@ -583,7 +585,7 @@ class Get
     /**
      * @return false|string
      */
-    private function debugFooter()
+    private static function debugFooter()
     {
         ob_start();
 
@@ -618,7 +620,7 @@ class Get
      * @return string
      * @throws \SmartyException
      */
-    private function nav(Templator $templator, array $find_replace)
+    private static function nav(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
@@ -637,7 +639,7 @@ class Get
      * @return string
      * @throws \SmartyException
      */
-    private function footer(Templator $templator, array $find_replace)
+    private static function footer(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
@@ -790,10 +792,19 @@ class Get
         $crumb_array    = array_reverse($this->buildBreadcrumbArray($uri));
         $breadcrumbs    = new Breadcrumbs();
 
-        foreach ($crumb_array as $crumb) {
+        foreach ($crumb_array as $key => $crumb) {
+            $class      = [];
+            $class[]    = 'crumb-label-' . $crumb['label'];
+            $class[]    = 'crumb-url-' . Url::convert($crumb['url']);
+
+            if ($key == array_key_last($crumb_array)) {
+                $class[] = 'last-crumb';
+            }
+
             $breadcrumbs->crumb (
                 $crumb['label'],
-                $crumb['url']
+                $crumb['url'],
+                $class,
             );
         }
 

@@ -25,7 +25,7 @@ class AdminView
      * @return string
      * @throws \SmartyException
      */
-    public function renderAdminList()
+    public static function renderAdminList()
     {
         $templator = new Templator;
 

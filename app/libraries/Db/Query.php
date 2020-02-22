@@ -124,9 +124,8 @@ class Query extends PdoMySql
      */
     public static function getUuid()
     {
-        $sql = "SELECT UUID();";
-
-        $db = new self($sql);
+        $sql    = "SELECT UUID();";
+        $db     = new self($sql);
 
         return $db->fetch();
     }

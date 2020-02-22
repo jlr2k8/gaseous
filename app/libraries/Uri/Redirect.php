@@ -12,6 +12,7 @@
 
 namespace Uri;
 
+use Db\PdoMySql;
 use Db\Query;
 
 class Redirect
@@ -153,10 +154,10 @@ class Redirect
 
     /**
      * @param array $data
-     * @param \Db\PdoMySql|null $transaction
+     * @param PdoMySql|null $transaction
      * @return bool
      */
-    public function insert(array $data, \Db\PdoMySql $transaction = null)
+    public function insert(array $data, PdoMySql $transaction = null)
     {
         $uri_uid            = filter_var($data['uri_uid'], FILTER_SANITIZE_STRING);
         $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
@@ -194,6 +195,8 @@ class Redirect
                 ->execute($bind);
         }
 
+        var_dump($sql, $bind);
+
         return $ran;
     }
 
@@ -210,7 +213,7 @@ class Redirect
         $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING);
         $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);
 
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
@@ -244,10 +247,10 @@ class Redirect
 
     /**
      * @param $uri_uid
-     * @param \Db\PdoMySql|null $transaction
+     * @param PdoMySql|null $transaction
      * @return bool
      */
-    public function archive($uri_uid, \Db\PdoMySql $transaction = null)
+    public function archive($uri_uid, PdoMySql $transaction = null)
     {
         $sql = "
             UPDATE

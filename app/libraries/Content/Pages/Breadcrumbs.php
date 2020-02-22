@@ -17,23 +17,25 @@ class Breadcrumbs
 
     public function __construct()
     {
-        $this->crumb('Home', '/');
+        $this->crumb('Home', '/', ['first-crumb', 'home-crumb']);
     }
 
 
     /**
      * @param $label
-     * @param bool $url
+     * @param $url
+     * @param $classes
      * @return $this
      */
-    public function crumb($label, $url = false)
+    public function crumb($label, $url = false, $classes = [])
     {
         // if no URL is specified, use current URI so url is "self"
         $url = $url ? filter_var($url, FILTER_SANITIZE_URL) : $_SERVER['REQUEST_URI'];
 
         $this->crumbs[] = [
-            'label' => strip_tags(trim($label)),
-            'url'   => $url,
+            'label'     => strip_tags(trim($label)),
+            'url'       => $url,
+            'classes'   => implode(' ', $classes),
         ];
 
         return $this;
@@ -45,7 +47,6 @@ class Breadcrumbs
      */
     public function __toString()
     {
-        // sanity check - shouldnt happen because the very first crumb is set in the constructor
         if (empty($this->crumbs))
             return null;
 

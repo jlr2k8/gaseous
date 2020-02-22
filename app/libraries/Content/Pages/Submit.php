@@ -15,6 +15,7 @@ namespace Content\Pages;
 use Db\PdoMySql;
 use Db\Query;
 use Uri\Redirect;
+use Uri\Uri;
 use User\Account;
 
 class Submit
@@ -544,12 +545,11 @@ class Submit
         }
 
         // user changed URI and it matches an existing
-        if (($old_uri != $new_uri && (self::uriExists($new_uri)) || empty($new_uri))) {
-            $this->errors = ['URI already exists'];
+        if (($old_uri != $new_uri && ($this->uriExists($new_uri)) || empty($new_uri))) {
             $this->checkAndThrowErrorException();
 
         // user changed URI and it's unique (or it doesn't exist)
-        } elseif($old_uri != $new_uri && !self::uriExists($new_uri)) {
+        } elseif($old_uri != $new_uri && !$this->uriExists($new_uri)) {
             /*
              * NOTE
              * instead of archiving the old URI, we simply want to add an entry in the uri_redirects table and keep it
@@ -644,18 +644,9 @@ class Submit
      */
     private function insertUri(PdoMySql $transaction, $uri)
     {
-        $sql = "
-            INSERT INTO uri (uri)
-            VALUES(?);
-        ";
+        $uri_obj = new Uri($transaction);
 
-        $bind = [rtrim($uri, '/')];
-
-        $transaction
-            ->prepare($sql)
-            ->execute($bind);
-
-        return true;
+        return $uri_obj->insertUri($uri);
     }
 
 
@@ -666,18 +657,9 @@ class Submit
      */
     private function getUriUid(PdoMySql $transaction, $uri)
     {
-        $sql = "
-            SELECT uid
-            FROM uri
-            WHERE uri = ?
-        ";
+        $uri_obj = new Uri($transaction);
 
-        $bind   = [rtrim($uri, '/')];
-        $result = $transaction->prepare($sql);
-
-        $result->execute($bind);
-
-        return $result->fetchColumn();
+        return $uri_obj->getUriUid($uri);
     }
 
 
@@ -767,8 +749,9 @@ class Submit
      */
     private function uriExists($uri)
     {
-        $exists_as_page     = $this->uriExistsAsPage($uri);
-        $exists_as_redirect = $this->uriExistsAsRedirect($uri);
+        $exists_as_page     = Uri::uriExistsAsPage($uri);
+        $exists_as_redirect = Uri::uriExistsAsRedirect($uri);
+
         $return             = false;
 
         if ($exists_as_page) {
@@ -780,66 +763,6 @@ class Submit
         }
 
         return $return;
-    }
-
-
-    /**
-     * @param $uri
-     * @return bool
-     */
-    private function uriExistsAsPage($uri)
-    {
-        $sql = "
-            SELECT
-                COUNT(*)
-            FROM
-                uri
-            INNER JOIN
-                page
-            ON
-                page.uri_uid = uri.uid
-            WHERE
-                uri = ?
-            AND
-                uri.archived = '0'
-            AND
-                page.archived = '0';
-        ";
-
-        $db     = new Query($sql, [$uri]);
-        $count  = $db->fetch();
-
-        return ($count > 0);
-    }
-
-
-    /**
-     * @param $uri
-     * @return bool
-     */
-    private function uriExistsAsRedirect($uri)
-    {
-        $sql = "
-            SELECT
-                COUNT(*)
-            FROM
-                uri
-            INNER JOIN
-                uri_redirects
-            ON
-                uri_redirects.uri_uid = uri.uid
-            WHERE
-                uri = ?
-            AND
-                uri.archived = '0'
-            AND
-                uri_redirects.archived = '0';
-        ";
-
-        $db     = new Query($sql, [$uri]);
-        $count  = $db->fetch();
-
-        return ($count > 0);
     }
 
 

@@ -32,6 +32,7 @@
                 <tr id="row_{$redir.uri_uid}">
                     {if $edit_uri_redirects}
                         <form id="redir_{$redir.uri_uid}" method="post" action="{$full_web_url}/admin/redirects/">
+                        <input type="hidden" name="update" />
                     {/if}
                     <td>
                         {$redir.uri}
@@ -88,40 +89,58 @@
                 New Redirect Rule
             </h2>
             <form id="redir_new" method="post" action="{$full_web_url}/admin/redirects/">
+                <input type="hidden" name="new" />
                 <table class="no_border">
                     <thead>
-                        <th>
-                            URI
-                        </th>
-                        <th>
-                            Destination
-                        </th>
-                        <th>
-                            HTTP Status Code
-                        </th>
-                        <th>
-                            Description
-                        </th>
-                        <th>
-                            {* Action (No Header) *}
-                        </th>
+{*                        <th>*}
+{*                            URI*}
+{*                        </th>*}
+{*                        <th>*}
+{*                            Destination*}
+{*                        </th>*}
+{*                        <th>*}
+{*                            HTTP Status Code*}
+{*                        </th>*}
+{*                        <th>*}
+{*                            Description*}
+{*                        </th>*}
+{*                        <th>*}
+{*                            *}{* Action (No Header) *}
+{*                        </th>*}
                     </thead>
                     <tbody>
                         <tr>
                             <td>
+                                <h3>
+                                    URI:
+                                </h3>
                                 <select name="uri_uid">
                                     <option></option>
+                                    <option value="custom">-- Custom --</option>
                                     {foreach from=$all_unused_uris item=uri}
                                         <option value="{$uri.uid}">
                                             {$uri.uri}
                                         </option>
                                     {/foreach}
                                 </select>
+                                <div id="custom_uri_input_container">
+                                    {$full_web_url}/<input id="custom_uri" type="text" name="custom_uri" />
+                                </div>
                             </td>
+                        </tr>
+                        <tr>
                             <td>
+                                <h3>
+                                    Destination:
+                                </h3>
                                 <input type="text" name="destination_url" />
                             </td>
+                        </tr>
+                        <tr>
                             <td>
+                                <h3>
+                                    HTTP Status Code:
+                                </h3>
                                 <select name="http_status_code">
                                     <option>
                                         (None)
@@ -133,9 +152,16 @@
                                     {/foreach}
                                 </select>
                             </td>
+                        </tr>
+                        <tr>
                             <td>
+                                <h3>
+                                    Description:
+                                </h3>
                                 <input type="text" name="description" />
                             </td>
+                        </tr>
+                        <tr>
                             <td>
                                 <button class="uri_redirect_update" type="submit">Submit new redirect rule &#187;</button>
                             </td>

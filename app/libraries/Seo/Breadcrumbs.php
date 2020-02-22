@@ -33,7 +33,7 @@ class Breadcrumbs
 
             $i++;
 
-            $item .= self::itemListElement($i, $c['label'], $c['url']);
+            $item .= self::itemListElement($i, $c['label'], $c['url'], $c['classes']);
         }
 
         $item .= '</ol>';
@@ -45,10 +45,11 @@ class Breadcrumbs
     /**
      * @param $position
      * @param $label
-     * @param bool $url
+     * @param $url
+     * @param $classes
      * @return null|string
      */
-    private static function itemListElement($position, $label, $url = false)
+    private static function itemListElement($position, $label, $url = false, $classes = null)
     {
         // sanity check
         if (empty($label)) {
@@ -63,7 +64,7 @@ class Breadcrumbs
 
         // TODO - put in template
         $item = $arrow . '
-            <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"> 
+            <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="' . $classes . '"> 
                 <a itemscope itemtype="http://schema.org/Thing" itemprop="item" href="' . $url . '"><span itemprop="name">' . $label . '</span></a>
                 <meta itemprop="position" content="' . $position . '" />
             </li>

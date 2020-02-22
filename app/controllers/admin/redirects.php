@@ -16,6 +16,7 @@ use \Content\Pages\Breadcrumbs;
 use \Content\Pages\HTTP;
 use \Content\Pages\Templator;
 use \Uri\Redirect;
+use Uri\Uri;
 
 // check setting/role privileges
 if (!\Settings::value('add_redirects') && !\Settings::value('edit_redirects') && !\Settings::value('archive_redirects')) {
@@ -46,6 +47,17 @@ if (!empty($_POST) && $edit_redirect_uris) {
     if (isset($post['update'])) {
         $submit_redir = $uri_redirect->update($post);
     } elseif (isset($post['new'])) {
+        if (!empty($post['custom_uri'])) {
+            $uri_obj    = new Uri();
+            $uri        = '/' . filter_var($post['custom_uri'], FILTER_SANITIZE_URL);
+
+            if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsPage($uri)) {
+                $uri_obj->insertUri($uri);
+
+                $post['uri_uid']    = $uri_obj->getUriUid($uri);
+            }
+        }
+
         $submit_redir = $uri_redirect->insert($post);
     }
 

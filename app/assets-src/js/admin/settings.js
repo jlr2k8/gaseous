@@ -10,9 +10,9 @@ $(document).ready( function() {
         this_update_button.text('Updating...').attr('disabled','disabled');
 
         var data = $('#setting_' + setting_key).serialize() + '&update';
-        console.log(data);
+
         $.post('/admin/settings/', data, function(x) {
-            console.log(x);
+
             this_update_button
                 .html('Updated&#160;<i class="fas fa-check"></i>')
                 .delay(1000)
@@ -26,7 +26,7 @@ $(document).ready( function() {
 
     $('.roles_checkbox_container').each(function() {
         var setting_key = $(this).attr('data-key');
-        check_if_any_are_checked(setting_key);
+        checkIfAnyAreChecked(setting_key);
     });
 
     $('.specify_roles').on('click', function(e) {
@@ -60,21 +60,18 @@ $(document).ready( function() {
         $('#specify_roles_' + setting_key).show();
     });
 
-    function check_if_any_are_checked(setting_key)
+    function checkIfAnyAreChecked(setting_key)
     {
-        var any_checked = false;
+        $('#roles_checkbox_container_' + setting_key).hide();
+        $('#specify_roles_' + setting_key).show();
 
         $('#roles_checkbox_container_' + setting_key + ' input[type="checkbox"]').each(function() {
             if ($(this).is(':checked')) {
-                any_checked = true;
+                $('#roles_checkbox_container_' + setting_key).show();
+                $('#specify_roles_' + setting_key).hide();
             }
-        });
 
-        if (any_checked === false) {
-            $('#roles_checkbox_container_' + setting_key).hide();
-            $('#specify_roles_' + setting_key).show();
-        } else {
-            $('#specify_roles_' + setting_key).hide();
-        }
+            return true;
+        });
     }
 });

@@ -13,8 +13,8 @@ use Utilities\Token;
 
 $file_upload            = !empty($_FILES['upload']['tmp_name']) ? $_FILES['upload']['tmp_name'] : false;
 $file_reference         = !empty($_FILES['upload']['name']) ? $_FILES['upload']['name'] : false;
-$upload_root            = \Settings::value('upload_root');
-$upload_url_relative    = \Settings::value('upload_url_relative');
+$upload_root            = Settings::value('upload_root');
+$upload_url_relative    = Settings::value('upload_url_relative');
 
 if ($file_upload && $file_reference) {
     $token                      = Token::generate();

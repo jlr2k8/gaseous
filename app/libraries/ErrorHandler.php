@@ -26,6 +26,6 @@ class ErrorHandler
      */
     public function errorAsException($errno, $errstr, $errfile, $errline)
     {
-        throw new \Exception('Error #' . $errno . ' - ' . $errstr . ' on line ' . $errline . ' of ' . $errfile);
+        throw new Exception('Error #' . $errno . ' - ' . $errstr . ' on line ' . $errline . ' of ' . $errfile);
     }
 }

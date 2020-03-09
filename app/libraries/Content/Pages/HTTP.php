@@ -12,6 +12,10 @@
 
 namespace Content\Pages;
 
+use Exception;
+use Settings;
+use SmartyException;
+
 class HTTP
 {
     public static $status_codes = array (
@@ -38,7 +42,7 @@ class HTTP
      * @param $status_code
      * @param bool $redirect
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public static function error($status_code, $redirect = false)
     {
@@ -56,14 +60,14 @@ class HTTP
      * @param $url
      * @param int $http_response_code
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public static function redirect($url, $http_response_code = false)
     {
         $url = !empty($url) ? filter_var($url, FILTER_SANITIZE_URL) : false;
 
         if (!$url) {
-            throw new \Exception('Cannot redirect to "' . $url . '"');
+            throw new Exception('Cannot redirect to "' . $url . '"');
         }
 
         if ($http_response_code) {
@@ -93,17 +97,17 @@ class HTTP
     /**
      * @param $status_code
      * @return string
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private static function renderErrorPage($status_code)
     {
-        $templator = new \Content\Pages\Templator();
+        $templator = new Templator();
 
         $templator->assign('error_code', $status_code);
         $templator->assign('error_name', self::$status_codes[$status_code]);
-        $templator->assign('full_web_url', \Settings::value('full_web_url'));
+        $templator->assign('full_web_url', Settings::value('full_web_url'));
 
-        $body_template          = \Settings::value('http_error_template');
+        $body_template          = Settings::value('http_error_template');
         $find_replace['body']   = $templator->fetch('string: ' . $body_template);
 
         return $templator::page($find_replace);

@@ -12,6 +12,11 @@
 
 namespace User;
 
+use Db\Query;
+use Exception;
+use Settings;
+use stdClass;
+
 class Register
 {
     public $errors = [], $account_id, $post;
@@ -23,11 +28,11 @@ class Register
     public function __construct($post_data = [])
     {
         //setup
-        $this->account = new \User\Account();
+        $this->account = new Account();
 
         if (!empty($post_data)) {
 
-            $this->post = new \stdClass();
+            $this->post = new stdClass();
 
             foreach ($post_data as $key => $val) {
 
@@ -44,6 +49,7 @@ class Register
     /**
      * TODO - transactions
      * @return bool
+     * @throws Exception
      */
     public function createAccount()
     {
@@ -63,7 +69,7 @@ class Register
                 $account_data->email
             ];
 
-            $db                 = new \Db\Query($sql, $bind);
+            $db                 = new Query($sql, $bind);
             $it_ran             = $db->run();
             $create_password    = $this->createAccountPassword($account_data->username);
 
@@ -82,12 +88,12 @@ class Register
         $account_data = $this->post;
 
         // validate first name
-        if (empty($account_data->firstname) || !\User\Validation::checkValidName($account_data->firstname)) {
+        if (empty($account_data->firstname) || !Validation::checkValidName($account_data->firstname)) {
             $this->errors[] = 'First Name is invalid or missing';
         }
 
         // validate last name
-        if (empty($account_data->lastname) || !\User\Validation::checkValidName($account_data->lastname)) {
+        if (empty($account_data->lastname) || !Validation::checkValidName($account_data->lastname)) {
             $this->errors[] = 'Last Name is invalid or missing';
         }
 
@@ -95,12 +101,12 @@ class Register
         $this->validateEmail();
 
         // validate username
-        if (empty($account_data->username) || \User\Validation::checkValidUsername($account_data->username) == false) {
+        if (empty($account_data->username) || Validation::checkValidUsername($account_data->username) == false) {
             $this->errors[] = 'This username is not allowed. It must be at least 3 characters, contain only numbers and letters, and may not contain profanity.';
         }
 
         // check against existing username
-        if (\User\Validation::checkIfUsernameExists($account_data->username)) {
+        if (Validation::checkIfUsernameExists($account_data->username)) {
             $this->errors[] = 'This username already exists!';
         }
 
@@ -110,7 +116,7 @@ class Register
         }
 
         // check valid password
-        if (\User\Validation::checkValidPassword($account_data->password) == false) {
+        if (Validation::checkValidPassword($account_data->password) == false) {
             $this->errors[] = 'Your password must contain at least 7 characters, at least one uppercase letter, at least one lowercase letter, and at least one number';
         }
 
@@ -133,7 +139,7 @@ class Register
         }
 
         // validate against existing email
-        if (\User\Validation::checkIfEmailExists($account_data->email)) {
+        if (Validation::checkIfEmailExists($account_data->email)) {
             $this->errors[] = 'This email address has already been used for another account.';
         }
 
@@ -145,7 +151,7 @@ class Register
      * TODO - transaction as part of createAccount()
      * @param $account_id
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function createAccountPassword($account_id, $password = false)
     {
@@ -156,11 +162,11 @@ class Register
 
         //INSERT INTO account_password
         $sql    = "INSERT INTO account_password (account_username, password) VALUES (?, ?);";
-        $db     = new \Db\Query(
+        $db     = new Query(
             $sql,
             [
                 $account_id,
-                \User\Password::hashPassword($password)
+                Password::hashPassword($password)
             ]
         );
 
@@ -178,7 +184,7 @@ class Register
      */
     private function redirectRegistrationSubmission()
     {
-        $_SESSION['registration_redirect'] = \User\Roles::rolesExist() ? \Settings::value('full_web_url') : '/admin/roles/';
+        $_SESSION['registration_redirect'] = Roles::rolesExist() ? Settings::value('full_web_url') : '/admin/roles/';
 
         return true;
     }

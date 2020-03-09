@@ -10,7 +10,7 @@
  *
  **/
 
-$robots_txt_value = \Settings::value('robots_txt_value');
+$robots_txt_value = Settings::value('robots_txt_value');
 
 header('Content-type: text/plain');
 

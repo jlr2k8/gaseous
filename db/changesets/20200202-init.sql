@@ -322,7 +322,7 @@ CREATE TABLE `settings_properties` (
   `modified_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `archived_datetime` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `config_key__config_property` (`settings_key`,`property`,`archived_datetime`)
+  UNIQUE KEY `settings_key__settings_property` (`settings_key`,`property`,`archived_datetime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `settings_properties` (`id`, `settings_key`, `property`, `archived`, `created_datetime`, `modified_datetime`, `archived_datetime`) VALUES
@@ -365,7 +365,7 @@ CREATE TABLE `settings_roles` (
   `modified_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `archived_datetime` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `config_key_role_name_archived_datetime` (`settings_key`,`role_name`,`archived_datetime`)
+  UNIQUE KEY `settings_key_role_name_archived_datetime` (`settings_key`,`role_name`,`archived_datetime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

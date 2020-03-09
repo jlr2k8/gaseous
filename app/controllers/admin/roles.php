@@ -17,7 +17,7 @@ use User\Roles;
 
 // check setting/role privileges
 
-if (!\Settings::value('add_roles') && !\Settings::value('edit_roles') && !\Settings::value('archive_roles')) {
+if (!Settings::value('add_roles') && !Settings::value('edit_roles') && !Settings::value('archive_roles')) {
     HTTP::error(401);
 }
 
@@ -42,7 +42,7 @@ if (!empty($_POST)) {
     }
 
     if ($submit_role) {
-        header('Location: ' . \Settings::value('full_web_url') . '/admin/roles/');
+        header('Location: ' . Settings::value('full_web_url') . '/admin/roles/');
     } else {
         $error = $roles->getErrors();
     }
@@ -57,10 +57,10 @@ if (!empty($_SESSION['admin_role_data_submission'])) {
 
 $templator->assign('roles', $all_roles);
 $templator->assign('error', $error);
-$templator->assign('full_web_url',\Settings::value('full_web_url'));
-$templator->assign('add_roles', \Settings::value('add_roles'));
-$templator->assign('edit_roles', \Settings::value('edit_roles'));
-$templator->assign('archive_roles', \Settings::value('archive_roles'));
+$templator->assign('full_web_url', Settings::value('full_web_url'));
+$templator->assign('add_roles', Settings::value('add_roles'));
+$templator->assign('edit_roles', Settings::value('edit_roles'));
+$templator->assign('archive_roles', Settings::value('archive_roles'));
 $templator->assign('role_name', $role_name_value);
 $templator->assign('description', $description_value);
 

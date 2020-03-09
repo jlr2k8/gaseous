@@ -12,6 +12,7 @@
 
 use Db\PdoMySql;
 use Db\Query;
+use User\Roles;
 use Utilities\Reset;
 
 class Settings
@@ -45,10 +46,15 @@ class Settings
      */
     public static function value($key, $value = false)
     {
-        $setting_from_db     = self::getFromDB($key, $value);
-        $setting_from_class  = self::getFromSelfProperty($key, $value);
+        // get setting from database
+        $setting    = self::getFromDB($key, $value);
 
-        return !empty($setting_from_db) ? $setting_from_db : $setting_from_class;
+        // if setting not stored there, check fields in this class
+        if (empty($setting)) {
+            $setting    = self::getFromSelfProperty($key, $value);
+        }
+
+        return $setting;
     }
 
 
@@ -133,27 +139,29 @@ class Settings
      */
     public static function checkCoreTables()
     {
-        $core_tables        = "'" . implode("','", Reset::$core_tables) . "'";
-        $count_core_tables  = (int)count(Reset::$core_tables);
+        $core_tables_clause  = "'" . implode("','", Reset::$core_tables) . "'";
+        asort(Reset::$core_tables, SORT_ASC);
 
         $sql = "
-            SELECT COUNT(*)
+            SELECT
+                table_name
             FROM
                 information_schema.TABLES
             WHERE
                 table_schema = ?
             AND
-                table_name IN($core_tables);
+                table_name IN($core_tables_clause)
+            ORDER BY table_name;
         ";
 
         $bind = [
-            \Settings::environmentIni('mysql_database'),
+            Settings::environmentIni('mysql_database'),
         ];
 
-        $db     = new Query($sql, $bind);
-        $result = (int)$db->fetch();
+        $db         = new Query($sql, $bind);
+        $results    = $db->fetchAll();
 
-        return ($result == $count_core_tables);
+        return ($results == Reset::$core_tables);
     }
 
 
@@ -288,7 +296,7 @@ class Settings
     /**
      * @param array $settings_data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(array $settings_data)
     {
@@ -305,7 +313,7 @@ class Settings
             if (self::archiveSettingsRoles($transaction, $settings_data['key']) && !empty($settings_data['settings_roles']))
                 self::insertSettingsRoles($transaction, $settings_data['key'], $settings_data['settings_roles']);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $transaction->rollBack();
 
             error_log($e->getMessage() . ' ' . $e->getTraceAsString());
@@ -319,19 +327,19 @@ class Settings
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function editSettingsCheck()
     {
-        if (!\Settings::value('edit_settings'))
-            throw new \Exception('Not allowed to edit settings');
+        if (!Settings::value('edit_settings'))
+            throw new Exception('Not allowed to edit settings');
     }
 
     /**
      * @param PdoMySql $transaction
      * @param array $settings_data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function updateSettingsValuesTable(PdoMySql $transaction, array $settings_data)
     {
@@ -359,7 +367,7 @@ class Settings
      * @param PdoMySql $transaction
      * @param string $key
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function archiveSettingsRoles(PdoMySql $transaction, $key)
     {
@@ -387,13 +395,13 @@ class Settings
      * @param string $key
      * @param array $settings_roles
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function insertSettingsRoles(PdoMySql $transaction, $key, $settings_roles = array())
     {
         self::editSettingsCheck();
 
-        $roles      = new \User\Roles();
+        $roles      = new Roles();
         $all_roles  = $roles->getAll();
 
         foreach ($all_roles as $role) {
@@ -436,17 +444,17 @@ class Settings
 
             if (empty($this_section)) {
                 if (PHP_SAPI == 'cli') {
-                    throw new \ErrorException(
+                    throw new ErrorException(
                         'Since you are running this script via CLI, you\'ll need to pass in the environment name as the first argument'
                     );
                 } else {
-                    throw new \ErrorException(
+                    throw new ErrorException(
                         'Empty or missing ' . $_SERVER['ENVIRONMENT'] . ' section in ' . $environment_ini_file
                     );
                 }
             }
         } else {
-            throw new \ErrorException(
+            throw new ErrorException(
                 'Missing '
                 . $environment_ini_file
                 . '. Please create that file and an array section that matches your Apache ENVIRONMENT directive.'

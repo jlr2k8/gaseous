@@ -12,15 +12,19 @@
 
 namespace Content\Pages;
 
+use Smarty;
+use Smarty_Security;
+use SmartyException;
+
 require_once $_SERVER['WEB_ROOT'] . '/libraries/Vendor/Smarty/Smarty.class.php';
 
-class Templator extends \Smarty
+class Templator extends Smarty
 {
     public $caching, $cache_dir, $security;
 
     public function __construct()
     {
-        $this->security = new \Smarty_Security($this);
+        $this->security = new Smarty_Security($this);
 
         parent::__construct();
 
@@ -46,7 +50,7 @@ class Templator extends \Smarty
      * @param array $find_replace
      * @param bool $is_cms_editor
      * @return mixed
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     public static function page($find_replace = array(), $is_cms_editor = false)
     {

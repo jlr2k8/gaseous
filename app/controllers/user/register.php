@@ -17,7 +17,7 @@ use User\Register;
 
 $templator          = new Templator();
 $access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['access_code'], FILTER_SANITIZE_STRING) : false;
-$has_valid_access   = ($access_code && $access_code == \Settings::value('registration_access_code'));
+$has_valid_access   = ($access_code && $access_code == Settings::value('registration_access_code'));
 
 $page_find_replace = [
     'page_title'    => 'User Registration',
@@ -31,7 +31,7 @@ if (!empty($_POST) && $has_valid_access) {
     $create_account = $registration->createAccount();
 
     if ($create_account) {
-        $registration_redir = \Settings::value('full_web_url');
+        $registration_redir = Settings::value('full_web_url');
 
         if (!empty($_SESSION['registration_redirect'])) {
 

@@ -24,7 +24,7 @@ use \Wysiwyg\CkEditor;
 use \Wysiwyg\Codemirror;
 
 // check setting/role privileges
-if (!\Settings::value('add_pages') && !\Settings::value('edit_pages') && !\Settings::value('archive_pages')) {
+if (!Settings::value('add_pages') && !Settings::value('edit_pages') && !Settings::value('archive_pages')) {
     HTTP::error(401);
 }
 
@@ -40,7 +40,7 @@ $codemirror         = new Codemirror();
 $all_active_pages   = $pages->allPages();
 $all_inactive_pages = $pages->allPages('inactive');
 $my_account         = $account->getAccountFromSessionValidation();
-$full_web_url       = \Settings::value('full_web_url');
+$full_web_url       = Settings::value('full_web_url');
 $all_uris           = Get::allUris();
 $statuses           = Get::statuses();
 $page_uri           = !empty($_GET['page_uri_urlencoded']) ? (string)filter_var($_GET['page_uri_urlencoded'], FILTER_SANITIZE_STRING) : false;
@@ -84,9 +84,9 @@ $templator->assign('statuses', $statuses);
 $templator->assign('error', $error);
 $templator->assign('active_pages', $all_active_pages);
 $templator->assign('inactive_pages', $all_inactive_pages);
-$templator->assign('add_pages', \Settings::value('add_pages'));
-$templator->assign('edit_pages', \Settings::value('edit_pages'));
-$templator->assign('archive_pages', \Settings::value('archive_pages'));
+$templator->assign('add_pages', Settings::value('add_pages'));
+$templator->assign('edit_pages', Settings::value('edit_pages'));
+$templator->assign('archive_pages', Settings::value('archive_pages'));
 $templator->assign('page', $this_page);
 $templator->assign('account', $my_account);
 $templator->assign('full_web_url', $full_web_url);

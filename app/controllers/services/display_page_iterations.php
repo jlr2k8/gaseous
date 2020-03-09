@@ -17,7 +17,7 @@ use Content\Pages\HTTP;
 use Content\Pages\Templator;
 use Content\Pages\Utilities;
 
-if (!\Settings::value('edit_pages')) {
+if (!Settings::value('edit_pages')) {
     HTTP::error(401);
 }
 
@@ -34,7 +34,7 @@ if ($page_master_uid) {
 
     $templator->assign('iterations', $iterations);
     $templator->assign('page', $page);
-    $templator->assign('full_web_url', \Settings::value('full_web_url'));
+    $templator->assign('full_web_url', Settings::value('full_web_url'));
 
     echo $templator->fetch('admin/page_iterations.tpl');
 } else {

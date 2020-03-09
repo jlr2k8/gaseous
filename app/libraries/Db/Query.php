@@ -12,6 +12,10 @@
 
 namespace Db;
 
+use PDO;
+use PDOException;
+use PDOStatement;
+
 class Query extends PdoMySql
 {
     public $query, $con;
@@ -21,7 +25,7 @@ class Query extends PdoMySql
     /**
      * @param $sql
      * @param array $bind
-     * @throws \PDOException
+     * @throws PDOException
      */
     public function __construct($sql, $bind = array())
     {
@@ -35,7 +39,7 @@ class Query extends PdoMySql
 
 
     /**
-     * @return \PDOStatement
+     * @return PDOStatement
      */
     private function runQuery()
     {
@@ -44,7 +48,7 @@ class Query extends PdoMySql
 
             $query->execute($this->bind_array);
 
-        } catch(\PDOException $e) {
+        } catch(PDOException $e) {
             self::handleError($e);
         }
 
@@ -54,41 +58,41 @@ class Query extends PdoMySql
 
     /**
      * @return array
-     * @throws \PDOException
+     * @throws PDOException
      */
     public function fetchAssoc()
     {
-        return $this->query->fetch(\PDO::FETCH_ASSOC);
+        return $this->query->fetch(PDO::FETCH_ASSOC);
     }
 
 
     /**
      * @return array
-     * @throws \PDOException
+     * @throws PDOException
      */
     public function fetchAllAssoc()
     {
-        return $this->query->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->query->fetchAll(PDO::FETCH_ASSOC);
     }
 
 
     /**
      * @return string
-     * @throws \PDOException
+     * @throws PDOException
      */
     public function fetch()
     {
-        return $this->query->fetch(\PDO::FETCH_COLUMN);
+        return $this->query->fetch(PDO::FETCH_COLUMN);
     }
 
 
     /**
      * @return array
-     * @throws \PDOException
+     * @throws PDOException
      */
     public function fetchAll()
     {
-        return $this->query->fetchAll(\PDO::FETCH_COLUMN);
+        return $this->query->fetchAll(PDO::FETCH_COLUMN);
     }
 
 
@@ -111,11 +115,11 @@ class Query extends PdoMySql
 
 
     /**
-     * @param \PDOException $e
+     * @param PDOException $e
      */
-    private static function handleError(\PDOException $e)
+    private static function handleError(PDOException $e)
     {
-        throw new \PDOException($e->getMessage() . ' ' . $e->getTraceAsString());
+        throw new PDOException($e->getMessage() . ' ' . $e->getTraceAsString());
     }
 
 

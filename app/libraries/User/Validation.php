@@ -12,6 +12,8 @@
 
 namespace User;
 
+use Db\Query;
+
 class Validation
 {
     public function __construct()
@@ -27,7 +29,7 @@ class Validation
     {
         $sql    = "SELECT COUNT(username) AS count_username FROM account WHERE username= ?";
 
-        $db     = new \Db\Query($sql, [$username]);
+        $db     = new Query($sql, [$username]);
         $result = $db->fetchAssoc();
 
         return ($result['count_username'] > 0);
@@ -43,7 +45,7 @@ class Validation
     {
         $sql        = "SELECT COUNT(email) AS count_email FROM account WHERE email = ? ";
         $bind       = [$email];
-        $db         = new \Db\Query($sql, $bind);
+        $db         = new Query($sql, $bind);
         $result     = $db->fetchAssoc();
 
         return ($result['count_email'] > 0);

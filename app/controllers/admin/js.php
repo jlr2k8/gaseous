@@ -19,7 +19,7 @@ use Content\Pages\Templator;
 use Wysiwyg\Codemirror;
 
 // check setting/role privileges
-if (!\Settings::value('manage_js')) {
+if (!Settings::value('manage_js')) {
     HTTP::error(401);
 }
 
@@ -35,7 +35,7 @@ if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
 
     $headers->last_modified = strtotime($latest_js['modified_datetime']);
 
-    header('Location: ' . \Settings::value('full_web_url') . '/admin/js/');
+    header('Location: ' . Settings::value('full_web_url') . '/admin/js/');
 
     exit;
 }
@@ -77,7 +77,7 @@ if (!empty($_POST)) {
         unset($_SESSION['js_preview'], $_SESSION['editor_js']);
     }
 
-    header('Location: ' . \Settings::value('full_web_url') . '/admin/js/');
+    header('Location: ' . Settings::value('full_web_url') . '/admin/js/');
     exit;
 }
 
@@ -93,7 +93,7 @@ $templator->assign('codemirror', $codemirror);
 $templator->assign('editor_js_content', $_SESSION['editor_js']['js'] ?? null);
 $templator->assign('editor_js_uid', $_SESSION['editor_js']['uid'] ?? null);
 $templator->assign('preview_mode', !empty($_SESSION['js_preview']));
-$templator->assign('full_web_url', \Settings::value('full_web_url'));
+$templator->assign('full_web_url', Settings::value('full_web_url'));
 
 $title = 'Custom Site JS';
 

@@ -12,6 +12,14 @@
 
 namespace User;
 
+use Content\Pages\Get;
+use Content\Pages\Submit;
+use Db\PdoMySql;
+use Db\Query;
+use Exception;
+use Seo\Url;
+use Settings;
+
 class Roles
 {
     protected $errors;
@@ -32,7 +40,7 @@ class Roles
             WHERE archived = '0';
         ";
 
-        $db     = new \Db\Query($sql);
+        $db     = new Query($sql);
         $count  = (int)$db->fetch();
 
         return ($count > (int)0);
@@ -45,7 +53,7 @@ class Roles
     public function getAll()
     {
         $sql    = "SELECT * FROM role WHERE archived = '0';";
-        $db     = new \Db\Query($sql);
+        $db     = new Query($sql);
 
         return $db->fetchAllAssoc();
     }
@@ -58,7 +66,7 @@ class Roles
     public function get($role_name)
     {
         $sql    = "SELECT * FROM role WHERE role_name = ? AND archived = '0'";
-        $db     = new \Db\Query($sql, [$role_name]);
+        $db     = new Query($sql, [$role_name]);
 
         return $db->fetchAssoc();
     }
@@ -67,7 +75,7 @@ class Roles
     /**
      * @param array $role_data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function insert(array $role_data)
     {
@@ -91,27 +99,16 @@ class Roles
             return false;
         }
 
-        $role_data['role_name'] = \Seo\Url::convert($role_data['role_name']);
-        $sql                    = "
-            INSERT INTO role (role_name, description)
-            VALUES (?,?);
-        ";
+        $role_data['role_name'] = Url::convert($role_data['role_name']);
 
-        $bind = [
-            $role_data['role_name'],
-            $role_data['description'],
-        ];
-
-        $db = new \Db\Query($sql, $bind);
-
-        return $db->run();
+        return self::insertRole($role_data);
     }
 
 
     /**
      * @param array $role_data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(array $role_data)
     {
@@ -136,20 +133,42 @@ class Roles
             return false;
         }
 
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
         try {
+            $role_data['role_name'] = Url::convert($role_data['role_name']);
 
-            $role_data['role_name'] = \Seo\Url::convert($role_data['role_name']);
+            $setting_roles  = self::getSettingRoles($role_data['old_role_name']);
+            $account_roles  = self::getAccountRoles($role_data['old_role_name']);
+            $page_roles     = self::getPageRoles($role_data['old_role_name']);
 
-            self::updateRoleTable($transaction, $role_data);
-            self::updateAccountRoles($transaction, $role_data);
-            self::updatePageRoles($transaction, $role_data);
-            self::updateConfigRoles($transaction, $role_data);
+            self::archiveRole($role_data['old_role_name'], $transaction);
+            self::archiveSettingRole($role_data['old_role_name'], $transaction);
+            self::archiveAccountRole($role_data['old_role_name'], $transaction);
+            self::archivePageRole($role_data['old_role_name'], $transaction);
 
-        } catch (\Exception $e) {
+            self::insertRole($role_data, $transaction);
+
+            foreach ($setting_roles as $setting_role) {
+                $setting_role['role_name'] = $role_data['role_name'];
+
+                self::insertSettingRole($setting_role, $transaction);
+            }
+
+            foreach ($account_roles as $account_role) {
+                $account_role['role_name'] = $role_data['role_name'];
+
+                self::insertAccountRole($account_role, $transaction);
+            }
+
+            foreach ($page_roles as $page_role) {
+                $page_role['role_name'] = $role_data['role_name'];
+
+                self::insertPageRole($page_role, $transaction);
+            }
+        } catch (Exception $e) {
 
             $transaction->rollBack();
 
@@ -165,123 +184,14 @@ class Roles
 
 
     /**
-     * @param \Db\PdoMySql $transaction
      * @param array $role_data
      * @return bool
-     * @throws \Exception
-     */
-    private function updateRoleTable(\Db\PdoMySql $transaction, array $role_data)
-    {
-        self::editRolesCheck();
-        
-        $sql = "
-            UPDATE role
-            SET
-              role_name = ?,
-              description = ?
-            WHERE role_name = ?
-        ";
-
-        $bind = [
-            $role_data['role_name'],
-            $role_data['description'],
-            $role_data['old_role_name'],
-        ];
-
-        return $transaction
-            ->prepare($sql)
-            ->execute($bind);
-    }
-
-
-    /**
-     * @param \Db\PdoMySql $transaction
-     * @param array $role_data
-     * @return bool
-     * @throws \Exception
-     */
-    private function updateAccountRoles(\Db\PdoMySql $transaction, array $role_data)
-    {
-        \User\Account::editUsersCheck();
-
-        $sql = "
-            UPDATE account_roles
-            SET role_name = ?
-            WHERE role_name = ?
-            AND archived = '0';
-        ";
-
-        $bind = [
-            $role_data['role_name'],
-            $role_data['old_role_name'],
-        ];
-
-        return $transaction
-            ->prepare($sql)
-            ->execute($bind);
-    }
-
-
-    /**
-     * @param \Db\PdoMySql $transaction
-     * @param array $role_data
-     * @return bool
-     */
-    private function updatePageRoles(\Db\PdoMySql $transaction, array $role_data)
-    {
-        $sql = "
-            UPDATE page_roles
-            SET role_name = ?
-            WHERE role_name = ?
-            AND archived = '0';
-        ";
-
-        $bind = [
-            $role_data['role_name'],
-            $role_data['old_role_name'],
-        ];
-
-        return $transaction
-            ->prepare($sql)
-            ->execute($bind);
-    }
-
-
-    /**
-     * @param \Db\PdoMySql $transaction
-     * @param array $role_data
-     * @return bool
-     */
-    private function updateConfigRoles(\Db\PdoMySql $transaction, array $role_data)
-    {
-        $sql = "
-            UPDATE settings_roles
-            SET role_name = ?
-            WHERE role_name = ?
-            AND archived = '0';
-        ";
-
-        $bind = [
-            $role_data['role_name'],
-            $role_data['old_role_name'],
-        ];
-
-        return $transaction
-            ->prepare($sql)
-            ->execute($bind);
-    }
-
-
-    /**
-     * @param array $role_data
-     * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function archive(array $role_data)
     {
         self::archiveRolesCheck();
 
-        // just need the role name for this - maybe not pass in an array?
         $required_fields = [
             'role_name',
         ];
@@ -292,12 +202,39 @@ class Roles
         }
 
         if (!empty($errors)) {
-
             $this->errors[]                         = implode(',', $errors);
             $_SESSION['admin_role_data_submission'] = $role_data;
 
             return false;
         }
+
+        $transaction    = new PdoMySql();
+
+        $transaction->beginTransaction();
+
+        try {
+            self::archiveRole($role_data['role_name'], $transaction);
+            self::archiveSettingRole($role_data['role_name'], $transaction);
+            self::archiveAccountRole($role_data['role_name'], $transaction);
+            self::archivePageRole($role_data['role_name'], $transaction);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+
+            throw $e;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * @param $role_name
+     * @param PdoMySql|null $transaction
+     * @return bool
+     */
+    private static function archiveRole($role_name, PdoMySql $transaction = null)
+    {
+        $transaction = $transaction ?? new PdoMySql();
 
         $sql = "
             UPDATE role
@@ -309,12 +246,261 @@ class Roles
         ";
 
         $bind = [
-            $role_data['role_name'],
+            $role_name,
         ];
 
-        $db = new \Db\Query($sql, $bind);
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
 
-        return $db->run();
+
+    /**
+     * @param $role_name
+     * @param PdoMySql|null $transaction
+     * @return bool
+     */
+    private static function archiveSettingRole($role_name, PdoMySql $transaction = null)
+    {
+        $transaction = $transaction ?? new PdoMySql();
+
+        $sql = "
+            UPDATE settings_roles
+            SET
+              archived = '1',
+              archived_datetime = NOW()
+            WHERE role_name = ?
+            AND archived = '0'
+        ";
+
+        $bind = [
+            $role_name,
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param $role_name
+     * @param PdoMySql|null $transaction
+     * @return bool
+     */
+    private static function archiveAccountRole($role_name, PdoMySql $transaction = null)
+    {
+        $transaction = $transaction ?? new PdoMySql();
+
+        $sql = "
+            UPDATE account_roles
+            SET
+              archived = '1',
+              archived_datetime = NOW()
+            WHERE role_name = ?
+            AND archived = '0'
+        ";
+
+        $bind = [
+            $role_name,
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param $role_name
+     * @param PdoMySql|null $transaction
+     * @return bool
+     */
+    private static function archivePageRole($role_name, PdoMySql $transaction = null)
+    {
+        $transaction = $transaction ?? new PdoMySql();
+
+        $sql = "
+            UPDATE page_roles
+            SET
+              archived = '1',
+              archived_datetime = NOW()
+            WHERE role_name = ?
+            AND archived = '0'
+        ";
+
+        $bind = [
+            $role_name,
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param $role_name
+     * @return array
+     */
+    private static function getSettingRoles($role_name)
+    {
+        $sql = "
+            SELECT settings_key, role_name
+            FROM settings_roles
+            WHERE role_name = ?
+            AND archived = '0';
+        ";
+
+        $bind = [
+            $role_name,
+        ];
+
+        $db = new Query($sql, $bind);
+
+        return $db->fetchAllAssoc();
+    }
+
+
+    /**
+     * @param $role_name
+     * @return array
+     */
+    private static function getAccountRoles($role_name)
+    {
+        $sql = "
+            SELECT account_username, role_name
+            FROM account_roles
+            WHERE role_name = ?
+            AND archived = '0';
+        ";
+
+        $bind = [
+            $role_name,
+        ];
+
+        $db = new Query($sql, $bind);
+
+        return $db->fetchAllAssoc();
+    }
+
+
+    /**
+     * @param $role_name
+     * @return array
+     */
+    private static function getPageRoles($role_name)
+    {
+        $sql = "
+            SELECT page_iteration_uid, role_name
+            FROM page_roles
+            WHERE role_name = ?
+            AND archived = '0';
+        ";
+
+        $bind = [
+            $role_name,
+        ];
+
+        $db = new Query($sql, $bind);
+
+        return $db->fetchAllAssoc();
+    }
+
+
+    /**
+     * @param array $setting_role_data
+     * @param PdoMySql|null $transaction
+     * @return bool|void
+     */
+    private static function insertSettingRole(array $setting_role_data, PdoMySql $transaction = null)
+    {
+        $transaction    = $transaction ?? new PdoMySql();
+        $sql            = "
+            INSERT INTO settings_roles (settings_key, role_name)
+            VALUES (?, ?);
+        ";
+
+        $bind = [
+            $setting_role_data['settings_key'],
+            $setting_role_data['role_name'],
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param array $setting_role_data
+     * @param PdoMySql|null $transaction
+     * @return bool
+     */
+    private static function insertAccountRole(array $setting_role_data, PdoMySql $transaction = null)
+    {
+        $transaction    = $transaction ?? new PdoMySql();
+        $sql            = "
+            INSERT INTO account_roles (account_username, role_name)
+            VALUES (?, ?);
+        ";
+
+        $bind = [
+            $setting_role_data['account_username'],
+            $setting_role_data['role_name'],
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param array $setting_role_data
+     * @param PdoMySql|null $transaction
+     * @return bool
+     */
+    private static function insertPageRole(array $setting_role_data, PdoMySql $transaction = null)
+    {
+        $transaction    = $transaction ?? new PdoMySql();
+        $sql            = "
+            INSERT INTO page_roles (page_iteration_uid, role_name)
+            VALUES (?, ?);
+        ";
+
+        $bind = [
+            $setting_role_data['page_iteration_uid'],
+            $setting_role_data['role_name'],
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param array $role_data
+     * @param PdoMySql|null $transaction
+     * @return bool
+     */
+    private static function insertRole(array $role_data, PdoMySql $transaction = null)
+    {
+        $transaction    = $transaction ?? new PdoMySql();
+        $sql            = "
+            INSERT INTO role (role_name, description)
+            VALUES (?,?);
+        ";
+
+        $bind = [
+            $role_data['role_name'],
+            $role_data['description'],
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
     }
 
 
@@ -328,31 +514,31 @@ class Roles
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function editRolesCheck()
     {
-        if (!\Settings::value('edit_roles'))
-            throw new \Exception('Not allowed to edit roles');
+        if (!Settings::value('edit_roles'))
+            throw new Exception('Not allowed to edit roles');
     }
 
     
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function archiveRolesCheck()
     {
-        if (!\Settings::value('archive_roles'))
-            throw new \Exception('Not allowed to archive roles');
+        if (!Settings::value('archive_roles'))
+            throw new Exception('Not allowed to archive roles');
     }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function addRolesCheck()
     {
-        if (!\Settings::value('add_roles'))
-            throw new \Exception('Not allowed to archive roles');
+        if (!Settings::value('add_roles'))
+            throw new Exception('Not allowed to archive roles');
     }
 }

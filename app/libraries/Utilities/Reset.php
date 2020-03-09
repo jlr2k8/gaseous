@@ -12,6 +12,10 @@
 
 namespace Utilities;
 
+use Db\PdoMySql;
+use Exception;
+use Settings;
+
 class Reset
 {
     static $settings = [
@@ -356,50 +360,64 @@ class Reset
     static $properties = [
         'boolean'       => 'True or false',
         'ckeditor'      => 'Uses CK Editor to manage value',
-        'codemirror'    =>'Uses CodeMirror to manage value',
+        'codemirror'    => 'Uses CodeMirror to manage value',
     ];
 
 
     static $settings_properties = [
-        'add_pages'                 => 'boolean',
-        'add_redirects'             => 'boolean',
-        'add_roles'                 => 'boolean',
-        'add_routes'                => 'boolean',
-        'archive_pages'             => 'boolean',
-        'archive_redirects'         => 'boolean',
-        'archive_roles'             => 'boolean',
-        'archive_routes'            => 'boolean',
-        'archive_users'             => 'boolean',
-        'edit_pages'                => 'boolean',
-        'edit_redirects'            => 'boolean',
-        'edit_roles'                => 'boolean',
-        'edit_routes'               => 'boolean',
-        'edit_settings'             => 'boolean',
-        'edit_users'                => 'boolean',
-        'enable_ssl'                => 'boolean',
-        'enable_template_caching'   => 'boolean',
-        'footer_template'           => 'codemirror',
-        'http_error_template'       => 'codemirror',
-        'main_template'             => 'codemirror',
-        'maintenance_mode'          => 'boolean',
-        'manage_css'                => 'boolean',
-        'manage_js'                => 'boolean',
-        'nav_template'              => 'codemirror',
-        'pdo_debug'                 => 'boolean',
-        'require_recaptcha'         => 'boolean',
-        'robots_txt_value'          => 'codemirror',
-        'show_debug'                => 'boolean'
+        'add_pages'                 => ['boolean'],
+        'add_redirects'             => ['boolean'],
+        'add_roles'                 => ['boolean'],
+        'add_routes'                => ['boolean'],
+        'archive_pages'             => ['boolean'],
+        'archive_redirects'         => ['boolean'],
+        'archive_roles'             => ['boolean'],
+        'archive_routes'            => ['boolean'],
+        'archive_users'             => ['boolean'],
+        'edit_pages'                => ['boolean'],
+        'edit_redirects'            => ['boolean'],
+        'edit_roles'                => ['boolean'],
+        'edit_routes'               => ['boolean'],
+        'edit_settings'             => ['boolean'],
+        'edit_users'                => ['boolean'],
+        'enable_ssl'                => ['boolean'],
+        'enable_template_caching'   => ['boolean'],
+        'footer_template'           => ['codemirror'],
+        'http_error_template'       => ['codemirror'],
+        'main_template'             => ['codemirror'],
+        'maintenance_mode'          => ['boolean'],
+        'manage_css'                => ['boolean'],
+        'manage_js'                 => ['boolean'],
+        'nav_template'              => ['codemirror'],
+        'pdo_debug'                 => ['boolean'],
+        'require_recaptcha'         => ['boolean'],
+        'robots_txt_value'          => ['codemirror'],
+        'show_debug'                => ['boolean'],
     ];
 
 
     static $core_tables = [
+        'account',
+        'account_password',
+        'account_roles',
+        'category',
+        'css_iteration',
         'current_page_iteration',
+        'js_iteration',
+        'login_session',
         'page',
         'page_iteration',
+        'page_iteration_commits',
+        'page_roles',
         'property',
+        'role',
         'settings',
         'settings_properties',
+        'settings_roles',
+        'settings_values',
+        'token_email',
         'uri',
+        'uri_redirects',
         'uri_routes',
     ];
 
@@ -427,38 +445,209 @@ class Reset
         '/([\\w\\/\\-]+(\\.html)?)?'            => 'controllers/cms/index.php?page=$1',
     ];
 
+    private $transaction = null;
 
     public function __construct()
     {
+        $user_can_update_system  = $this->systemUpdateCheck();
+
+        if ($user_can_update_system) {
+            $this->transaction = new PdoMySql();
+
+            $this->transaction->beginTransaction();
+        }
     }
 
 
-    public function pages()
+    public function __destruct()
     {
+        if (!empty($this->transaction)) {
+            try {
+                $this->transaction->commit();
+            } catch (Exception $e) {
+                $this->transaction->rollBack();
 
+                throw $e;
+            }
+        }
     }
 
 
-    public function routes()
+    /**
+     * @throws Exception
+     */
+    public function systemUpdateCheck()
     {
-
+        return (Settings::value('system_updates') === true);
     }
 
 
-    public function settings()
+    public function restoreSetting($key)
     {
+        if (array_key_exists($key, self::$settings) && !empty($this->transaction)) {
+            self::archiveSetting($this->transaction, $key);
+            self::archiveSettingValue($this->transaction, $key);
+            self::archiveSettingProperties($this->transaction, $key);
+            self::archiveSettingRoles($this->transaction, $key);
 
+            self::insertSetting($this->transaction, $key);
+            self::insertSettingValue($this->transaction, $key);
+            self::insertSettingProperties($this->transaction, $key);
+        }
+
+        return true;
     }
 
 
-    public function properties()
+    private static function archiveSetting(PdoMySql $transaction, $key)
     {
+        $sql = "
+            UPDATE settings
+            SET archived = '1', archived_datetime = NOW()
+            WHERE `key` = ?
+            AND archived = '0';
+        ";
 
+        $bind = [
+            $key,
+        ];
+
+        $transaction
+            ->prepare($sql)
+            ->execute($bind);
+
+        return true;
     }
 
 
-    public function settingsProperties()
+    private static function archiveSettingValue(PdoMySql $transaction, $key)
     {
+        $sql = "
+            UPDATE settings_values
+            SET archived = '1', archived_datetime = NOW()
+            WHERE settings_key = ?
+            AND archived = '0';
+        ";
 
+        $bind = [
+            $key,
+        ];
+
+        $transaction
+            ->prepare($sql)
+            ->execute($bind);
+
+        return true;
+    }
+
+
+    private static function archiveSettingProperties(PdoMySql $transaction, $key)
+    {
+        $sql = "
+            UPDATE settings_properties
+            SET archived = '1', archived_datetime = NOW()
+            WHERE settings_key = ?
+            AND archived = '0';
+        ";
+
+        $bind = [
+            $key,
+        ];
+
+        $transaction
+            ->prepare($sql)
+            ->execute($bind);
+
+        return true;
+    }
+
+
+    private static function archiveSettingRoles(PdoMySql $transaction, $key)
+    {
+        $sql = "
+            UPDATE settings_roles
+            SET archived = '1', archived_datetime = NOW()
+            WHERE key = ?
+            AND archived = '0';
+        ";
+
+        $bind = [
+            $key,
+        ];
+
+        $transaction
+            ->prepare($sql)
+            ->execute($bind);
+
+        return true;
+    }
+
+
+    private static function insertSetting(PdoMySql $transaction, $key)
+    {
+        $setting    = self::$settings[$key];
+        $sql        = "
+            INSERT INTO settings
+                (key, display, category_key, role_based, description)
+            VALUES
+                (?, ?, ?, ?, ?);
+        ";
+
+        unset($setting['value']);
+
+        $transaction
+            ->prepare($sql)
+            ->execute(array_values($setting));
+
+        return true;
+    }
+
+
+    private static function insertSettingValue(PdoMySql $transaction, $key)
+    {
+        $setting    = self::$settings[$key];
+        $sql        = "
+            INSERT INTO settings_values
+                (settings_key, value)
+            VALUES
+                (?, ?);
+        ";
+
+        $bind = [
+            $key,
+            $setting['value'],
+        ];
+
+        $transaction
+            ->prepare($sql)
+            ->execute($bind);
+
+        return true;
+    }
+
+
+    private static function insertSettingProperties(PdoMySql $transaction, $key)
+    {
+        $setting_properties    = self::$settings_properties[$key];
+
+        foreach ($setting_properties as $property) {
+            $sql        = "
+                INSERT INTO settings_values
+                    (settings_key, property)
+                VALUES
+                    (?, ?);
+            ";
+
+            $bind = [
+                $key,
+                $property,
+            ];
+
+            $transaction
+                ->prepare($sql)
+                ->execute($bind);
+        }
+
+        return true;
     }
 }

@@ -12,6 +12,9 @@
 
 namespace Assets;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
 class Concat
 {
     public $scope, $recursive_iterator, $directory_modified;
@@ -19,7 +22,7 @@ class Concat
     public function __construct()
     {
         $this->scope                = $_SERVER['WEB_ROOT'] . '/assets-src';
-        $this->recursive_iterator   = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->scope));
+        $this->recursive_iterator   = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->scope));
         $this->directory_modified   = filemtime($this->scope);
     }
 
@@ -60,7 +63,7 @@ class Concat
 
         foreach($jquery_files as $jquery_file) {
             $output[] = file_get_contents($jquery_file);
-        };
+        }
 
         // pick out js files - store them as strings
         foreach ($this->recursive_iterator as $file) {

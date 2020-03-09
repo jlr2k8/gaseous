@@ -14,6 +14,8 @@ namespace Uri;
 
 use Db\PdoMySql;
 use Db\Query;
+use ErrorException;
+use Exception;
 
 class Redirect
 {
@@ -202,7 +204,7 @@ class Redirect
     /**
      * @param array $data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(array $data)
     {
@@ -226,7 +228,7 @@ class Redirect
             ];
 
             $this->insert($data, $transaction);
-        } catch(\ErrorException $e) {
+        } catch(ErrorException $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getMessage();
@@ -297,14 +299,14 @@ class Redirect
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkAndThrowErrorException()
     {
         if (!empty($this->errors)) {
             $errors = implode('; ', $this->errors);
 
-            throw new \ErrorException($errors);
+            throw new ErrorException($errors);
         }
 
         return true;

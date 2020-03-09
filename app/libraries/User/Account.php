@@ -12,6 +12,11 @@
 
 namespace User;
 
+use Db\PdoMySql;
+use Db\Query;
+use Exception;
+use Settings;
+
 class Account
 {
     protected $errors = array();
@@ -37,7 +42,7 @@ class Account
           AND account_roles.archived = '0'
         ";
 
-        $db     = new \Db\Query($sql, [$username]);
+        $db     = new Query($sql, [$username]);
         $result = $db->fetchAssoc();
 
         // Include account roles
@@ -58,7 +63,7 @@ class Account
           WHERE archived='0'
         ";
 
-        $db         = new \Db\Query($sql);
+        $db         = new Query($sql);
         $accounts   = $db->fetchAllAssoc();
         $results    = [];
 
@@ -85,7 +90,7 @@ class Account
             AND archived = '0';
         ";
 
-        $db = new \Db\Query($sql, [$username]);
+        $db = new Query($sql, [$username]);
 
         return $db->fetchAll();
     }
@@ -130,7 +135,7 @@ class Account
             ORDER BY expiration DESC
         ";
 
-        $db     = new \Db\Query($sql);
+        $db     = new Query($sql);
         $result = $db->fetchAllAssoc();
 
         foreach ($result as $key => $row) {
@@ -138,7 +143,7 @@ class Account
             $uid        = $row['uid'];
             $exp        = date('Y-m-d', strtotime($row['expiration']));
 
-            if (\User\Login::hashCookie($username, $uid, $exp) == $value) {
+            if (Login::hashCookie($username, $uid, $exp) == $value) {
                 $username_hit = $row['login_session_account_username'];
 
                 continue;
@@ -152,7 +157,7 @@ class Account
     /**
      * @param array $account_data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(array $account_data)
     {
@@ -181,7 +186,7 @@ class Account
             return false;
         }
 
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
@@ -193,7 +198,7 @@ class Account
             if (self::archiveAccountRoles($transaction, $account_data['username']))
                 self::insertAccountRoles($transaction, $account_data['username'], $account_data['account_roles']);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
             $transaction->rollBack();
 
@@ -209,12 +214,12 @@ class Account
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param array $account_data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
-    private function updateAccountTable(\Db\PdoMySql $transaction, array $account_data)
+    private function updateAccountTable(PdoMySql $transaction, array $account_data)
     {
         self::editUsersCheck();
         
@@ -241,12 +246,12 @@ class Account
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param string $username
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
-    private function archiveAccountRoles(\Db\PdoMySql $transaction, $username)
+    private function archiveAccountRoles(PdoMySql $transaction, $username)
     {
         self::editUsersCheck();
         
@@ -268,17 +273,17 @@ class Account
 
 
     /**
-     * @param \Db\PdoMySql $transaction
+     * @param PdoMySql $transaction
      * @param string $username
      * @param array $account_roles
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
-    private function insertAccountRoles(\Db\PdoMySql $transaction, $username, $account_roles = array())
+    private function insertAccountRoles(PdoMySql $transaction, $username, $account_roles = array())
     {
         self::editUsersCheck();
         
-        $roles      = new \User\Roles();
+        $roles      = new Roles();
         $all_roles  = $roles->getAll();
 
         foreach ($all_roles as $role) {
@@ -309,17 +314,17 @@ class Account
     /**
      * @param $username
      * @return array|bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function archiveAccount($username)
     {
         self::archiveUsersCheck();
         
         if (self::getUsername() == $username)
-            throw new \Exception('The logged in account cannot archive itself...');
+            throw new Exception('The logged in account cannot archive itself...');
 
         $sql    = "UPDATE account SET archived='1', archived_datetime = NOW() WHERE username = ?;";
-        $db     = new \Db\Query($sql, [$username]);
+        $db     = new Query($sql, [$username]);
 
         return $db->run();
     }
@@ -343,7 +348,7 @@ class Account
             AND archived = '0';
         ";
 
-        $db = new \Db\Query($sql, [$username]);
+        $db = new Query($sql, [$username]);
 
         return $db->fetch();
     }
@@ -367,7 +372,7 @@ class Account
             AND archived = '0';
         ";
 
-        $db = new \Db\Query($sql, [$username]);
+        $db = new Query($sql, [$username]);
 
         return $db->fetch();
     }
@@ -391,7 +396,7 @@ class Account
             AND archived = '0';
         ";
 
-        $db = new \Db\Query($sql, [$username]);
+        $db = new Query($sql, [$username]);
 
         return $db->fetch();
     }
@@ -415,7 +420,7 @@ class Account
             AND archived = '0';
         ";
 
-        $db = new \Db\Query($sql, [$username]);
+        $db = new Query($sql, [$username]);
 
         return $db->fetch();
     }
@@ -448,28 +453,28 @@ class Account
             $data['username']
         ];
 
-        $db = new \Db\Query($sql, $bind);
+        $db = new Query($sql, $bind);
 
         return $db->run();
     }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function editUsersCheck()
     {
-        if (!\Settings::value('edit_users'))
-            throw new \Exception('Not allowed to edit users');
+        if (!Settings::value('edit_users'))
+            throw new Exception('Not allowed to edit users');
     }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function archiveUsersCheck()
     {
-        if (!\Settings::value('archive_users'))
-            throw new \Exception('Not allowed to archive users');
+        if (!Settings::value('archive_users'))
+            throw new Exception('Not allowed to archive users');
     }
 }

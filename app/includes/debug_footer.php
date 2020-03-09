@@ -10,7 +10,7 @@
  *
  */
 
-if (\Settings::value('show_debug')) {
+if (Settings::value('show_debug')) {
     echo '
         <style>
             #footer_debug {

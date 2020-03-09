@@ -23,9 +23,9 @@ if (PHP_SAPI != 'cli') {
 }
 
 // persist login if cookie is valid/exists
-if (\Settings::checkCoreTables() === true) {
+if (Settings::checkCoreTables() === true) {
     $login = new Login();
     $login->checkLogin();
 } else {
-    // begin setup wizard
+    die('uh oh');
 }

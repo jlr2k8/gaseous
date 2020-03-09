@@ -62,7 +62,7 @@
             <tbody>
                 <tr>
                     <td class="no_border">
-                        <input required="required" type="text" name="role_name" placeholder="admin, moderator, basic_user, etc." value="{$role_name}" />
+                        <input required="required" type="text" name="role_name" placeholder="admin, moderator, basic-user, etc." value="{$role_name}" />
                     </td>
                     <td class="no_border">
                         <input type="text" name="description" value="{$description}" />

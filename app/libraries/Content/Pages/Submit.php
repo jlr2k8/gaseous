@@ -14,9 +14,13 @@ namespace Content\Pages;
 
 use Db\PdoMySql;
 use Db\Query;
+use ErrorException;
+use Exception;
+use Settings;
 use Uri\Redirect;
 use Uri\Uri;
 use User\Account;
+use User\Roles;
 
 class Submit
 {
@@ -31,14 +35,14 @@ class Submit
 
     /**
      * @param array $post_data
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct($post_data = [])
     {
         $post_data = empty($post_data) ? $_POST : $post_data;
 
         if(empty($post_data))
-            throw new \Exception('A post data array is required for ' . get_class($this));
+            throw new Exception('A post data array is required for ' . get_class($this));
         
         $this->post_data = $post_data;
     }
@@ -46,7 +50,7 @@ class Submit
 
     /**
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function upsert()
     {
@@ -97,7 +101,7 @@ class Submit
 
             $this->generateJsonUpsertStatus('status', 'success');
 
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getMessage();
@@ -132,7 +136,7 @@ class Submit
 
     /**
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function archive()
     {
@@ -146,7 +150,7 @@ class Submit
 
         if ($uri == 'home')
         {
-            throw new \Exception('Cannot delete the home page!');
+            throw new Exception('Cannot delete the home page!');
         }
 
         try {
@@ -156,7 +160,7 @@ class Submit
             $this->archiveCurrentIteration($transaction);
             $this->archivePageIteration($transaction);
             $this->archivePage($transaction);
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getTraceAsString();
@@ -199,7 +203,7 @@ class Submit
     /**
      * @param PdoMySql $transaction
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     function archivePageRoles(PdoMySql $transaction)
     {
@@ -225,13 +229,13 @@ class Submit
     /**
      * @param PdoMySql $transaction
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     function insertPageRoles(PdoMySql $transaction)
     {
         self::editPageCheck();
 
-        $roles      = new \User\Roles();
+        $roles      = new Roles();
         $all_roles  = $roles->getAll();
         $page_roles = $this->post_data['page_roles']; // array
 
@@ -259,32 +263,32 @@ class Submit
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function editPageCheck()
     {
-        if (!\Settings::value('edit_pages'))
-            throw new \Exception('Not allowed to edit pages');
+        if (!Settings::value('edit_pages'))
+            throw new Exception('Not allowed to edit pages');
     }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function archivePageCheck()
     {
-        if (!\Settings::value('archive_pages'))
-            throw new \Exception('Not allowed to archive pages');
+        if (!Settings::value('archive_pages'))
+            throw new Exception('Not allowed to archive pages');
     }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function addPageCheck()
     {
-        if (!\Settings::value('add_pages'))
-            throw new \Exception('Not allowed to add pages');
+        if (!Settings::value('add_pages'))
+            throw new Exception('Not allowed to add pages');
     }
 
 
@@ -293,7 +297,7 @@ class Submit
      * @param $page_master_uid
      * @param $uri_uid
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function insertPage(PdoMySql $transaction, $page_master_uid = null, $uri_uid = null)
     {
@@ -494,7 +498,7 @@ class Submit
      * @param $old_uri_uid
      * @param $new_uri_uid
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function updatePage(PdoMySql $transaction, $old_uri_uid = null, $new_uri_uid = null)
     {
@@ -526,7 +530,7 @@ class Submit
     /**
      * @param PdoMySql $transaction
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function processUri(PdoMySql $transaction)
     {
@@ -690,7 +694,7 @@ class Submit
      * @param $old_uri_uid
      * @param $new_uri_as_array
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     private function updateUri(PdoMySql $transaction, $old_uri_uid, array $new_uri_as_array)
     {
@@ -767,14 +771,14 @@ class Submit
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkAndThrowErrorException()
     {
         if (!empty($this->errors)) {
             $errors = implode('; ', $this->errors);
 
-            throw new \ErrorException($errors);
+            throw new ErrorException($errors);
         }
 
         return true;

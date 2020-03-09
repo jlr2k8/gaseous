@@ -12,14 +12,18 @@
 
 namespace User;
 
+use Db\Query;
+use ReCaptcha;
+use Settings;
+
 class Login
 {
     public $account, $reCaptcha;
     
     public function __construct()
     {
-        $this->account      = new \User\Account();
-        $this->reCaptcha    = new \ReCaptcha();
+        $this->account      = new Account();
+        $this->reCaptcha    = new ReCaptcha();
     }
 
 
@@ -53,7 +57,7 @@ class Login
             'password'  => $password,
         ];
 
-        $is_verified_password = \User\Password::verifyPassword($login_data);
+        $is_verified_password = Password::verifyPassword($login_data);
 
         return ($is_verified_password === true);
     }
@@ -73,7 +77,7 @@ class Login
 			AND token_email.created_datetime >= NOW() - INTERVAL 12 HOUR;
         ";
 
-        $db     = new \Db\Query($sql, [$token]);
+        $db     = new Query($sql, [$token]);
         $result = $db->fetchAssoc();
 
         return isset($result['account_id']) ? (int)$result['account_id'] : false;
@@ -116,7 +120,7 @@ class Login
                 ? (string)filter_var($_POST['password'], FILTER_SANITIZE_STRING)
                 : false;
 
-            if ($this->clearLoginSession($username) && $this->validateLogin($username, $password)) {
+            if ($this->validateLogin($username, $password)) {
                 return $this->createSession($username);
             } else {
                 $this->logout();
@@ -186,7 +190,7 @@ class Login
 				VALUES( ? , ?)
 			";
 
-            $db = new \Db\Query($sql, [$token, $email]);
+            $db = new Query($sql, [$token, $email]);
             return $db->run();
         }
 
@@ -201,27 +205,27 @@ class Login
     public function deleteToken($token)
     {
         $sql    = "DELETE FROM token_email WHERE token = ?;";
-        $db     = new \Db\Query($sql, [$token]);
+        $db     = new Query($sql, [$token]);
 
         return $db->run();
     }
 
 
     /**
-     * @param $account_id
+     * @param $username
      * @return bool
      */
     public function createSession($username)
     {
-        $expire = date('Y-m-d', strtotime('+' . \Settings::value('login_cookie_expire_days') . ' day'));
-        $uuid   = \Db\Query::getUuid();
+        $expire = date('Y-m-d', strtotime('+' . Settings::value('login_cookie_expire_days') . ' day'));
+        $uuid   = Query::getUuid();
 
         $sql    = "
             INSERT INTO login_session (account_username, uid, expiration)
             VALUES(?, ?, ?);
         ";
 
-        $db = new \Db\Query($sql, [$username, $uuid, $expire]);
+        $db = new Query($sql, [$username, $uuid, $expire]);
 
         return $db->run() ? ($this->storeAccountInSession($username) && $this->setLoginCookie($username, $uuid)) : false;
     }
@@ -255,7 +259,7 @@ class Login
      */
     public static function clearLoginCookie()
     {
-        return (setcookie(LOGIN_COOKIE, null, time() - 3600, '/', \Settings::value('cookie_domain')));
+        return (setcookie(LOGIN_COOKIE, null, time() - 3600, '/', Settings::value('cookie_domain')));
     }
 
 
@@ -285,7 +289,7 @@ class Login
           WHERE account_username = ?;
         ";
 
-        $db = new \Db\Query($sql, [$username]);
+        $db = new Query($sql, [$username]);
 
         return $db->run();
     }
@@ -297,11 +301,11 @@ class Login
      */
     private function setLoginCookie($username, $uid)
     {
-        $days_int   = \Settings::value('login_cookie_expire_days');
+        $days_int   = Settings::value('login_cookie_expire_days');
         $expire     = date('Y-m-d', strtotime('+' . $days_int . ' day'));
-        $domain     = \Settings::value('cookie_domain');
+        $domain     = Settings::value('cookie_domain');
 
-        $login_cookie_value = (new \User\Login())->hashCookie($username, $uid, $expire);
+        $login_cookie_value = (new Login())->hashCookie($username, $uid, $expire);
 
         $set_cookie = setcookie (
             LOGIN_COOKIE,

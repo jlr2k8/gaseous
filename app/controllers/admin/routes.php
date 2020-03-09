@@ -17,7 +17,7 @@ use \Content\Pages\Templator;
 use \Uri\Route;
 
 // check setting/role privileges
-if (!\Settings::value('add_routes') && !\Settings::value('edit_routes') && !\Settings::value('archive_routes')) {
+if (!Settings::value('add_routes') && !Settings::value('edit_routes') && !Settings::value('archive_routes')) {
     HTTP::error(401);
 }
 
@@ -28,9 +28,9 @@ $title      = 'URI Routes';
 $routes     = $route->getAll();
 $error      = null;
 
-$add_routes     = \Settings::value('add_routes');
-$edit_routes    = \Settings::value('edit_routes');
-$archive_routes = \Settings::value('archive_routes');
+$add_routes     = Settings::value('add_routes');
+$edit_routes    = Settings::value('edit_routes');
+$archive_routes = Settings::value('archive_routes');
 
 if (!empty($_POST) && $edit_routes && !isset($_GET['sort'])) {
     foreach ($_POST as $key => $val) {
@@ -46,7 +46,7 @@ if (!empty($_POST) && $edit_routes && !isset($_GET['sort'])) {
     }
 
     if ($submit_route) {
-        header('Location: ' . \Settings::value('full_web_url') . '/admin/routes/');
+        header('Location: ' . Settings::value('full_web_url') . '/admin/routes/');
         exit;
     } else {
         $error = $route->getErrors();
@@ -70,7 +70,7 @@ if (!empty($_GET['archive']) && $archive_routes) {
     exit;
 }
 
-$templator->assign('full_web_url', \Settings::value('full_web_url'));
+$templator->assign('full_web_url', Settings::value('full_web_url'));
 $templator->assign('all_routes', $routes);
 $templator->assign('add_routes', $add_routes);
 $templator->assign('edit_routes', $edit_routes);

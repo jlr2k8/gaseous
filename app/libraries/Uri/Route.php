@@ -12,6 +12,11 @@
 
 namespace Uri;
 
+use Db\PdoMySql;
+use Db\Query;
+use ErrorException;
+use Exception;
+
 class Route
 {
     public $routing_map;
@@ -144,7 +149,7 @@ class Route
                 priority_order;
         ";
 
-        $db         = new \Db\Query($sql);
+        $db         = new Query($sql);
         $results    = $db->fetchAllAssoc();
 
         return $results;
@@ -177,7 +182,7 @@ class Route
             $uid,
         ];
 
-        $db     = new \Db\Query($sql, $bind);
+        $db     = new Query($sql, $bind);
         $result = $db->fetchAssoc();
 
         return $result;
@@ -186,12 +191,12 @@ class Route
 
     /**
      * @param array $data
-     * @param \Db\PdoMySql|null $transaction
+     * @param PdoMySql|null $transaction
      * @return bool
      */
-    public function insert(array $data, \Db\PdoMySql $transaction = null)
+    public function insert(array $data, PdoMySql $transaction = null)
     {
-        $uid                    = !empty($data['uid']) ? filter_var($data['uid'], FILTER_SANITIZE_STRING) : \Db\Query::getUuid();
+        $uid                    = !empty($data['uid']) ? filter_var($data['uid'], FILTER_SANITIZE_STRING) : Query::getUuid();
         $regex_pattern          = filter_var($data['regex_pattern'], FILTER_SANITIZE_STRING);
         $destination_controller = filter_var($data['destination_controller'], FILTER_SANITIZE_STRING);
         $description            = filter_var($data['description'], FILTER_SANITIZE_STRING);
@@ -223,7 +228,7 @@ class Route
         ];
 
         if (empty($transaction)) {
-            $db     = new \Db\Query($sql, $bind);
+            $db     = new Query($sql, $bind);
             $ran    = $db->run();
         } else {
             $ran = $transaction
@@ -238,7 +243,7 @@ class Route
     /**
      * @param array $data
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(array $data)
     {
@@ -250,7 +255,7 @@ class Route
             ? filter_var($data['priority_order'], FILTER_SANITIZE_NUMBER_INT)
             : self::getNextAvailablePriority();
 
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
@@ -265,7 +270,7 @@ class Route
             ];
 
             $this->insert($data, $transaction);
-        } catch(\ErrorException $e) {
+        } catch(ErrorException $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getMessage();
@@ -284,10 +289,10 @@ class Route
 
     /**
      * @param $uid
-     * @param \Db\PdoMySql|null $transaction
+     * @param PdoMySql|null $transaction
      * @return bool
      */
-    public function archive($uid, \Db\PdoMySql $transaction = null)
+    public function archive($uid, PdoMySql $transaction = null)
     {
         $sql = "
             UPDATE
@@ -306,7 +311,7 @@ class Route
         ];
 
         if (empty($transaction)) {
-            $db     = new \Db\Query($sql, $bind);
+            $db     = new Query($sql, $bind);
             $ran    = $db->run();
         } else {
             $ran    = $transaction
@@ -336,14 +341,14 @@ class Route
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     private function checkAndThrowErrorException()
     {
         if (!empty($this->errors)) {
             $errors = implode('; ', $this->errors);
 
-            throw new \ErrorException($errors);
+            throw new ErrorException($errors);
         }
 
         return true;
@@ -362,11 +367,11 @@ class Route
     /**
      * @param array $priority_to_uuids
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function sortPriorityBulk(array $priority_to_uuids)
     {
-        $transaction = new \Db\PdoMySql();
+        $transaction = new PdoMySql();
 
         $transaction->beginTransaction();
 
@@ -384,7 +389,7 @@ class Route
             try {
                 $this->archive($uid, $transaction);
                 $this->insert($data, $transaction);
-            } catch(\ErrorException $e) {
+            } catch(ErrorException $e) {
                 $transaction->rollBack();
 
                 $this->errors[] = $e->getMessage();
@@ -418,7 +423,7 @@ class Route
             LIMIT 1;
         ";
 
-        $db     = new \Db\Query($sql);
+        $db     = new Query($sql);
         $result = $db->fetch();
 
         // now increment that result by +1

@@ -16,7 +16,11 @@ use Assets\Css;
 use Assets\CssIterator;
 use Assets\Js;
 use Assets\JsIterator;
+use ErrorHandler;
+use Exception;
 use Seo\Url;
+use Settings;
+use SmartyException;
 use Utilities\AdminView;
 use Utilities\DateTime;
 use Db\Query;
@@ -34,7 +38,7 @@ class Get
     /**
      * @param $uri
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public function byUri($uri = null)
     {
@@ -48,7 +52,7 @@ class Get
     /**
      * @param array $parsed_uri
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     protected function redirectProperUri(array $parsed_uri)
     {
@@ -100,7 +104,7 @@ class Get
      * @param array $find_replace
      * @param bool $redirect_proper_uri
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public function page($page_uri, $find_replace = [], $redirect_proper_uri = true)
     {
@@ -131,8 +135,8 @@ class Get
      * @param $page_master_uid
      * @param bool $content_only
      * @return bool|string
-     * @throws \SmartyException
-     * @throws \Exception
+     * @throws SmartyException
+     * @throws Exception
      */
     public function pagePreviewByIterationUid($page_iteration_uid, $page_master_uid, $content_only = false)
     {
@@ -140,7 +144,7 @@ class Get
         $iteration              = $diff->getPageIteration($page_iteration_uid);
         $find_replace           = $this->pageContentForPreview($page_iteration_uid);
         $content                = $this->templatedPage($find_replace);
-        $return_url_encoded     = urlencode(\Settings::value('full_web_url') . $_SERVER['REQUEST_URI']);
+        $return_url_encoded     = urlencode(Settings::value('full_web_url') . $_SERVER['REQUEST_URI']);
         $current_iteration      = $this->currentPageIteration($page_master_uid);
         $is_current_iteration   = ($current_iteration == $page_iteration_uid);
 
@@ -156,7 +160,7 @@ class Get
             $templator->assign('find_replace', $find_replace);
             $templator->assign('page_iteration_uid', $page_iteration_uid);
             $templator->assign('page_master_uid', $page_master_uid);
-            $templator->assign('full_web_url', \Settings::value('full_web_url'));
+            $templator->assign('full_web_url', Settings::value('full_web_url'));
             $templator->assign('iteration', $iteration);
             $templator->assign('is_current_iteration', $is_current_iteration);
             $templator->assign('return_url_encoded', $return_url_encoded);
@@ -289,7 +293,7 @@ class Get
     /**
      * @param $page_iteration_uid
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     public function pageContentForPreview($page_iteration_uid)
     {
@@ -421,7 +425,7 @@ class Get
     /**
      * @param array $find_replace
      * @return mixed
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     public function templatedPage($find_replace = array())
     {
@@ -429,10 +433,10 @@ class Get
 
         // core template items
         $find_replace = [
-            'page_title_seo'        => !empty($find_replace['page_title_seo']) ? $find_replace['page_title_seo'] : \Settings::value('default_page_seo_title'),
-            'page_title_h1'         => !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : \Settings::value('default_page_title_h1'),
-            'meta_description'      => !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : \Settings::value('default_meta_description'),
-            'meta_robots'           => !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : \Settings::value('default_meta_robots'),
+            'page_title_seo'        => !empty($find_replace['page_title_seo']) ? $find_replace['page_title_seo'] : Settings::value('default_page_seo_title'),
+            'page_title_h1'         => !empty($find_replace['page_title_h1']) ? $find_replace['page_title_h1'] : Settings::value('default_page_title_h1'),
+            'meta_description'      => !empty($find_replace['meta_description']) ? $find_replace['meta_description'] : Settings::value('default_meta_description'),
+            'meta_robots'           => !empty($find_replace['meta_robots']) ? $find_replace['meta_robots'] : Settings::value('default_meta_robots'),
             'css_output'            => self::outputCss($templator),
             'css_iterator_output'   => self::outputLatestCss($templator),
             'js_output'             => self::outputJs($templator),
@@ -454,7 +458,7 @@ class Get
      * @param CssIterator|null $css_iterator
      * @param bool $uid
      * @return string
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private static function outputCss(Templator $templator, CssIterator $css_iterator = null, $uid = false)
     {
@@ -475,7 +479,7 @@ class Get
     /**
      * @param Templator $templator
      * @return string|null
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private static function outputLatestCss(Templator $templator)
     {
@@ -498,7 +502,7 @@ class Get
      * @param $async
      * @param $defer
      * @return string
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private static function outputJs(Templator $templator, JsIterator $js_iterator = null, $uid = false, $async = true, $defer = true)
     {
@@ -521,7 +525,7 @@ class Get
     /**
      * @param Templator $templator
      * @return string|null
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private static function outputLatestJs(Templator $templator)
     {
@@ -541,7 +545,7 @@ class Get
      * @param $string
      * @param Templator|null $templator
      * @return string|null
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private function renderTemplate($string, Templator $templator = null)
     {
@@ -557,7 +561,7 @@ class Get
         }
 
         $return = null;
-        $error  = new \ErrorHandler();
+        $error  = new ErrorHandler();
 
         /***
          * temporarily crank up error handling during this function's runtime so we can catch any errors including
@@ -569,7 +573,7 @@ class Get
 
         try{
             $return = !empty($templator) && $this->is_cms_editor === false ? $templator->fetch('string: ' . $string) : $string;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $return = $string;
         }
 
@@ -599,14 +603,14 @@ class Get
      * @param Templator $templator
      * @param array $find_replace
      * @return string
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private function main(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
 
-        $main_template          = \Settings::value('main_template');
+        $main_template          = Settings::value('main_template');
         $fetch_encoded_template = $templator->fetch('string: ' . $main_template);
         $decoded_template       = htmlspecialchars_decode($fetch_encoded_template);
 
@@ -618,14 +622,14 @@ class Get
      * @param Templator $templator
      * @param array $find_replace
      * @return string
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private static function nav(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
 
-        $nav_template           = \Settings::value('nav_template');
+        $nav_template           = Settings::value('nav_template');
         $fetch_encoded_template = $templator->fetch('string: ' . $nav_template);
         $decoded_template       = htmlspecialchars_decode($fetch_encoded_template);
 
@@ -637,14 +641,14 @@ class Get
      * @param Templator $templator
      * @param array $find_replace
      * @return string
-     * @throws \SmartyException
+     * @throws SmartyException
      */
     private static function footer(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
 
-        $footer_template        = \Settings::value('footer_template');
+        $footer_template        = Settings::value('footer_template');
         $fetch_encoded_template = $templator->fetch('string: ' . $footer_template);
         $decoded_template       = htmlspecialchars_decode($fetch_encoded_template);
 
@@ -653,32 +657,32 @@ class Get
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function addPageCheck()
     {
-        if (!\Settings::value('add_pages'))
-            throw new \Exception('Adding pages not allowed');
+        if (!Settings::value('add_pages'))
+            throw new Exception('Adding pages not allowed');
     }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function editPageCheck()
     {
-        if (!\Settings::value('edit_pages'))
-            throw new \Exception('Editing pages not allowed');
+        if (!Settings::value('edit_pages'))
+            throw new Exception('Editing pages not allowed');
     }
 
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public static function archivePageCheck()
     {
-        if (!\Settings::value('archive_pages'))
-            throw new \Exception('Archiving pages not allowed');
+        if (!Settings::value('archive_pages'))
+            throw new Exception('Archiving pages not allowed');
     }
 
 
@@ -752,7 +756,7 @@ class Get
      */
     private function buildBreadcrumbArray($uri, $crumb_array = [])
     {
-        $base_url       = \Settings::value('full_web_url');
+        $base_url       = Settings::value('full_web_url');
         $parsed_uri     = parse_url($uri);
         $valid_uri      = $this->validUri($parsed_uri['path']);
 

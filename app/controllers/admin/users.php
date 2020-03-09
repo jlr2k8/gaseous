@@ -11,21 +11,24 @@
  */
 
 // check setting/role privileges
+use Content\Pages\Breadcrumbs;
 use Content\Pages\HTTP;
 use Content\Pages\Templator;
+use User\Account;
+use User\Roles;
 
-if (!\Settings::value('edit_users') && !\Settings::value('archive_users')) {
+if (!Settings::value('edit_users') && !Settings::value('archive_users')) {
     HTTP::error(401);
 }
 
 $templator      = new Templator();
-$account        = new \User\Account();
-$roles          = new \User\Roles();
+$account        = new Account();
+$roles          = new Roles();
 $all_roles      = $roles->getAll();
 $all_accounts   = $account->getAll();
 $error          = null;
 
-$my_username    = \User\Account::getUsername();
+$my_username    = Account::getUsername();
 
 $role_name_value    = null;
 $description_value  = null;
@@ -50,7 +53,7 @@ if (!empty($_POST)) {
     }
 
     if ($submit_user) {
-        header('Location: ' . \Settings::value('full_web_url') . '/admin/users/');
+        header('Location: ' . Settings::value('full_web_url') . '/admin/users/');
     } else {
         $error = $account->getErrors();
     }
@@ -60,17 +63,17 @@ $templator->assign('accounts', $all_accounts);
 $templator->assign('roles', $all_roles);
 $templator->assign('error', $error);
 $templator->assign('my_username', $my_username);
-$templator->assign('full_web_url',\Settings::value('full_web_url'));
-$templator->assign('access_code', \Settings::value('registration_access_code'));
-$templator->assign('edit_users', \Settings::value('edit_users'));
-$templator->assign('archive_users', \Settings::value('archive_users'));
+$templator->assign('full_web_url', Settings::value('full_web_url'));
+$templator->assign('access_code', Settings::value('registration_access_code'));
+$templator->assign('edit_users', Settings::value('edit_users'));
+$templator->assign('archive_users', Settings::value('archive_users'));
 
 $title = 'Users';
 
 $page_find_replace = [
     'page_title_seo'    => $title,
     'page_title_h1'     => $title,
-    'breadcrumbs'       => (new \Content\Pages\Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
+    'breadcrumbs'       => (new Breadcrumbs())->crumb('Site Administration', '/admin/')->crumb($title),
     'body'              => $templator->fetch('admin/users.tpl'),
 ];
 

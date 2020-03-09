@@ -13,6 +13,7 @@
 namespace Assets;
 
 use Content\Pages\HTTP;
+use Exception;
 
 class Headers
 {
@@ -21,7 +22,7 @@ class Headers
 
     /**
      * @param bool $filename
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct($filename = false)
     {

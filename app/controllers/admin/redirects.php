@@ -19,7 +19,7 @@ use \Uri\Redirect;
 use Uri\Uri;
 
 // check setting/role privileges
-if (!\Settings::value('add_redirects') && !\Settings::value('edit_redirects') && !\Settings::value('archive_redirects')) {
+if (!Settings::value('add_redirects') && !Settings::value('edit_redirects') && !Settings::value('archive_redirects')) {
     HTTP::error(401);
 }
 
@@ -33,9 +33,9 @@ $error              = null;
 $http_status_codes  = HTTP::$status_codes;
 $all_uris           = Get::allUris();
 
-$add_uri_redirects      = \Settings::value('add_redirects');
-$edit_redirect_uris     = \Settings::value('edit_redirects');
-$archive_redirect_uris  = \Settings::value('archive_redirects');
+$add_uri_redirects      = Settings::value('add_redirects');
+$edit_redirect_uris     = Settings::value('edit_redirects');
+$archive_redirect_uris  = Settings::value('archive_redirects');
 
 if (!empty($_POST) && $edit_redirect_uris) {
     foreach ($_POST as $key => $val) {
@@ -62,7 +62,7 @@ if (!empty($_POST) && $edit_redirect_uris) {
     }
 
     if ($submit_redir) {
-        header('Location: ' . \Settings::value('full_web_url') . '/admin/redirects/');
+        header('Location: ' . Settings::value('full_web_url') . '/admin/redirects/');
     } else {
         $error = $uri_redirect->getErrors();
     }
@@ -74,7 +74,7 @@ if (!empty($_GET['archive']) && $archive_redirect_uris) {
     exit;
 }
 
-$templator->assign('full_web_url', \Settings::value('full_web_url'));
+$templator->assign('full_web_url', Settings::value('full_web_url'));
 $templator->assign('uri_redirects', $redirects);
 $templator->assign('http_status_codes', $http_status_codes);
 $templator->assign('add_uri_redirects', $add_uri_redirects);

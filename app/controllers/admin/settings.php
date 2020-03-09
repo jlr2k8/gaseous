@@ -18,17 +18,17 @@ use \User\Account;
 use \Wysiwyg\Codemirror;
 
 // check setting/role privileges
-if (!\Settings::value('edit_settings')) {
+if (!Settings::value('edit_settings')) {
     HTTP::error(401);
 }
 
-$settings           = new \Settings();
+$settings           = new Settings();
 $templator          = new Templator();
 $roles              = new Roles();
 $account            = new Account();
 
 $all_roles          = $roles->getAll();
-$all_settings       = \Settings::getAllFromDB();
+$all_settings       = Settings::getAllFromDB();
 $all_accounts       = $account->getAll();
 $setting_categories = $settings->getSettingCategories();
 
@@ -59,7 +59,7 @@ if (!empty($_POST)) {
     }
 
     if ($submit_setting) {
-        header('Location: ' . \Settings::value('full_web_url') . '/admin/settings/');
+        header('Location: ' . Settings::value('full_web_url') . '/admin/settings/');
     } else {
         $error = $account->getErrors();
     }
@@ -70,11 +70,11 @@ $templator->assign('roles', $all_roles);
 $templator->assign('error', $error);
 $templator->assign('settings', $all_settings);
 $templator->assign('my_username', $my_username);
-$templator->assign('full_web_url',\Settings::value('full_web_url'));
+$templator->assign('full_web_url', Settings::value('full_web_url'));
 $templator->assign('setting_categories', $setting_categories);
-$templator->assign('edit_settings', \Settings::value('edit_settings'));
-$templator->assign('edit_roles', \Settings::value('edit_roles'));
-$templator->assign('archive_roles', \Settings::value('archive_roles'));
+$templator->assign('edit_settings', Settings::value('edit_settings'));
+$templator->assign('edit_roles', Settings::value('edit_roles'));
+$templator->assign('archive_roles', Settings::value('archive_roles'));
 $templator->assign('codemirror', $codemirror);
 
 $title = 'Site Settings';

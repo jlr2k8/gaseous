@@ -12,7 +12,10 @@
 
 namespace Db;
 
-class PdoMySql extends \PDO
+use PDO;
+use Settings;
+
+class PdoMySql extends PDO
 {
     public $debug;
     protected $dsn, $username, $password, $con;
@@ -20,11 +23,11 @@ class PdoMySql extends \PDO
 
     public function __construct()
     {
-        $mysql_server   = \Settings::environmentIni('mysql_server');
-        $mysql_database = \Settings::environmentIni('mysql_database');
-        $mysql_port     = \Settings::environmentIni('mysql_port');
-        $mysql_user     = \Settings::environmentIni('mysql_user');
-        $mysql_password = \Settings::environmentIni('mysql_password');
+        $mysql_server   = Settings::environmentIni('mysql_server');
+        $mysql_database = Settings::environmentIni('mysql_database');
+        $mysql_port     = Settings::environmentIni('mysql_port');
+        $mysql_user     = Settings::environmentIni('mysql_user');
+        $mysql_password = Settings::environmentIni('mysql_password');
 
         $this->dsn      = 'mysql:host=' . $mysql_server . ';port=' . $mysql_port . ';dbname=' . $mysql_database;
         $this->username = $mysql_user;
@@ -40,9 +43,9 @@ class PdoMySql extends \PDO
         );
 
         if ($this->debug === true) { // TODO - create binary setting (true or false) for debug mode
-            $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
+            $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
         } else {
-            $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
     }
 }

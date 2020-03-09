@@ -29,11 +29,11 @@ if (!empty($_SESSION['redir']['desc'])) {
 }
 
 $templator->assign('login_message', $login_message);
-$templator->assign('recaptcha', \ReCaptcha::draw());
+$templator->assign('recaptcha', ReCaptcha::draw());
 
 if (!empty($_POST)) {
     $valid_login        = $login->checkPostLogin();
-    $recaptcha_required = \Settings::value('require_recaptcha');
+    $recaptcha_required = Settings::value('require_recaptcha');
     $valid_recaptcha    = true;
 
     if ($recaptcha_required) {
@@ -41,7 +41,7 @@ if (!empty($_POST)) {
     }
 
     if ($valid_login && $valid_recaptcha) {
-        header('Location: ' . \Settings::value('full_web_url'));
+        header('Location: ' . Settings::value('full_web_url'));
     } elseif($valid_login && !$valid_recaptcha) {
         header('HTTP/1.1 401 Not Authorized');
 

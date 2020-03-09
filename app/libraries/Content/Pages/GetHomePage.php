@@ -12,6 +12,8 @@
 
 namespace Content\Pages;
 
+use Exception;
+
 class GetHomePage extends Get
 {
     public function __construct()
@@ -29,7 +31,7 @@ class GetHomePage extends Get
 
     /**
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function redirectHome()
     {
@@ -51,7 +53,7 @@ class GetHomePage extends Get
     /**
      * @param array $parsed_uri
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     protected function redirectProperUri(array $parsed_uri)
     {
@@ -68,7 +70,7 @@ class GetHomePage extends Get
 
     /**
      * @return bool|string
-     * @throws \Exception
+     * @throws Exception
      */
     public function byUri($uri = null)
     {
@@ -81,7 +83,7 @@ class GetHomePage extends Get
      * @param array $find_replace
      * @param bool $redirect_proper_uri
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
     public function page($page_uri = 'home', $find_replace = [], $redirect_proper_uri = true)
     {

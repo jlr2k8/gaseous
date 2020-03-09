@@ -19,7 +19,7 @@ use Content\Pages\Templator;
 use Wysiwyg\Codemirror;
 
 // check setting/role privileges
-if (!\Settings::value('manage_css')) {
+if (!Settings::value('manage_css')) {
     HTTP::error(401);
 }
 
@@ -35,7 +35,7 @@ if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
 
     $headers->last_modified = strtotime($latest_css['modified_datetime']);
 
-    header('Location: ' . \Settings::value('full_web_url') . '/admin/css/');
+    header('Location: ' . Settings::value('full_web_url') . '/admin/css/');
 
     exit;
 }
@@ -75,7 +75,7 @@ if (!empty($_POST)) {
         unset($_SESSION['css_preview'], $_SESSION['editor_css']);
     }
 
-    header('Location: ' . \Settings::value('full_web_url') . '/admin/css/');
+    header('Location: ' . Settings::value('full_web_url') . '/admin/css/');
     exit;
 }
 
@@ -91,7 +91,7 @@ $templator->assign('codemirror', $codemirror);
 $templator->assign('editor_css_content', $_SESSION['editor_css']['css'] ?? null);
 $templator->assign('editor_css_uid', $_SESSION['editor_css']['uid'] ?? null);
 $templator->assign('preview_mode', !empty($_SESSION['css_preview']));
-$templator->assign('full_web_url', \Settings::value('full_web_url'));
+$templator->assign('full_web_url', Settings::value('full_web_url'));
 
 $title = 'Custom Site CSS';
 

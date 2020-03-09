@@ -12,16 +12,16 @@
 
 require_once $_SERVER['WEB_ROOT'] . '/libraries/Vendor/SwiftMailer/vendor/autoload.php';
 
-class Email extends \Swift_Mailer
+class Email extends Swift_Mailer
 {
     public function __construct()
     {
-        $smtp_host      = \Settings::value('smtp_host');
-        $smtp_port      = \Settings::value('smtp_port');
-        $smtp_user      = \Settings::value('smtp_user');
-        $smtp_password  = \Settings::value('smtp_password');
+        $smtp_host      = Settings::value('smtp_host');
+        $smtp_port      = Settings::value('smtp_port');
+        $smtp_user      = Settings::value('smtp_user');
+        $smtp_password  = Settings::value('smtp_password');
 
-        $transport  = new \Swift_SmtpTransport($smtp_host, $smtp_port);
+        $transport  = new Swift_SmtpTransport($smtp_host, $smtp_port);
 
         $transport->setUsername($smtp_user)
             ->setPassword($smtp_password);
@@ -71,7 +71,7 @@ class Email extends \Swift_Mailer
             $cc = $recipient_cc_emails;
         }
 
-        $message = new \Swift_Message($subject);
+        $message = new Swift_Message($subject);
 
         $message->setFrom($from);
         $message->setTo($to);
@@ -83,7 +83,7 @@ class Email extends \Swift_Mailer
 
         try {
             $this->send($message);
-        } catch(\Exception $e) {
+        } catch(Exception $e) {
             throw $e;
         }
     }

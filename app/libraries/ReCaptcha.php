@@ -1,4 +1,7 @@
 <?php
+
+use Content\Pages\Templator;
+
 /**
  * Created by Josh L. Rogers.
  * Copyright (c) 2018 All Rights Reserved.
@@ -38,7 +41,7 @@ class ReCaptcha
 
         $response = file_get_contents(
             'https://www.google.com/recaptcha/api/siteverify?secret='
-            . \Settings::value('recaptcha_private_key')
+            . Settings::value('recaptcha_private_key')
             . '&response='
             . $response
             . '&remoteip='
@@ -60,11 +63,11 @@ class ReCaptcha
     public static function draw()
     {
         $return             = null;
-        $require_recaptcha  = \Settings::value('require_recaptcha');
-        $public_key         = \Settings::value('recaptcha_public_key');
+        $require_recaptcha  = Settings::value('require_recaptcha');
+        $public_key         = Settings::value('recaptcha_public_key');
 
         if ($require_recaptcha && $public_key) {
-            $templator  = new \Content\Pages\Templator();
+            $templator  = new Templator();
 
             $templator->assign('recaptcha_public_key', $public_key);
 

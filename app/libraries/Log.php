@@ -12,55 +12,66 @@
 
 class Log
 {
-    public $log_file;
-
     public function __construct()
     {
     }
 
 
     /**
+     * @param mixed $_
      * @return bool
+     * @throws Exception
      */
-    public static function general()
+    public static function app($_)
     {
         $backtrace      = debug_backtrace();
         $last_level     = array_shift($backtrace);
         $line_number    = $last_level['line'];
         $file           = $last_level['file'];
-        $today_log_file = self::getLogFile();
 
         ob_start();
+
         var_dump(func_get_args());
-        $log = ob_get_clean();
 
-        return self::formatErrorLog($file, $line_number, $log, $today_log_file);
+        $log                    = ob_get_clean();
+        $formatted_log_entry    = self::formatAppLog($file, $line_number, $log);
+
+        return self::logEntry($formatted_log_entry);
     }
 
 
     /**
-     * @return bool
+     * @param Exception $e
+     * @param $file
+     * @param $line_number
+     * @param $log
+     * @return string
      */
-    public static function dev()
+    private static function formatAppLog($file, $line_number, $log)
     {
-        $backtrace      = debug_backtrace();
-        $last_level     = array_shift($backtrace);
-        $line_number    = $last_level['line'];
-        $file           = $last_level['file'];
-        $today_log_file = self::getLogFile();
+        $logged_in_user = $_SESSION['user']['UWNetID'] ?? null;
+        $content        =
+            date('Y-m-d H:i:s')
+            . (!empty($logged_in_user) ? ' (' . $logged_in_user . ')' : null)
+            . PHP_EOL
+            . $file
+            . ' on line '
+            . $line_number
+            . PHP_EOL
+            . $log
+            . PHP_EOL
+            . PHP_EOL
+        ;
 
-        ob_start();
-        var_dump($backtrace, func_get_args());
-        $log = ob_get_clean() . $backtrace;
-
-        return self::formatErrorLog($file, $line_number, $log, $today_log_file);
+        return $content;
     }
 
 
     /**
-     * @return mixed
+     * @return mixed|string
+     * @throws Exception
      */
-    private static function getLogFile()
+    private static function getLogFileName()
     {
         $log_file_settings  = \Settings::value('log_file') ?: '/var/log/gaseous-{{today}}.log';
         $today_log_file     = str_replace('{{today}}', date('Y-m-d'), $log_file_settings);
@@ -70,30 +81,86 @@ class Log
 
 
     /**
-     * @param $file
-     * @param $line_number
-     * @param $log
-     * @param $today_log_file
+     * @param $filename
      * @return bool
+     * @throws Exception
      */
-    private static function formatErrorLog($file, $line_number, $log, $today_log_file)
+    private static function createLogFile($filename)
     {
-        return error_log (
-            PHP_EOL
-            . PHP_EOL
-            . $file
-            . ' on line '
-            . $line_number
-            . ':'
-            . PHP_EOL
-            . $log
-            . PHP_EOL
-            . PHP_EOL
-            . PHP_EOL
-            . PHP_EOL
-            ,
-            3,
-            $today_log_file
-        );
+        try {
+            touch($filename);
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * @param $message
+     * @param bool $underline
+     * @param bool $overline
+     * @return bool
+     * @throws Exception
+     */
+    private static function logEntry($message, $overline = false, $underline = false)
+    {
+        $filename = self::getLogFileName();
+
+        if ($overline === true || $underline === true) {
+            $message_length = (int)strlen($message);
+
+            if ($overline === true) {
+                $message = self::newLine($message_length) . $message;
+            }
+
+            if ($underline === true) {
+                $message .= self::newLine($message_length);
+            }
+        }
+
+        try {
+            $file_append = false;
+
+            if (is_writable($filename)) {
+                $file_append = true;
+            } else {
+                self::createLogFile($filename);
+
+                $new_log_message    =  'Log file ' . $filename . ' initiated ' . date('Y-m-d H:i:s');
+                $dash_line          = self::newLine(strlen($new_log_message));
+                $message            = $dash_line . $new_log_message . $dash_line . $message;
+            }
+
+            file_put_contents($filename, $message . self::newLine(), ($file_append ? FILE_APPEND : 0));
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * @param int $underline
+     * @return string
+     */
+    private static function newLine($underline = 0)
+    {
+        $newline = PHP_EOL;
+
+        if (!empty($underline) && (int)$underline > (int)0) {
+            $i = 0;
+
+            while ($i <= (int)$underline) {
+                $newline .= '-';
+                $i++;
+            }
+
+            $newline .= PHP_EOL;
+        }
+
+        return $newline;
     }
 }

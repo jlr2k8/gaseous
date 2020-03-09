@@ -12,6 +12,8 @@
 
 namespace User;
 
+use Db\Query;
+
 class Password
 {
     public function __construct()
@@ -40,7 +42,7 @@ class Password
             WHERE account_username = ?
         ";
 
-        $db                 = new \Db\Query($sql, [$login_form['username']]);
+        $db                 = new Query($sql, [$login_form['username']]);
         $stored_password    = $db->fetch();
 
         return password_verify($login_form['password'], $stored_password);
@@ -64,7 +66,7 @@ class Password
 
         $new_password   = self::hashPassword($raw_password);
         $sql            = "UPDATE account_password SET password = ? WHERE account_username = ? AND password != ? AND archived='0'";
-        $db             = new \Db\Query($sql, [$new_password, $result['account_id'], $new_password]);
+        $db             = new Query($sql, [$new_password, $result['account_id'], $new_password]);
 
         return $db->run();
     }
@@ -84,7 +86,7 @@ class Password
 			WHERE username= ? AND archived='0'
         ";
 
-        $db     = new \Db\Query($sql, [$username]);
+        $db     = new Query($sql, [$username]);
         $result = $db->fetchAssoc();
 
         return !empty($result['modified_datetime']) ? date('YmdHis', strtotime($result['modified_datetime'])) : false;

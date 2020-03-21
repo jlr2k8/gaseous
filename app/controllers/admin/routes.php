@@ -18,7 +18,7 @@ use \Uri\Route;
 
 // check setting/role privileges
 if (!Settings::value('add_routes') && !Settings::value('edit_routes') && !Settings::value('archive_routes')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $templator  = new Templator();

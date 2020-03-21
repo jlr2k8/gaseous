@@ -24,11 +24,14 @@ class Templator extends Smarty
 
     public function __construct()
     {
-        $this->security = new Smarty_Security($this);
-
         parent::__construct();
 
+        $this->security = new Smarty_Security($this);
+
         $this->setTemplateDir($_SERVER['WEB_ROOT'] . '/views/smarty');
+        $this->setCacheDir('/dev/null');
+        $this->setCompileDir('/tmp/' . date('YmdHis') . '/');
+
         $this->cache();
     }
 

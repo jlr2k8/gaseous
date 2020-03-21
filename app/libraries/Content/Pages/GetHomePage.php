@@ -69,6 +69,7 @@ class GetHomePage extends Get
 
 
     /**
+     * @param null $uri
      * @return bool|string
      * @throws Exception
      */

@@ -373,7 +373,7 @@ class Submit
             $this->post_data['page_title_h1'],
             $this->post_data['meta_desc'],
             $this->post_data['meta_robots'],
-            htmlspecialchars($this->post_data['body']),
+            htmlspecialchars($this->post_data['body'], ENT_NOQUOTES),
             $this->post_data['status'],
             !empty($this->post_data['include_in_sitemap']) ? '1' : '0',
         ];

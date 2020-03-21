@@ -1,5 +1,5 @@
 $(document).ready( function() {
-    $('select[name="uri_uid"]').on('change', function(){
+    $('select[name="redirect_uri_uid"]').on('change', function(){
        if ($(this).find('option:selected').val() == 'custom') {
            $('#custom_uri_input_container').show(function() {
                 $('#custom_uri').attr('required', 'required');
@@ -10,6 +10,7 @@ $(document).ready( function() {
            });
        }
     });
+
     $('button[name="update"].uri_redirect_update').on('click', function(e) {
         e.preventDefault();
 

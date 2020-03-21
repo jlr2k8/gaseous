@@ -20,7 +20,7 @@ use Wysiwyg\Codemirror;
 
 // check setting/role privileges
 if (!Settings::value('manage_js')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $js    = new JsIterator();

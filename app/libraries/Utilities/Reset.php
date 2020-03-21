@@ -302,6 +302,13 @@ class Reset
             'description'   => 'Ability to add CMS pages',
             'value'         => '0'
         ],
+        'manage_menu' => [
+            'display'       => 'Edit Site Menu',
+            'category_key'  => 'administrative',
+            'role_based'    => true,
+            'description'   => 'Ability to edit the websites\'s navigation menu',
+            'value'         => '0'
+        ],
         'edit_pages' => [
             'display'       => 'Edit Pages',
             'category_key'  => 'cms',
@@ -374,6 +381,7 @@ class Reset
         'archive_roles'             => ['boolean'],
         'archive_routes'            => ['boolean'],
         'archive_users'             => ['boolean'],
+        'manage_menu'           => ['boolean'],
         'edit_pages'                => ['boolean'],
         'edit_redirects'            => ['boolean'],
         'edit_roles'                => ['boolean'],
@@ -442,6 +450,7 @@ class Reset
         '/admin/pages/?'                        => 'controllers/admin/pages.php',
         '/admin/users/?'                        => 'controllers/admin/users.php',
         '/admin/redirects/?'                    => 'controllers/admin/redirects.php',
+        '/admin/menu/?'                         => 'controllers/admin/menu.php',
         '/([\\w\\/\\-]+(\\.html)?)?'            => 'controllers/cms/index.php?page=$1',
     ];
 

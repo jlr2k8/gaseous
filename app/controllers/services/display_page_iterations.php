@@ -18,7 +18,7 @@ use Content\Pages\Templator;
 use Content\Pages\Utilities;
 
 if (!Settings::value('edit_pages')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $page_master_uid = !empty($_GET['page_master_uid']) ? (string)filter_var($_GET['page_master_uid'], FILTER_SANITIZE_STRING) : false;

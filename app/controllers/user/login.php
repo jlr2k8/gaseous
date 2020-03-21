@@ -43,11 +43,11 @@ if (!empty($_POST)) {
     if ($valid_login && $valid_recaptcha) {
         header('Location: ' . Settings::value('full_web_url'));
     } elseif($valid_login && !$valid_recaptcha) {
-        header('HTTP/1.1 401 Not Authorized');
+        header('HTTP/1.1 403 Forbidden');
 
         $templator->assign('login_message', 'Invalid Recaptcha');
     } else {
-        header('HTTP/1.1 401 Not Authorized');
+        header('HTTP/1.1 401 Forbidden');
 
         $templator->assign('login_message', 'Invalid Login');
     }

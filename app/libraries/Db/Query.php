@@ -19,7 +19,7 @@ use PDOStatement;
 class Query extends PdoMySql
 {
     public $query, $con;
-    protected $sql, $bind;
+    protected $sql, $bind_array;
 
 
     /**
@@ -46,9 +46,12 @@ class Query extends PdoMySql
         try {
             $query = $this->prepare($this->sql);
 
-            $query->execute($this->bind_array);
+            if (!$query->execute($this->bind_array)) {
+                debug_backtrace();
+            }
 
-        } catch(PDOException $e) {
+
+        } catch(Exception $e) {
             self::handleError($e);
         }
 

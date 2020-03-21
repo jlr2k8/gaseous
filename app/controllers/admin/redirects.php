@@ -20,7 +20,7 @@ use Uri\Uri;
 
 // check setting/role privileges
 if (!Settings::value('add_redirects') && !Settings::value('edit_redirects') && !Settings::value('archive_redirects')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $templator      = new Templator();
@@ -54,7 +54,7 @@ if (!empty($_POST) && $edit_redirect_uris) {
             if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsPage($uri)) {
                 $uri_obj->insertUri($uri);
 
-                $post['uri_uid']    = $uri_obj->getUriUid($uri);
+                $post['redirect_uri_uid']    = $uri_obj->getUriUid($uri);
             }
         }
 
@@ -82,7 +82,6 @@ $templator->assign('edit_uri_redirects', $edit_redirect_uris);
 $templator->assign('archive_uri_redirects', $archive_redirect_uris);
 $templator->assign('all_uris', $all_uris);
 $templator->assign('all_unused_uris', $unused_redirects);
-
 $templator->assign('error', $error);
 
 $page_find_replace = [

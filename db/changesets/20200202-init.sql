@@ -151,6 +151,30 @@ CREATE TABLE `login_session` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+CREATE TABLE `menu` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `parent_uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `uri_uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sort_order` int(11) NOT NULL DEFAULT '0',
+  `nofollow` enum('false','true') COLLATE utf8mb4_unicode_ci DEFAULT 'false',
+  `target` enum('_blank','_self','_parent','_top') COLLATE utf8mb4_unicode_ci DEFAULT '_self',
+  `class` text COLLATE utf8mb4_unicode_ci,
+  `label` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `archived` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
+  `created_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `modified_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `archived_datetime` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uid` (`uid`,`archived_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TRIGGER `before_insert_menu` BEFORE INSERT ON `menu` FOR EACH ROW
+IF new.uid IS NULL THEN
+    SET new.uid = UUID();
+END IF;
+
+
 CREATE TABLE `page` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `page_master_uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,

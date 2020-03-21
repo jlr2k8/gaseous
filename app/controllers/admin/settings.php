@@ -19,7 +19,7 @@ use \Wysiwyg\Codemirror;
 
 // check setting/role privileges
 if (!Settings::value('edit_settings')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $settings           = new Settings();

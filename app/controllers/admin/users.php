@@ -18,7 +18,7 @@ use User\Account;
 use User\Roles;
 
 if (!Settings::value('edit_users') && !Settings::value('archive_users')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $templator      = new Templator();

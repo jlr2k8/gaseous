@@ -18,7 +18,7 @@ use User\Roles;
 // check setting/role privileges
 
 if (!Settings::value('add_roles') && !Settings::value('edit_roles') && !Settings::value('archive_roles')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $templator  = new Templator();

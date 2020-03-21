@@ -19,7 +19,7 @@ use Exception;
 
 class Redirect
 {
-    public $errors              = [];
+    public $errors = [];
     public $json_upsert_status;
 
     public function __construct()
@@ -161,7 +161,7 @@ class Redirect
      */
     public function insert(array $data, PdoMySql $transaction = null)
     {
-        $uri_uid            = filter_var($data['uri_uid'], FILTER_SANITIZE_STRING);
+        $uri_uid            = filter_var($data['redirect_uri_uid'], FILTER_SANITIZE_STRING);
         $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
         $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING);
         $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);
@@ -208,7 +208,7 @@ class Redirect
      */
     public function update(array $data)
     {
-        $uri_uid            = filter_var($data['uri_uid'], FILTER_SANITIZE_STRING);
+        $uri_uid            = filter_var($data['redirect_uri_uid'], FILTER_SANITIZE_STRING);
         $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
         $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING);
         $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);

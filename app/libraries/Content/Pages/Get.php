@@ -16,6 +16,7 @@ use Assets\Css;
 use Assets\CssIterator;
 use Assets\Js;
 use Assets\JsIterator;
+use Content\Menu;
 use ErrorHandler;
 use Exception;
 use Seo\Url;
@@ -36,7 +37,7 @@ class Get
 
 
     /**
-     * @param $uri
+     * @param null $uri
      * @return string
      * @throws Exception
      */
@@ -460,7 +461,7 @@ class Get
      * @return string
      * @throws SmartyException
      */
-    private static function outputCss(Templator $templator, CssIterator $css_iterator = null, $uid = false)
+    public static function outputCss(Templator $templator, CssIterator $css_iterator = null, $uid = false)
     {
         $href   = '/styles.gz.css';
 
@@ -481,7 +482,7 @@ class Get
      * @return string|null
      * @throws SmartyException
      */
-    private static function outputLatestCss(Templator $templator)
+    public static function outputLatestCss(Templator $templator)
     {
         $css_iterator       = new CssIterator();
         $latest_css         = $css_iterator->getCurrentCssIteration(true);
@@ -550,12 +551,12 @@ class Get
     private function renderTemplate($string, Templator $templator = null)
     {
         if (!empty($templator)) {
-            $templator->security->php_functions         = ['date'];
-            $templator->security->php_handling          = $templator::PHP_REMOVE;
-            $templator->security->php_modifiers         = null;
-            $templator->security->static_classes        = null;
-            $templator->security->allow_constants       = false;
-            $templator->security->allow_super_globals   = false;
+            $templator->security->php_functions             = null;
+            $templator->security->php_handling              = $templator::PHP_REMOVE;
+            $templator->security->php_modifiers             = null;
+            $templator->security->trusted_static_methods    = null;
+            $templator->security->allow_constants           = false;
+            $templator->security->allow_super_globals       = false;
 
             $templator->enableSecurity($templator->security);
         }
@@ -626,6 +627,9 @@ class Get
      */
     private static function nav(Templator $templator, array $find_replace)
     {
+        $menu                   = new Menu();
+        $find_replace['menu']   = $menu->renderMenu();
+
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
 

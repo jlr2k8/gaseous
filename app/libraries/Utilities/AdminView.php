@@ -57,6 +57,10 @@ class AdminView
         $templator->assign('edit_routes', Settings::value('edit_routes'));
         $templator->assign('archive_routes', Settings::value('archive_routes'));
 
+        $templator->assign('add_menu_items', Settings::value('add_menu_items'));
+        $templator->assign('manage_menu', Settings::value('manage_menu'));
+        $templator->assign('archive_menu_items', Settings::value('archive_menu_items'));
+
         $view = $templator->fetch('admin/main.tpl');
 
         return $view;

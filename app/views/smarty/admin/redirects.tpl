@@ -114,7 +114,7 @@
                                 <h3>
                                     URI:
                                 </h3>
-                                <select name="uri_uid">
+                                <select name="redirect_uri_uid">
                                     <option></option>
                                     <option value="custom">-- Custom --</option>
                                     {foreach from=$all_unused_uris item=uri}

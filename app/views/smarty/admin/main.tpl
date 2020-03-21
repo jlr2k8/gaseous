@@ -55,4 +55,11 @@
             </a>
         </li>
     {/if}
+    {if $manage_menu}
+        <li>
+            <a href="/admin/menu">
+                Site Menu Management
+            </a>
+        </li>
+    {/if}
 </ul>

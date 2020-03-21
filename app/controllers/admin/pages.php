@@ -25,7 +25,7 @@ use \Wysiwyg\Codemirror;
 
 // check setting/role privileges
 if (!Settings::value('add_pages') && !Settings::value('edit_pages') && !Settings::value('archive_pages')) {
-    HTTP::error(401);
+    HTTP::error(403);
 }
 
 $settings           = new Settings();

@@ -1,0 +1,1 @@
+<div itemprop="articleBody">{$body}</div>

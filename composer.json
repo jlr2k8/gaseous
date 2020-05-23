@@ -1,0 +1,12 @@
+{
+    "name": "jlr2k8/gaseous",
+    "Description": "Gaseous is a simple and secure SEO-oriented Content Management System",
+    "type": "project",
+    "license": "MIT",
+    "homepage": "https://gaseou.us",
+    "support": {},
+    "require": {
+        "smarty/smarty": "~3.1",
+        "swiftmailer/swiftmailer": "^6.0"
+    }
+}

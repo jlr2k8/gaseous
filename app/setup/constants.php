@@ -10,12 +10,19 @@
  *
  */
 
-if (PHP_SAPI != 'cli') {
-    define('ENVIRONMENT', $_SERVER['ENVIRONMENT']);
-} else {
-    $environment_param = filter_var($argv[1], FILTER_SANITIZE_STRING);
+define('PAGE_LOAD_START', microtime(true));
+define('APP_VERSION', '0.0');
+define('WEB_ROOT', dirname(__DIR__));
+define('GASEOUS_AUTOLOADER', WEB_ROOT . '/libraries/Autoload.php');
+define('ENVIRONMENT_INI', WEB_ROOT . '/setup/environments.ini');
+define('DEFAULT_ENVIRONMENT', 'default');
 
-    define('ENVIRONMENT', $environment_param);
+if (PHP_SAPI != 'cli') {
+    define('ENVIRONMENT', $_SERVER['ENVIRONMENT'] ?? DEFAULT_ENVIRONMENT);
+} else {
+    $environment_param = filter_var($argv[1], FILTER_SANITIZE_STRING, FILTER_NULL_ON_FAILURE);
+
+    define('ENVIRONMENT', $environment_param ?? DEFAULT_ENVIRONMENT);
 }
 
 // Bootstrap configuration for cookie/session handling

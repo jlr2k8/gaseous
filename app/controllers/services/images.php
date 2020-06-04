@@ -13,17 +13,18 @@
  *
  */
 
-// get src param
-use Assets\Headers;
-use Content\Pages\HTTP;
 
-$upload_root    = Settings::value('upload_root');
+use Assets\Headers;
+use Content\Http;
+
+$upload_root    = !empty($_GET['upload_root']) && $_GET['upload_root'] === 'true' ? Settings::value('upload_root') : WEB_ROOT . '/assets/img';
 $filetype       = !empty($_GET['filetype']) ? $_GET['filetype'] : false;
-$filename       = !empty($_GET['src']) && is_file($upload_root . '/' . $_GET['src']) ? $upload_root . '/' . $_GET['src'] : false;
+$filename       = !empty($_GET['src']) && is_readable($upload_root . '/' . $_GET['src']) ? $upload_root . '/' . $_GET['src'] : false;
+$client_headers = apache_request_headers();
 
 // 404 if img not provided or doesn't exist locally
 if (!$filename) {
-    HTTP::error(404);
+    Http::error(404);
 }
 
 $headers    = (new Headers($filename))->images($filetype);
@@ -31,7 +32,6 @@ $headers    = (new Headers($filename))->images($filetype);
 // compress with gz (if available)
 if (!ob_start('ob_gzhandler') || !stristr($client_headers['Accept-Encoding'], 'gzip'))
     ob_start();
-
 
 // echo out file
 echo file_get_contents($filename);

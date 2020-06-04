@@ -12,7 +12,7 @@
 
 namespace Assets;
 
-use Content\Pages\HTTP;
+use Content\Http;
 use Exception;
 
 class Headers
@@ -27,7 +27,7 @@ class Headers
     public function __construct($filename = false)
     {
         if (!empty($filename) && !is_readable($filename)) {
-            HTTP::error(404);
+            Http::error(404);
         }
 
         $this->client_headers = apache_request_headers();
@@ -114,26 +114,65 @@ class Headers
         $filetype   = !empty($this->filename) && empty($filetype) ? mime_content_type($this->filename) : $filetype;
 
         // always send headers
-        header('Last-Modified: ' . $this->last_modified_gmd);
-        header('Etag: ' . hash('md5', $this->last_modified));
-        header('Expires: ' . $this->one_year_gmd);
         header('Content-type: ' . $filetype);
-        header('X-mod-since: ' . $this->last_modified);
+        header('Cache-control: max-age=' . $this->one_year);
+        header('Expires: ' . $this->one_year_gmd);
 
         // exit if not modified
         if ($this->if_mod_since == $this->last_modified_gmd) {
             header('X-304: true');
 
+            // 304 Not Modified
+            header('Last-Modified: ' . $this->last_modified_gmd, true, 304);
+
             return true;
         }
 
-        header('Last-Modified: ' . gmdate("D, d M Y H:i:s", (int)$this->last_modified) . ' GMT');
         header('X-304: false');
 
         return true;
     }
 
 
+    /**
+     * @return bool
+     */
+    public function file()
+    {
+        $this->getLastModified();
+
+        $filetype   = mime_content_type($this->filename);
+
+        // always send headers
+        header('Content-type: ' . $filetype);
+        header('Cache-control: max-age=' . $this->one_year);
+        header('Expires: ' . $this->one_year_gmd);
+
+        if ($filetype == 'application/pdf') {
+            header('Content-Disposition: inline; filename=' . basename($this->filename));
+        } else {
+            header('Content-Disposition: attachment; filename=' . basename($this->filename));
+        }
+
+        // exit if not modified
+        if ($this->if_mod_since == $this->last_modified_gmd) {
+            header('X-304: true');
+
+            // 304 Not Modified
+            header('Last-Modified: ' . $this->last_modified_gmd, true, 304);
+
+            return true;
+        }
+
+        header('X-304: false');
+
+        return true;
+    }
+
+
+    /**
+     * @return bool
+     */
     private function getLastModified()
     {
         $this->last_modified = empty($this->last_modified) && !empty($this->filename)
@@ -141,7 +180,7 @@ class Headers
             : $this->last_modified;
 
         $this->last_modified_gmd = !empty($this->last_modified)
-            ? gmdate("D, d M Y H:i:s", strtotime($this->last_modified)) . ' GMT'
+            ? gmdate("D, d M Y H:i:s", $this->last_modified)
             : false;
 
         $this->if_mod_since = !empty($this->client_headers['If-Modified-Since'])

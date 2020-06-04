@@ -10,9 +10,9 @@
  *
  **/
 
-use Content\Pages\Get;
-use Content\Pages\HTTP;
-use Content\Pages\Submit;
+use Content\Get;
+use Content\Http;
+use Content\Submit;
 use Db\PdoMySql;
 
 $get_pages          = new Get();
@@ -31,7 +31,7 @@ try {
 
     $transaction->commit();
 
-    HTTP::redirect($return_url);
+    Http::redirect($return_url);
 } catch (Exception $e) {
     echo 'There was an error';
     echo $e->getTraceAsString();

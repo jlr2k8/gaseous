@@ -74,15 +74,15 @@ class SiteMap
         $sql = "
           SELECT uri.uid, uri.uri
           FROM uri
-          INNER JOIN page AS p ON p.uri_uid = uri.uid
-          INNER JOIN current_page_iteration AS cpi ON p.page_master_uid = cpi.page_master_uid
-          INNER JOIN page_iteration AS pi ON cpi.page_iteration_uid = pi.uid
+          INNER JOIN content AS c ON c.uri_uid = uri.uid
+          INNER JOIN current_content_iteration AS cci ON c.uid = cci.content_uid
+          INNER JOIN content_iteration AS ci ON cci.content_iteration_uid = ci.uid
           WHERE uri.archived = '0'
-          AND p.archived = '0'
-          AND cpi.archived = '0'
-          AND pi.archived = '0'
-          AND pi.status = 'active' 
-          AND pi.include_in_sitemap = '1'
+          AND c.archived = '0'
+          AND cci.archived = '0'
+          AND ci.archived = '0'
+          AND ci.status = 'active' 
+          AND ci.include_in_sitemap = '1'
           ORDER BY
             CASE WHEN uri.uri = 'home'
               THEN 0

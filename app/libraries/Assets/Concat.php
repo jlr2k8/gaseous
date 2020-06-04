@@ -21,7 +21,7 @@ class Concat
 
     public function __construct()
     {
-        $this->scope                = $_SERVER['WEB_ROOT'] . '/assets-src';
+        $this->scope                = WEB_ROOT . '/assets-src';
         $this->recursive_iterator   = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->scope));
         $this->directory_modified   = filemtime($this->scope);
     }

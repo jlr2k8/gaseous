@@ -11,6 +11,12 @@
  */
 
 if (Settings::value('show_debug')) {
+    $session = $_SESSION;
+
+    if (!empty($session['settings']['main_template'])) {
+        $session['settings']['main_template'] = '(encoded): ' . htmlentities($session['settings']['main_template']);
+    }
+
     echo '
         <style>
             #footer_debug {
@@ -69,7 +75,7 @@ if (Settings::value('show_debug')) {
             <hr>
             
             <h2>Session: ' . session_id() . '</h2>
-            <pre>' . print_r($_SESSION, true) . '</pre>
+            <pre>(copy of session) ' . print_r($session, true) . '</pre>
             
             <hr>
             

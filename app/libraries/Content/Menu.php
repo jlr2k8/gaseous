@@ -12,7 +12,7 @@
 
 namespace Content;
 
-use Content\Pages\Templator;
+use Content\Templator;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
@@ -29,6 +29,9 @@ class Menu
     }
 
 
+    /**
+     * @throws Exception
+     */
     public static function editMenuCheck()
     {
         if (!Settings::value('manage_menu'))
@@ -36,6 +39,10 @@ class Menu
     }
 
 
+    /**
+     * @return bool|string
+     * @throws \SmartyException
+     */
     public function renderMenu()
     {
         $templator  = new Templator();
@@ -51,8 +58,15 @@ class Menu
     }
 
 
+    /**
+     * @param $form_data_serialized
+     * @return bool
+     * @throws Exception
+     */
     public function processMenu($form_data_serialized)
     {
+        self::editMenuCheck();
+
         parse_str($form_data_serialized, $form_data);
 
         $i              = (int)0;
@@ -65,7 +79,7 @@ class Menu
                 $i++;
                 $menu_item[$i]  = $this->getMenuItem($uid);
 
-                if ($this->archiveMenuItem($transaction, $uid)) {
+                if ($this->archiveMenuItem($uid, $transaction)) {
                     $label      = filter_var($menu_item[$i]['label'], FILTER_SANITIZE_STRING);
                     $uri_uid    = filter_var($menu_item[$i]['uri_uid'], FILTER_SANITIZE_STRING);
                     $nofollow   = filter_var($menu_item[$i]['nofollow'], FILTER_SANITIZE_STRING);
@@ -90,6 +104,10 @@ class Menu
     }
 
 
+    /**
+     * @param null $parent_uid
+     * @return array
+     */
     public function getMenu($parent_uid = null)
     {
         $sql = "
@@ -180,6 +198,10 @@ class Menu
     }
 
 
+    /**
+     * @param $uid
+     * @return array
+     */
     public function getMenuItem($uid)
     {
         $sql = "
@@ -218,8 +240,15 @@ class Menu
     }
 
 
+    /**
+     * @param array $form_data
+     * @return bool
+     * @throws Exception
+     */
     public function addMenuItem(array $form_data)
     {
+        self::editMenuCheck();
+
         $label      = filter_var($form_data['label'], FILTER_SANITIZE_STRING);
         $uri_uid    = filter_var($form_data['menu_uri_uid'], FILTER_SANITIZE_STRING);
         $nofollow   = filter_var($form_data['nofollow'], FILTER_SANITIZE_STRING);
@@ -232,8 +261,15 @@ class Menu
     }
 
 
+    /**
+     * @param array $form_data
+     * @return bool
+     * @throws Exception
+     */
     public function updateMenuItem(array $form_data)
     {
+        self::editMenuCheck();
+
         $uid        = filter_var($form_data['uid'], FILTER_SANITIZE_STRING);
         $parent_uid = !empty($form_data['parent_uid']) ? filter_var($form_data['parent_uid'], FILTER_SANITIZE_STRING) : null;
         $sort_order = filter_var($form_data['sort_order'], FILTER_SANITIZE_NUMBER_INT);
@@ -248,7 +284,7 @@ class Menu
         $transaction->beginTransaction();
 
         try {
-            $this->archiveMenuItem($transaction, $uid);
+            $this->archiveMenuItem($uid, $transaction);
             $this->insertMenuItem($label, $uri_uid, $nofollow, $target, $class, $sort_order, $uid, $parent_uid, $transaction);
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -264,6 +300,9 @@ class Menu
     }
 
 
+    /**
+     * @return int
+     */
     private function getNewSortOrder()
     {
         $sql = "
@@ -280,8 +319,24 @@ class Menu
     }
 
 
+    /**
+     * @param $label
+     * @param $uri_uid
+     * @param bool $nofollow
+     * @param string $target
+     * @param null $class
+     * @param null $sort_order
+     * @param null $uid
+     * @param null $parent_uid
+     * @param PdoMySql|null $transaction
+     * @param string $archived_datetime
+     * @return bool
+     * @throws Exception
+     */
     private function insertMenuItem($label, $uri_uid, $nofollow = true, $target = '_self', $class = null, $sort_order = null, $uid = null, $parent_uid = null, PdoMySql $transaction = null, $archived_datetime = '0000-00-00 00:00:00')
     {
+        self::editMenuCheck();
+
         $uid        = $uid ?? self::getUid();
         $sort_order = (int)($sort_order ?? $this->getNewSortOrder());
         $archived   = !empty($archived_datetime) && $archived_datetime != '0000-00-00 00:00:00' ? '1' : '0';
@@ -354,8 +409,18 @@ class Menu
         return $normalized_uid;
     }
 
-    private function archiveMenuItem(PdoMySql $transaction, $uid)
+
+    /**
+     * @param $uid
+     * @param PdoMySql|null $transaction
+     * @param bool $archive_orphans
+     * @return bool
+     * @throws Exception
+     */
+    public function archiveMenuItem($uid, PdoMySql $transaction = null, $archive_orphans = false)
     {
+        self::editMenuCheck();
+
         $sql = "
             UPDATE menu
             SET
@@ -371,14 +436,70 @@ class Menu
             $uid,
         ];
 
-        return $transaction
-            ->prepare($sql)
-            ->execute($bind);
+        if (!empty($transaction)) {
+            $archived = $transaction
+                ->prepare($sql)
+                ->execute($bind);
+        } else {
+            $db         = new Query($sql, $bind);
+            $archived   = $db->run();
+        }
+
+        return $archived;
     }
 
+
+    /**
+     * @return array
+     */
+    private function getOrphans()
+    {
+        $sql = "
+            SELECT uid
+            FROM menu
+            WHERE parent_uid NOT IN (
+                SELECT uid
+                FROM menu
+                WHERE archived = '0'
+            )
+            AND parent_uid IS NOT NULL
+            AND archived = '0';
+        ";
+
+        $db         = new Query($sql);
+        $results    = $db->fetchAll();
+
+        return $results;
+    }
+
+
+    /**
+     * @return bool
+     * @throws Exception
+     */
+    public function archiveOrphans()
+    {
+        self::editMenuCheck();
+
+        $orphans = $this->getOrphans();
+
+        foreach ($orphans as $uid) {
+            $this->archiveMenuItem($uid);
+        }
+
+        if (!empty($this->getOrphans())) {
+            return $this->archiveOrphans();
+        }
+
+        return true;
+    }
+
+
+    /**
+     * @return string
+     */
     public function getErrors()
     {
         return implode('; ', $this->errors);
     }
-
 }

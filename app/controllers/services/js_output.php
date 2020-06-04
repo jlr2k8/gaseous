@@ -32,10 +32,10 @@ if (empty($iteration)) {
     if (!empty($_SESSION['js_preview'])) {
         $js_output  = $_SESSION['js_preview']['js'];
     } else {
-        $headers->last_modified = $js['modified_datetime'];
-
         header('Content-Encoding: gzip');
-        $js_output = gzencode(Minify::js($js['js']));
+
+        $headers->last_modified = $js['modified_datetime'];
+        $js_output              = gzencode(Minify::js($js['js']));
     }
 }
 

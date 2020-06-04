@@ -10,8 +10,8 @@
  *
  */
 
-use \Content\Pages\Breadcrumbs;
-use \Content\Pages\Templator;
+use \Content\Breadcrumbs;
+use \Content\Templator;
 use \Utilities\AdminView;
 
 $title      = 'Administration';

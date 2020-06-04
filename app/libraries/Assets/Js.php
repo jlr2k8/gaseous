@@ -29,7 +29,7 @@ class Js
     public function get()
     {
         $asset_concat   = new Concat();
-        $js_gz_file    = $_SERVER['WEB_ROOT'] . '/assets/js.gz.js';
+        $js_gz_file    = WEB_ROOT . '/assets/js.gz.js';
 
         $js_gz = file_exists($js_gz_file) && gzdecode(file_get_contents($js_gz_file))
             ? gzdecode(file_get_contents($js_gz_file))

@@ -35,6 +35,7 @@
                 {/if}
                 <td {if $edit_routes}class="cursor_move"{/if}>
                     <input type="hidden" name="uid" value="{$route.uid}" />
+                    <input type="hidden" name="priority_order" value="{$route.priority_order}" />
 
                     {if $edit_routes}
                         <input type="text" name="regex_pattern" value="{$route.regex_pattern}" />
@@ -81,34 +82,36 @@
             <form id="route_new" method="post" action="{$full_web_url}/admin/routes/">
                 <table class="no_border">
                     <thead>
-                    <th>
-                        Regex Pattern
-                    </th>
-                    <th>
-                        Destination Controller
-                    </th>
-                    <th>
-                        Description
-                    </th>
-                    <th>
-                        {* Action (No Header) *}
-                    </th>
+                        <tr>
+                            <th>
+                                Regex Pattern
+                            </th>
+                            <th>
+                                Destination Controller
+                            </th>
+                            <th>
+                                Description
+                            </th>
+                            <th>
+                                {* Action (No Header) *}
+                            </th>
+                        </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td>
-                            <input type="text" name="regex_pattern" />
-                        </td>
-                        <td>
-                            <input type="text" name="destination_controller" />
-                        </td>
-                        <td>
-                            <input type="text" name="description" />
-                        </td>
-                        <td>
-                            <button class="uri_route_update" name="new" type="submit">Submit new route &#187;</button>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>
+                                <input type="text" name="regex_pattern" />
+                            </td>
+                            <td>
+                                <input type="text" name="destination_controller" />
+                            </td>
+                            <td>
+                                <input type="text" name="description" />
+                            </td>
+                            <td>
+                                <button class="uri_route_update" name="new" type="submit">Submit new route &#187;</button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </form>

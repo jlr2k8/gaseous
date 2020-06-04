@@ -1,6 +1,6 @@
 <?php
 
-use Content\Pages\Templator;
+use Content\Templator;
 
 /**
  * Created by Josh L. Rogers.

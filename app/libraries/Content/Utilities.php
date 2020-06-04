@@ -10,9 +10,7 @@
  *
  */
 
-namespace Content\Pages;
-
-use Db\Query;
+namespace Content;
 
 class Utilities
 {
@@ -40,29 +38,6 @@ class Utilities
         array_pop($uri_as_array);
 
         return self::arrayAsUri($uri_as_array);
-    }
-
-
-    /**
-     * $uri can be an array (each uri piece making up the array element values) or a string (the uri string itself)
-     *
-     * @param array | string $uri
-     * @return string
-     */
-    static function getLastPartOfUri($uri)
-    {
-        if (is_array($uri)) {
-            $uri_as_array = $uri;
-        } elseif (!is_array($uri) && is_string($uri)) {
-            $uri_as_array = self::uriAsArray($uri);
-        } else {
-            return null;
-        }
-
-        $last_array_element = end($uri_as_array);
-        $last_uri_piece     = trim($last_array_element,'/');
-
-        return $last_uri_piece;
     }
 
 
@@ -103,24 +78,15 @@ class Utilities
      */
     public static function snippet($text, $strlen = 10)
     {
-        $text = (string)strip_tags(htmlspecialchars_decode($text), '<br>');
+        $text       = (string)strip_tags($text, '<br>');
+        $text       = preg_replace("~\s+~", ' ', $text);
+        $ellipsis   = null;
 
-        $ellipsis = ' &#8230;';
-
-        // no need to trim
-        if (strlen($text) <= $strlen) {
-
-            return $text;
+        if (strlen($text) > $strlen) {
+            $text       = substr($text, 0, (int)$strlen);
+            $ellipsis   = ' &#8230;';
         }
 
-        // replace non-alphanum chars in stripped/decoded string
-        $text = preg_replace('~^[A-Za-z0-9]$~', null, $text);
-
-        // see if length is still greater than $strlen
-        if (strlen($text) <= $strlen) {
-            $ellipsis = null;
-        }
-
-        return substr($text, 0, (int)$strlen) . $ellipsis;
+        return $text . $ellipsis;
     }
 }

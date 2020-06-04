@@ -11,16 +11,15 @@
  *
  **/
 
-use \Content\Pages\Get;
-use \Content\Pages\Breadcrumbs;
-use \Content\Pages\HTTP;
-use \Content\Pages\Templator;
+use \Content\Breadcrumbs;
+use \Content\Http;
+use \Content\Templator;
 use \Uri\Redirect;
 use Uri\Uri;
 
 // check setting/role privileges
 if (!Settings::value('add_redirects') && !Settings::value('edit_redirects') && !Settings::value('archive_redirects')) {
-    HTTP::error(403);
+    Http::error(403);
 }
 
 $templator      = new Templator();
@@ -30,8 +29,8 @@ $title              = 'Site Redirects';
 $redirects          = $uri_redirect->getAll();
 $unused_redirects   = $uri_redirect->getAllNotRedirected();
 $error              = null;
-$http_status_codes  = HTTP::$status_codes;
-$all_uris           = Get::allUris();
+$http_status_codes  = Http::$status_codes;
+$all_uris           = Uri::all();
 
 $add_uri_redirects      = Settings::value('add_redirects');
 $edit_redirect_uris     = Settings::value('edit_redirects');
@@ -45,13 +44,30 @@ if (!empty($_POST) && $edit_redirect_uris) {
     $submit_redir = false;
 
     if (isset($post['update'])) {
+        $transaction->beginTransaction();
+
+        try {
+            $uri_redirect->update($post, $transaction);
+        } catch (Exception $e) {
+            $transaction->rollBack();
+
+            $this->errors[] = $e->getMessage();
+
+            $this->generateJsonUpsertStatus('status', $e->getMessage());
+            $this->checkAndThrowException();
+
+            return false;
+        }
+
+        $transaction->commit();
+
         $submit_redir = $uri_redirect->update($post);
     } elseif (isset($post['new'])) {
         if (!empty($post['custom_uri'])) {
             $uri_obj    = new Uri();
             $uri        = '/' . filter_var($post['custom_uri'], FILTER_SANITIZE_URL);
 
-            if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsPage($uri)) {
+            if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsContent($uri)) {
                 $uri_obj->insertUri($uri);
 
                 $post['redirect_uri_uid']    = $uri_obj->getUriUid($uri);

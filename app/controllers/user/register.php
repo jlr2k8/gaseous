@@ -10,14 +10,16 @@
  *
  */
 
-use Content\Pages\Breadcrumbs;
-use Content\Pages\Templator;
+use Content\Breadcrumbs;
+use Content\Templator;
 use User\Account;
+use User\Login;
 use User\Register;
+use User\Roles;
 
 $templator          = new Templator();
-$access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['access_code'], FILTER_SANITIZE_STRING) : false;
-$has_valid_access   = ($access_code && $access_code == Settings::value('registration_access_code'));
+$access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['access_code'], FILTER_SANITIZE_STRING) : null;
+$has_valid_access   = ($access_code == Settings::value('registration_access_code'));
 
 $page_find_replace = [
     'page_title'    => 'User Registration',
@@ -31,16 +33,11 @@ if (!empty($_POST) && $has_valid_access) {
     $create_account = $registration->createAccount();
 
     if ($create_account) {
-        $registration_redir = Settings::value('full_web_url');
+        $login  = new Login();
 
-        if (!empty($_SESSION['registration_redirect'])) {
+        $login->checkPostLogin();
 
-            $registration_redir = $_SESSION['registration_redirect'];
-
-            unset($_SESSION['registration_redirect']);
-        }
-
-        header('Location: ' . $registration_redir);
+        header('Location: ' . Settings::value('full_web_url'));
     } else {
         $templator->assign('errors', $registration->errors);
         $templator->assign('access_code', $access_code);

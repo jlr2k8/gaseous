@@ -11,14 +11,14 @@
  *
  **/
 
-use \Content\Pages\Breadcrumbs;
-use \Content\Pages\HTTP;
-use \Content\Pages\Templator;
+use \Content\Breadcrumbs;
+use \Content\Http;
+use \Content\Templator;
 use \Uri\Route;
 
 // check setting/role privileges
 if (!Settings::value('add_routes') && !Settings::value('edit_routes') && !Settings::value('archive_routes')) {
-    HTTP::error(403);
+    Http::error(403);
 }
 
 $templator  = new Templator();

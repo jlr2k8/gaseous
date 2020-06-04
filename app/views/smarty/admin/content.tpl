@@ -8,13 +8,13 @@
     *}
 
     <input type="hidden" name="uid" value="{if !empty($page)}{$page.uid}{/if}" />
-    <input type="hidden" name="original_uri_uid" value="{if !empty($page)}{$page.uri_uid}{/if}" />
+    <input type="hidden" name="uri_uid" value="{if !empty($page)}{$page.uri_uid}{/if}" />
     <input type="hidden" name="content_uid" value="{if !empty($page)}{$page.content_uid}{/if}" />
+    <input type="hidden" name="content_body_type_id" value="{$content_body_type_id}" />
 
-    <div>
+    <div class="two-thirds_left gray_background margin_on_bottom">
         <h3>Page Attributes:</h3>
-
-        <div class="gray_background slight_padding">
+        <div class="slight_padding">
             <div class="floating_form_label_and_input">
                 <label class="label">Page Title (H1 Tag):</label>
                 <input type="text" name="page_title_h1" value="{if !empty($page.page_title_h1)}{$page.page_title_h1}{/if}" />
@@ -35,7 +35,7 @@
                             {if !empty($page) && $status == $page.status}
                                 selected="selected"
                             {/if}
-                        >{$status}</option>
+                        >{ucfirst($status)}</option>
                     {/foreach}
                 </select>
             </div>
@@ -71,54 +71,12 @@
                 </div>
             </div>
             <div>
-                {if !$is_home_page}
-                    <div class="floating_form_label_and_input">
-                        <label>
-                            Full Parent URI:
-                        </label>
-                        <select class="uri_preview_setter" name="parent_page_uri">
-                            <option value="">/</option>
-                            {foreach from=$all_uris item=uri}
-                                {if $uri.uri == '/home'}
-                                    {continue}
-                                {/if}
-                                <option value="{$uri.uid}"
-                                    {if !empty($parent_uri) && $uri.uri == rtrim($parent_uri,'/')}
-                                        selected="selected"
-                                    {/if}
-
-                                    {if !empty($page) && $uri.uid == $page.uri_uid}
-                                        disabled="disabled"
-                                    {/if}
-                                >{$uri.uri}/</option>
-                            {/foreach}
-                        </select>
-                    </div>
-                    <div class="floating_form_label_and_input">
-                        <label>
-                            This Page URI:
-                        </label>
-                        <input class="uri_preview_setter" required="required" type="text" name="this_uri_piece" value="{if !empty($this_uri_piece)}{$this_uri_piece}{/if}" />
-                    </div>
-                    <div class="floating_form_label_and_input">
-                        <label>
-                            Constructed URL:
-                        </label><br />
-                        <span class="green_text">
-                            {$full_web_url}<span id="preview_full_parent_uri">{if !empty($parent_uri)}{$parent_uri}{/if}</span>/<span id="preview_this_url_piece">{if !empty($this_uri_piece)}{$this_uri_piece}{/if}</span>
-                        </span>
-                        <h3 id="preview_hint">&#160;</h3>
-                    </div>
-                {else}
-                    <input type="hidden" name="parent_page_uri" value="" />
-                    <input type="hidden" name="this_uri_piece" value="home" />
-                {/if}
                 <div>
                     <div class="floating_form_label_and_input">
                         <div>
                             <input type="checkbox" id="is_public" name="is_public" />
                             <label class="label">
-                                Public page (available to all roles and non-logged-in users)
+                                Public page (available to all roles and anonymous users)
                             </label>
                         </div>
                         <div>
@@ -146,20 +104,43 @@
                     </div>
                 </div>
                 <div>
-                    {if $archive_pages && !$new_page && !$is_home_page}
-                        <input class="archive" name="archive" id="archive_page" type="submit" value="Archive This Page" />
+                    {if $archive_content && !$new_page && !$is_home_page}
+                        <input class="archive" name="archive" id="archive_content" type="submit" value="Archive This Page" />
                     {/if}
                 </div>
             </div>
         </div>
     </div>
-    <div>
-        <div id="toolbar_buffer">
-            &#160;
+    {if !$is_home_page && !empty($parent_content)}
+        <div class="one-third_right gray_background">
+            <div class="floating_form_label_and_input">
+                <label>
+                    Parent Content:
+                </label>
+                <select name="parent_content_uid">
+                    {foreach from=$parent_content item=pc}
+                        <option
+                            value="{$pc.content_uid}"
+                            {if !empty($page.parent_content_uid) && $pc.content_uid == $page.parent_content_uid}selected="selected"{/if}
+                            {if !empty($page.parent_content_uid) && $pc.content_uid == $page.content_uid}disabled="disabled"{/if}>
+                            {if $pc.uri == '/home'}-- Top level --{else}{$pc.page_title_h1}{/if}
+                        </option>
+                    {/foreach}
+                </select>
+            </div>
+            <div class="floating_form_label_and_input">
+                <h3 id="preview_hint">&#160;</h3>
+            </div>
         </div>
-        <textarea name="body" id="body">{if !empty($page.body)}{$page.body}{/if}</textarea>
-        {$ck_editor->cdn}
-        {$ck_editor->inline('body')}
+    {/if}
+    <div class="clear_both">
+        &#160;
+    </div>
+    <div>
+        {$cms_fields}
+    </div>
+    <div class="clear_both">
+        &#160;
     </div>
     <div class="one-third_right slight_padding margin_top">
         <div>
@@ -171,7 +152,7 @@
             <textarea id="content_iteration_message" name="content_iteration_message"></textarea>
         </div>
         <div class="slight_margin">
-            <button id="submit_content_iteration" type="button" {if ((!$new_page && !$edit_pages) || ($new_page && !$add_pages)) }disabled="disabled"{/if}>
+            <button id="submit_content_iteration" type="button" {if ((!$new_page && !$edit_content) || ($new_page && !$add_content)) }disabled="disabled"{/if}>
                 Submit Page Iteration
             </button>
         </div>

@@ -10,13 +10,16 @@
  *
  **/
 
+// Get vendor packages....
+require_once dirname(__DIR__) . '/../vendor/autoload.php';
+
+// ... and register our own libraries...
 function autoLoader($class)
 {
     $namespaced_filepath    = str_replace('\\', DIRECTORY_SEPARATOR, $class);
-    $file                   = $_SERVER['WEB_ROOT'] . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $namespaced_filepath . '.php';
+    $file                   = WEB_ROOT . DIRECTORY_SEPARATOR . 'libraries' . DIRECTORY_SEPARATOR . $namespaced_filepath . '.php';
 
     if (is_readable($file)) {
-
         require_once $file;
 
         return true;

@@ -1,1 +1,1 @@
-<script src="{$src}" {if !empty($async) && $async === true}async="async"{/if} {if !empty($defer) && $defer === true}defer="defer"{/if}>&#160;</script>
+<script {if !empty($src)}src="{$src}"{/if} {if !empty($async) && $async === true}async="async"{/if} {if !empty($defer) && $defer === true}defer="defer"{/if}>{if !empty($script)}{$script}{/if}</script>

@@ -19,33 +19,39 @@ class PdoMySql extends PDO
 {
     public $debug;
     protected $dsn, $username, $password, $con;
-
+    protected $status = true;
 
     public function __construct()
     {
-        $mysql_server   = Settings::environmentIni('mysql_server');
-        $mysql_database = Settings::environmentIni('mysql_database');
-        $mysql_port     = Settings::environmentIni('mysql_port');
-        $mysql_user     = Settings::environmentIni('mysql_user');
-        $mysql_password = Settings::environmentIni('mysql_password');
+        if (is_readable(ENVIRONMENT_INI)) {
+            $mysql_server   = Settings::environmentIni('mysql_server');
+            $mysql_database = Settings::environmentIni('mysql_database');
+            $mysql_port     = Settings::environmentIni('mysql_port');
+            $mysql_user     = Settings::environmentIni('mysql_user');
+            $mysql_password = Settings::environmentIni('mysql_password');
 
-        $this->dsn      = 'mysql:host=' . $mysql_server . ';port=' . $mysql_port . ';dbname=' . $mysql_database;
-        $this->username = $mysql_user;
-        $this->password = $mysql_password;
+            $this->dsn      = 'mysql:host=' . $mysql_server . ';port=' . $mysql_port . ';dbname=' . $mysql_database;
+            $this->username = $mysql_user;
+            $this->password = $mysql_password;
 
-        $this->con = parent::__construct (
-            $this->dsn,
-            $this->username,
-            $this->password,
-            [
-                parent::ATTR_PERSISTENT => true,
-            ]
-        );
+            $this->con = parent::__construct (
+                $this->dsn,
+                $this->username,
+                $this->password,
+                [
+                    parent::ATTR_PERSISTENT => true,
+                ]
+            );
 
-        if ($this->debug === true) { // TODO - create binary setting (true or false) for debug mode
-            $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+            if ($this->debug === true) { // TODO - create binary setting (true or false) for debug mode
+                $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+            } else {
+                $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            }
+
         } else {
-            $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->con      = false;
+            $this->status   = false;
         }
     }
 }

@@ -30,6 +30,10 @@ class Breadcrumbs
 
         // generate each crumb with Schema stuff
         foreach ($crumbs as $c) {
+            // throw in an only-crumb class if only one crumb is shown on the page (e.g. the homepage)
+            if (count($crumbs) == (int)1) {
+                $c['classes'] .= ' only-crumb';
+            }
 
             $i++;
 
@@ -65,7 +69,7 @@ class Breadcrumbs
         // TODO - put in template
         $item = $arrow . '
             <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem" class="' . $classes . '"> 
-                <a itemscope itemtype="http://schema.org/Thing" itemprop="item" href="' . $url . '"><span itemprop="name">' . $label . '</span></a>
+                <a itemprop="item" href="' . $url . '"><span itemprop="name">' . $label . '</span></a>
                 <meta itemprop="position" content="' . $position . '" />
             </li>
         ';

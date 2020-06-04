@@ -12,7 +12,9 @@
 
 namespace Db;
 
+use Error;
 use PDO;
+use \Exception;
 use PDOException;
 use PDOStatement;
 
@@ -31,10 +33,14 @@ class Query extends PdoMySql
     {
         parent::__construct();
 
-        $this->sql			= $sql;
-        $this->bind_array	= $bind;
+        try {
+            $this->sql			= $sql;
+            $this->bind_array	= $bind;
 
-        $this->query = $this->runQuery();
+            $this->query = $this->runQuery();
+        } catch(Exception $e) {
+            trigger_error('Queries cancelled because connection to the database could not be established.', E_WARNING);
+        }
     }
 
 
@@ -43,21 +49,24 @@ class Query extends PdoMySql
      */
     private function runQuery()
     {
-        try {
-            $query = $this->prepare($this->sql);
+        $query = $this->status;
 
-            if (!$query->execute($this->bind_array)) {
-                debug_backtrace();
+        if ($this->status === true) {
+            try {
+                $query = $this->prepare($this->sql);
+
+                if (!empty($query->execute($this->bind_array))) {
+                    debug_backtrace();
+                }
+            } catch (PDOException $p) {
+                self::handlePdoException($p);
+            } catch (Error $e) {
+                self::handleErrorAsWarning($e);
             }
-
-
-        } catch(Exception $e) {
-            self::handleError($e);
         }
 
         return $query;
     }
-
 
     /**
      * @return array
@@ -65,7 +74,15 @@ class Query extends PdoMySql
      */
     public function fetchAssoc()
     {
-        return $this->query->fetch(PDO::FETCH_ASSOC);
+        $fetch_assoc = [];
+
+        try {
+            $fetch_assoc = $this->query->fetch(PDO::FETCH_ASSOC);
+        } catch(Error $e) {
+            self::handleErrorAsWarning($e);
+        }
+
+        return $fetch_assoc;
     }
 
 
@@ -75,7 +92,15 @@ class Query extends PdoMySql
      */
     public function fetchAllAssoc()
     {
-        return $this->query->fetchAll(PDO::FETCH_ASSOC);
+        $fetch_all_assoc = [];
+
+        try {
+            $fetch_all_assoc = $this->query->fetchAll(PDO::FETCH_ASSOC);
+        } catch(Error $e) {
+            self::handleErrorAsWarning($e);
+        }
+
+        return $fetch_all_assoc;
     }
 
 
@@ -85,7 +110,15 @@ class Query extends PdoMySql
      */
     public function fetch()
     {
-        return $this->query->fetch(PDO::FETCH_COLUMN);
+        $fetch = null;
+
+        try {
+            $fetch = $this->query->fetch(PDO::FETCH_COLUMN);
+        } catch(Error $e) {
+            self::handleErrorAsWarning($e);
+        }
+
+        return $fetch;
     }
 
 
@@ -95,7 +128,15 @@ class Query extends PdoMySql
      */
     public function fetchAll()
     {
-        return $this->query->fetchAll(PDO::FETCH_COLUMN);
+        $fetch_all = [];
+
+        try {
+            $fetch_all = $this->query->fetchAll(PDO::FETCH_COLUMN);
+        } catch(Error $e) {
+            self::handleErrorAsWarning($e);
+        }
+
+        return $fetch_all;
     }
 
 
@@ -120,9 +161,23 @@ class Query extends PdoMySql
     /**
      * @param PDOException $e
      */
-    private static function handleError(PDOException $e)
+    private static function handlePdoException(PDOException $e)
     {
         throw new PDOException($e->getMessage() . ' ' . $e->getTraceAsString());
+    }
+
+
+    /**
+     * @param Error $e
+     * @return bool
+     */
+    private static function handleErrorAsWarning(Error $e)
+    {
+        if (empty($_SESSION['setup_mode'])) {
+            trigger_error($e->getMessage() . ' ' . $e->getTraceAsString(), E_USER_WARNING);
+        }
+
+        return false;
     }
 
 

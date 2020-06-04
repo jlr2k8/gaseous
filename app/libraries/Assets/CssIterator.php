@@ -56,19 +56,15 @@ class CssIterator
      */
     public function getCurrentCssIteration($decode = false)
     {
-        //$result = [];
+        $sql = "
+            SELECT uid, css, author, description, is_selected, modified_datetime
+            FROM css_iteration
+            WHERE archived = '0'
+            AND is_selected = '1';
+        ";
 
-        //if (empty($_SESSION['css_preview'])) {
-            $sql = "
-                SELECT uid, css, author, description, is_selected, modified_datetime
-                FROM css_iteration
-                WHERE archived = '0'
-                AND is_selected = '1';
-            ";
-
-            $db     = new Query($sql);
-            $result = $db->fetchAssoc();
-        //}
+        $db     = new Query($sql);
+        $result = $db->fetchAssoc();
 
         if ($decode === true) {
             $result['css'] = htmlspecialchars_decode($result['css']);
@@ -111,7 +107,8 @@ class CssIterator
      */
     public function setCssPreview($css_content, $minify = true, $uid = null)
     {
-        $_SESSION['css_preview'] = [];
+        $_SESSION['css_preview']                            = [];
+        $_SESSION['site_announcements']['css_preview']      = 'You are currently previewing custom CSS. To exit the preview, <a href="/admin/css/">return to the CSS admin page</a> and choose "Exit Preview"';
 
         if (!empty($minify)) {
             $css_content = Minify::css($css_content);

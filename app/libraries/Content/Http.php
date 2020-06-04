@@ -10,13 +10,13 @@
  *
  **/
 
-namespace Content\Pages;
+namespace Content;
 
 use Exception;
 use Settings;
 use SmartyException;
 
-class HTTP
+class Http
 {
     public static $status_codes = array (
         300 => 'Multiple Choices',
@@ -49,17 +49,19 @@ class HTTP
         self::header($status_code);
 
         if (!empty($redirect)) {
-            return self::redirect($redirect);
+            self::redirect($redirect);
         } else {
             die(self::renderErrorPage($status_code));
         }
+
+        return true;
     }
 
 
     /**
      * @param $url
      * @param int $http_response_code
-     * @return void
+     * @return bool
      * @throws Exception
      */
     public static function redirect($url, $http_response_code = false)
@@ -76,7 +78,7 @@ class HTTP
 
         header('Location: ' . $url);
 
-        exit;
+        return true;
     }
 
 

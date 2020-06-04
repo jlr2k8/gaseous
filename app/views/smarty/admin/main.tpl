@@ -13,10 +13,10 @@
             </a>
         </li>
     {/if}
-    {if $add_pages || $edit_pages || $archive_pages}
+    {if $add_content || $edit_content || $archive_content}
         <li>
-            <a href="/admin/pages">
-                Page Management
+            <a href="/admin/content">
+                Content Management
             </a>
         </li>
     {/if}

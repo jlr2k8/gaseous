@@ -36,6 +36,19 @@
                         });
                     }
             });
+
+            $('.archive_menu_item').on('click', function(e) {
+                var uid     = $(this).attr('data-uid');
+                var status  = confirm('Are you sure? This will also remove child menu items...');
+
+                if(status === false) {
+                    return false;
+                }
+
+                $.get('/admin/menu/?archive=' + uid, function(response) {
+                    window.location.replace('/admin/menu/?load_current_site_menu=true');
+                });
+            });
         });
     </script>
 {/literal}

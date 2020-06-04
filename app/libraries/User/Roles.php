@@ -12,8 +12,6 @@
 
 namespace User;
 
-use Content\Pages\Get;
-use Content\Pages\Submit;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
@@ -26,24 +24,6 @@ class Roles
 
     public function __construct()
     {
-    }
-
-
-    /**
-     * @return bool
-     */
-    public static function rolesExist()
-    {
-        $sql = "
-            SELECT COUNT(*) AS count
-            FROM role
-            WHERE archived = '0';
-        ";
-
-        $db     = new Query($sql);
-        $count  = (int)$db->fetch();
-
-        return ($count > (int)0);
     }
 
 
@@ -142,7 +122,7 @@ class Roles
 
             $setting_roles  = self::getSettingRoles($role_data['old_role_name']);
             $account_roles  = self::getAccountRoles($role_data['old_role_name']);
-            $page_roles     = self::getPageRoles($role_data['old_role_name']);
+            $content_roles     = self::getPageRoles($role_data['old_role_name']);
 
             self::archiveRole($role_data['old_role_name'], $transaction);
             self::archiveSettingRole($role_data['old_role_name'], $transaction);
@@ -163,10 +143,10 @@ class Roles
                 self::insertAccountRole($account_role, $transaction);
             }
 
-            foreach ($page_roles as $page_role) {
+            foreach ($content_roles as $page_role) {
                 $page_role['role_name'] = $role_data['role_name'];
 
-                self::insertPageRole($page_role, $transaction);
+                self::insertContentRole($page_role, $transaction);
             }
         } catch (Exception $e) {
 
@@ -321,7 +301,7 @@ class Roles
         $transaction = $transaction ?? new PdoMySql();
 
         $sql = "
-            UPDATE page_roles
+            UPDATE content_roles
             SET
               archived = '1',
               archived_datetime = NOW()
@@ -392,8 +372,8 @@ class Roles
     private static function getPageRoles($role_name)
     {
         $sql = "
-            SELECT page_iteration_uid, role_name
-            FROM page_roles
+            SELECT content_iteration_uid, role_name
+            FROM content_roles
             WHERE role_name = ?
             AND archived = '0';
         ";
@@ -437,12 +417,18 @@ class Roles
      * @param PdoMySql|null $transaction
      * @return bool
      */
-    private static function insertAccountRole(array $setting_role_data, PdoMySql $transaction = null)
+    public static function insertAccountRole(array $setting_role_data, PdoMySql $transaction = null)
     {
         $transaction    = $transaction ?? new PdoMySql();
         $sql            = "
-            INSERT INTO account_roles (account_username, role_name)
-            VALUES (?, ?);
+            INSERT INTO
+                account_roles (
+                    account_username,
+                    role_name
+                ) VALUES (
+                ?,
+                ?
+            );
         ";
 
         $bind = [
@@ -461,16 +447,16 @@ class Roles
      * @param PdoMySql|null $transaction
      * @return bool
      */
-    private static function insertPageRole(array $setting_role_data, PdoMySql $transaction = null)
+    private static function insertContentRole(array $setting_role_data, PdoMySql $transaction = null)
     {
         $transaction    = $transaction ?? new PdoMySql();
         $sql            = "
-            INSERT INTO page_roles (page_iteration_uid, role_name)
+            INSERT INTO content_roles (content_iteration_uid, role_name)
             VALUES (?, ?);
         ";
 
         $bind = [
-            $setting_role_data['page_iteration_uid'],
+            $setting_role_data['content_iteration_uid'],
             $setting_role_data['role_name'],
         ];
 

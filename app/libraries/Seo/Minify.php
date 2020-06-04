@@ -26,7 +26,7 @@ class Minify
     public static function html($input)
     {
         $find_replace = [
-            '~\n|\r|\t~'    => ' ',
+            '~\s+~'    => ' ',
             '~\s{2,}~'      => ' ',
             '~>\s<~'        => '><',
             '~<!--.*?-->~'  => null,

@@ -15,7 +15,6 @@ use Assets\CssIterator;
 use Assets\Headers;
 use Seo\Minify;
 
-
 $headers    = new Headers();
 $css_output = null;
 $iteration  = !empty($_GET['iteration']) ? filter_var($_GET['iteration'], FILTER_SANITIZE_STRING) : false;
@@ -32,9 +31,9 @@ if (empty($iteration)) {
     if (!empty($_SESSION['css_preview'])) {
         $css_output = $_SESSION['css_preview']['css'];
     } else {
-        $headers->last_modified = $css['modified_datetime'];
-
         header('Content-Encoding: gzip');
+
+        $headers->last_modified = $css['modified_datetime'];
         $css_output             = gzencode(Minify::css($css['css']));
     }
 }

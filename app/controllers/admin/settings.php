@@ -10,16 +10,16 @@
  *
  */
 
-use \Content\Pages\Breadcrumbs;
-use \Content\Pages\HTTP;
-use \Content\Pages\Templator;
+use \Content\Breadcrumbs;
+use \Content\Http;
+use \Content\Templator;
 use \User\Roles;
 use \User\Account;
 use \Wysiwyg\Codemirror;
 
 // check setting/role privileges
 if (!Settings::value('edit_settings')) {
-    HTTP::error(403);
+    Http::error(403);
 }
 
 $settings           = new Settings();

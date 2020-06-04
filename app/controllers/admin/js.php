@@ -13,20 +13,20 @@
 
 use Assets\JsIterator;
 use Assets\Headers;
-use Content\Pages\Breadcrumbs;
-use Content\Pages\HTTP;
-use Content\Pages\Templator;
+use Content\Breadcrumbs;
+use Content\Http;
+use Content\Templator;
 use Wysiwyg\Codemirror;
 
 // check setting/role privileges
 if (!Settings::value('manage_js')) {
-    HTTP::error(403);
+    Http::error(403);
 }
 
 $js    = new JsIterator();
 
 if(!empty($_GET['exit_preview']) && $_GET['exit_preview'] == 'true') {
-    unset($_SESSION['js_preview']);
+    unset($_SESSION['js_preview'], $_SESSION['site_announcements']['js_preview']);
 
     $headers        = new Headers();
 
@@ -65,16 +65,16 @@ if (!empty($_POST)) {
         $js_iteration_content = $js->getJsIteration($post['js_iteration_list'], true);
 
         $js->setEditorJs($js_iteration_content['js'], $post['js_iteration_list']);
-        unset($_SESSION['js_preview']);
+        unset($_SESSION['js_preview'], $_SESSION['site_announcements']['js_preview']);
     } elseif(!empty($post['submit_textarea_to_preview'])) {
         $js->setJsPreview($post['js_iteration']);
         $js->setEditorJs($post['js_iteration']);
     } elseif(!empty($post['submit_textarea'])) {
         $save_iteration = $js->saveJsIteration($post);
 
-        unset($_SESSION['js_preview'], $_SESSION['editor_js']);
+        unset($_SESSION['js_preview'], $_SESSION['editor_js'], $_SESSION['site_announcements']['js_preview']);
     } elseif(!empty($post['revert_editor_js'])) {
-        unset($_SESSION['js_preview'], $_SESSION['editor_js']);
+        unset($_SESSION['js_preview'], $_SESSION['editor_js'], $_SESSION['site_announcements']['js_preview']);
     }
 
     header('Location: ' . Settings::value('full_web_url') . '/admin/js/');

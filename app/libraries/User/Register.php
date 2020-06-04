@@ -12,14 +12,16 @@
 
 namespace User;
 
+use Db\PdoMySql;
 use Db\Query;
 use Exception;
 use Settings;
+use Setup\Reset\System;
 use stdClass;
 
 class Register
 {
-    public $errors = [], $account_id, $post;
+    public $errors = [], $post;
 
 
     /**
@@ -47,20 +49,37 @@ class Register
 
 
     /**
-     * TODO - transactions
      * @return bool
      * @throws Exception
      */
     public function createAccount()
     {
-        $account_data = $this->post;
+        $account_data   = $this->post;
+
+        // If there are no accounts yet, we can presume the original user is the site admin
+        $accounts_exist = self::accountsExist();
 
         $this->validation();
 
         if (empty($this->errors)) {
+            $transaction    = new PdoMySql();
 
-            //INSERT INTO account - (2016-05-27) for now, account.account_email and profile.email will be identical.
-            $sql = "INSERT INTO account (firstname, lastname, username, email) VALUES (?,?,?,?);";
+            $transaction->beginTransaction();
+
+            $sql = "
+                INSERT INTO
+                    account (
+                        firstname,
+                        lastname,
+                        username,
+                        email
+                    ) VALUES (
+                        ?,
+                        ?,
+                        ?,
+                        ?
+                    );
+            ";
 
             $bind = [
                 $account_data->firstname,
@@ -69,15 +88,54 @@ class Register
                 $account_data->email
             ];
 
-            $db                 = new Query($sql, $bind);
-            $it_ran             = $db->run();
-            $create_password    = $this->createAccountPassword($account_data->username);
+            $transaction
+                ->prepare($sql)
+                ->execute($bind);
 
-            return ($it_ran && $create_password) ? $this->redirectRegistrationSubmission() : false;
+            $this->createAccountPassword($transaction);
+
+            if (!$accounts_exist) {
+                $primary_role_data = [
+                    'account_username'  => $account_data->username,
+                    'role_name'         => System::ADMIN_ROLE,
+                ];
+
+                Roles::insertAccountRole($primary_role_data, $transaction);
+            }
+
+            return $transaction->commit();
         }
 
         return false;
     }
+
+
+    /**
+     * @return int
+     */
+    public static function accountsExist()
+    {
+        $sql = "
+            SELECT
+                COUNT(*)
+            FROM
+                account
+            INNER JOIN
+                account_password
+            ON
+                account.username = account_password.account_username
+            WHERE
+                account.archived = '0'
+            AND 
+                account_password.archived = '0';
+        ";
+
+        $db             = new Query($sql);
+        $accounts_exist = (int)($db->fetch() > 0);
+
+        return $accounts_exist;
+    }
+
 
 
     /**
@@ -148,45 +206,33 @@ class Register
 
 
     /**
-     * TODO - transaction as part of createAccount()
-     * @param $account_id
+     * @param $account_username
      * @return bool
      * @throws Exception
      */
-    private function createAccountPassword($account_id, $password = false)
+    private function createAccountPassword(PdoMySql $transaction)
     {
-        $password = empty($password) ? $this->post->password : $password;
+        $username   = $this->post->username;
+        $password   = Password::hashPassword($this->post->password);
+        $sql        = "
+            INSERT INTO
+                account_password (
+                    account_username,
+                    password
+                ) VALUES (
+                    ?,
+                    ?
+                );
+        ";
 
-        if (!$password)
-            return false;
+        $bind = [
+            $username,
+            $password,
+        ];
 
-        //INSERT INTO account_password
-        $sql    = "INSERT INTO account_password (account_username, password) VALUES (?, ?);";
-        $db     = new Query(
-            $sql,
-            [
-                $account_id,
-                Password::hashPassword($password)
-            ]
-        );
-
-        return $db->run();
-    }
-
-
-    /**
-     * Check if roles exist. If not, recently registered user should set that up.
-     * Without roles, no administration pages are bound by roles/users yet
-     *
-     * Potentially, this could be a good place to kick off other post-registration workflows.
-     *
-     * @return bool
-     */
-    private function redirectRegistrationSubmission()
-    {
-        $_SESSION['registration_redirect'] = Roles::rolesExist() ? Settings::value('full_web_url') : '/admin/roles/';
-
-        return true;
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
     }
 }
 

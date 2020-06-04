@@ -10,11 +10,10 @@
  *
  **/
 
-namespace Content\Pages;
+namespace Content;
 
 use Db\PdoMySql;
 use Db\Query;
-use ErrorException;
 use Exception;
 use Settings;
 use Uri\Redirect;
@@ -24,13 +23,11 @@ use User\Roles;
 
 class Submit
 {
-    public $post_data       = [];
-    public $errors          = [];
-    public $new_uid         = false;
-    public $uri_uid         = false;
-    public $content_uid = false;
+    public $post_data   = [];
+    public $errors      = [];
 
-    public $json_upsert_status;
+    public $new_uid, $uri_uid, $content_uid, $parent_uid, $content_body_type_id, $json_upsert_status, $body, $content,
+        $process_type, $generated_page_uri;
 
 
     /**
@@ -44,7 +41,8 @@ class Submit
         if(empty($post_data))
             throw new Exception('A post data array is required for ' . get_class($this));
         
-        $this->post_data = $post_data;
+        $this->post_data    = $post_data;
+        $this->content      = new Get();
     }
 
 
@@ -54,6 +52,16 @@ class Submit
      */
     public function upsert()
     {
+        $content_uid = $this->post_data['content_uid'];
+
+        if (empty($content_uid)) {
+            self::addPageCheck();
+            $this->process_type = 'new';
+        } else {
+            self::editPageCheck();
+            $this->process_type = 'update';
+        }
+
         $this->validatePostData();
 
         if (!empty($this->errors))
@@ -61,34 +69,39 @@ class Submit
 
         $old_uid        = $this->post_data['uid'];
         $this->new_uid  = $this->buildIterationHash();
-
-        $transaction = new PdoMySql();
+        $transaction    = new PdoMySql();
 
         $transaction->beginTransaction();
 
         try {
-            // process URI changes
+            // process URI
             $this->processUri($transaction);
+
+            if (empty($content_uid)) {
+                $this->insertContent($transaction, $this->parent_uid, $this->post_data['content_body_type_id'], $this->uri_uid);
+                $this->content_uid = $this->getContentUid($transaction);
+            } else {
+                $this->content_uid = $content_uid;
+                $this->updateContent($transaction);
+            }
 
             // new iteration of same page
             if ($old_uid != $this->new_uid && !empty($old_uid) && !$this->iterationExists())  {
-                $this->content_uid = $this->getContentUid($transaction);
                 $this->insertIteration($transaction);
                 $this->insertIterationCommitInfo($transaction);
                 $this->updateCurrentIteration($transaction);
+                $this->processCmsValues($transaction);
 
             // a previous iteration of the same page
-            } elseif($old_uid != $this->new_uid && !empty($old_uid) && $this->iterationExists()) {
-                $this->content_uid = $this->getContentUid($transaction);
+            } elseif ($old_uid != $this->new_uid && !empty($old_uid) && $this->iterationExists()) {
                 $this->updateCurrentIteration($transaction);
 
             // new page altogether. the iteration does not exist already
             } elseif(empty($old_uid) && !$this->iterationExists()) {
-                $this->insertContent($transaction);
-                $this->content_uid = $this->getContentUid($transaction);
                 $this->insertIteration($transaction);
                 $this->insertIterationCommitInfo($transaction);
                 $this->insertCurrentIteration($transaction);
+                $this->processCmsValues($transaction);
             }
 
             // add/remove page roles
@@ -99,20 +112,62 @@ class Submit
             }
 
             $this->generateJsonUpsertStatus('status', 'success');
-
         } catch(Exception $e) {
             $transaction->rollBack();
 
-            $this->errors[] = $e->getMessage();
-
-            $this->generateJsonUpsertStatus('status', $e->getMessage());
+            $this->errors[] = $e->getMessage() . $e->getTraceAsString();
+            $this->generateJsonUpsertStatus('status', $e->getMessage() . $e->getTraceAsString());
+            $this->checkAndThrowException();
 
             return false;
         }
 
+        $this->clearContentCache();
+
         $transaction->commit();
 
         return true;
+    }
+
+
+    /**
+     * @return bool
+     */
+    private function clearContentCache()
+    {
+        $cache_key = $this->content_uid . '_';
+        $this->content->cache->archiveLike($cache_key, false, true);
+
+        return true;
+    }
+
+
+    /**
+     * @param PdoMySql $transaction
+     * @throws Exception
+     */
+    private function processCmsValues(PdoMySql $transaction)
+    {
+        $cms_fields = $this->content->body->getCmsFields($this->content_body_type_id);
+
+        if (!empty($cms_fields)) {
+            foreach ($cms_fields as $row => $items) {
+                foreach ($this->post_data as $key => $value) {
+                    if ($items['template_token'] == $key) {
+                        $insert[$key] = [
+                            'content_iteration_uid'     => $this->new_uid,
+                            'content_body_field_uid'    => $items['uid'],
+                            'value'                     => htmlspecialchars($value, ENT_QUOTES),
+                        ];
+
+                        $this->content->body->insertContentBodyFieldValue($insert[$key], $transaction);
+                    }
+                }
+            }
+        } else {
+            $this->errors[] = 'No CMS fields to process!';
+            $this->checkAndThrowException();
+        }
     }
 
 
@@ -155,15 +210,15 @@ class Submit
             $this->content_uid = $this->getContentUid($transaction);
             $this->archiveOldUri($transaction);
             $this->archivePageRoles($transaction);
-            $this->archiveCurrentIteration($transaction);
+            $this->archiveCurrentIteration($transaction, $this->content_uid);
             $this->archivePageIteration($transaction);
-            $this->archiveContent($transaction);
+            $this->archiveContent($transaction, $this->content_uid);
         } catch(Exception $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getTraceAsString();
 
-            $this->checkAndThrowErrorException();
+            $this->checkAndThrowException();
 
             return false;
         }
@@ -203,7 +258,7 @@ class Submit
      * @return bool
      * @throws Exception
      */
-    function archivePageRoles(PdoMySql $transaction)
+    private function archivePageRoles(PdoMySql $transaction)
     {
         self::editPageCheck();
 
@@ -233,9 +288,9 @@ class Submit
     {
         self::editPageCheck();
 
-        $roles      = new Roles();
-        $all_roles  = $roles->getAll();
-        $content_roles = $this->post_data['content_roles']; // array
+        $roles          = new Roles();
+        $all_roles      = $roles->getAll();
+        $content_roles  = $this->post_data['content_roles']; // array
 
         foreach ($all_roles as $role) {
             $sql    = null;
@@ -265,8 +320,8 @@ class Submit
      */
     public static function editPageCheck()
     {
-        if (!Settings::value('edit_pages'))
-            throw new Exception('Not allowed to edit pages');
+        if (!Settings::value('edit_content'))
+            throw new Exception('Not allowed to edit content');
     }
 
 
@@ -275,7 +330,7 @@ class Submit
      */
     public static function archivePageCheck()
     {
-        if (!Settings::value('archive_pages'))
+        if (!Settings::value('archive_content'))
             throw new Exception('Not allowed to archive pages');
     }
 
@@ -285,48 +340,60 @@ class Submit
      */
     public static function addPageCheck()
     {
-        if (!Settings::value('add_pages'))
-            throw new Exception('Not allowed to add pages');
+        if (!Settings::value('add_content'))
+            throw new Exception('Not allowed to add content');
     }
 
 
     /**
      * @param PdoMySql $transaction
-     * @param $content_uid
+     * @param $parent_uid
+     * @param $content_body_type_id
      * @param $uri_uid
+     * @param null $content_uid
+     * @param null $created_datetime
+     * @param null $modified_datetime
      * @return bool
      * @throws Exception
      */
-    private function insertContent(PdoMySql $transaction, $content_uid = null, $uri_uid = null)
+    public static function insertContent(PdoMySql $transaction, $parent_uid, $content_body_type_id, $uri_uid, $content_uid = null, $created_datetime = null, $modified_datetime = null)
     {
-        self::addPageCheck();
-
         if (empty($content_uid)) {
             $sql = "
-                INSERT INTO content (uri_uid)
-                VALUES (?);
+                INSERT INTO content (parent_uid, content_body_type_id, uri_uid)
+                VALUES (?, ?, ?);
             ";
 
             $bind = [
-                $uri_uid ?? $this->uri_uid,
+                $parent_uid,
+                $content_body_type_id,
+                $uri_uid,
             ];
+
+            $inserted = $transaction
+                ->prepare($sql)
+                ->execute($bind);
         } else {
             $sql = "
-                INSERT INTO content (uid, uri_uid)
-                VALUES (?, ?);
+                INSERT INTO content (uid, parent_uid, content_body_type_id, uri_uid, created_datetime, modified_datetime)
+                VALUES (?, ?, ?, ?, ?, ?);
             ";
 
             $bind = [
                 $content_uid,
-                $uri_uid ?? $this->uri_uid,
+                $parent_uid,
+                $content_body_type_id,
+                $uri_uid,
+                $created_datetime ?? date('Y-m-d H:i:s'),
+                $modified_datetime ?? date('Y-m-d H:i:s'),
             ];
+
+            $inserted = $transaction
+                ->prepare($sql)
+                ->execute($bind);
         }
 
-        $transaction
-            ->prepare($sql)
-            ->execute($bind);
-
-        return true;
+        return $inserted;
     }
 
 
@@ -355,13 +422,14 @@ class Submit
 
 
     /**
-     *
+     * @param PdoMySql $transaction
+     * @return bool
      */
     private function insertIteration(PdoMySql $transaction)
     {
         $sql        = "
             INSERT INTO content_iteration
-            (uid, page_title_seo, page_title_h1, meta_desc, meta_robots, content, status, include_in_sitemap, minify_html_output)
+            (uid, page_title_seo, page_title_h1, meta_desc, meta_robots, generated_page_uri, status, include_in_sitemap, minify_html_output)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         ";
 
@@ -371,7 +439,7 @@ class Submit
             $this->post_data['page_title_h1'],
             $this->post_data['meta_desc'],
             $this->post_data['meta_robots'],
-            htmlspecialchars($this->post_data['body'], ENT_NOQUOTES),
+            $this->generated_page_uri,
             $this->post_data['status'],
             !empty($this->post_data['include_in_sitemap']) ? '1' : '0',
             !empty($this->post_data['minify_html_output']) ? '1' : '0',
@@ -449,11 +517,9 @@ class Submit
             $content_uid ?? $this->content_uid,
         ];
 
-        $transaction
+        return $transaction
             ->prepare($sql)
             ->execute($bind);
-
-        return true;
     }
 
 
@@ -462,45 +528,59 @@ class Submit
      * @param $content_uid
      * @return bool
      */
-    private function archiveContent(PdoMySql $transaction, $content_uid = null)
+    public static function archiveContent(PdoMySql $transaction, $content_uid)
     {
         $sql = "
             UPDATE content
             SET archived = '1', archived_datetime = NOW()
-            WHERE uid = ?;
+            WHERE uid = ?
+            AND archived = '0';
         ";
 
         $bind = [
-            $content_uid ?? $this->content_uid,
+            $content_uid,
         ];
 
-        $transaction
+        return $transaction
             ->prepare($sql)
             ->execute($bind);
-
-        return true;
     }
 
 
     /**
      * @param PdoMySql $transaction
+     * @param $parent_content_uid
      * @param $old_uri_uid
      * @param $new_uri_uid
      * @return bool
      * @throws Exception
      */
-    private function updateContent(PdoMySql $transaction, $old_uri_uid = null, $new_uri_uid = null)
+    private function updateContent(PdoMySql $transaction)
     {
-        $old_uri_uid    = $old_uri_uid ?? $this->post_data['original_uri_uid'];
-        $new_uri_uid    = $new_uri_uid ?? $this->uri_uid;
-        $content_uid    = $this->getContentUid($transaction, $old_uri_uid);
+        $content                = $this->content->contentByUid($this->content_uid, 'active', true);
 
-        if (!empty($this->post_data['original_uri_uid'])) {
-            $this->archiveContent($transaction, $content_uid);
-            $this->insertContent($transaction, $content_uid, $new_uri_uid);
+        $current_uri_uid        = $content['uri_uid'];
+        $new_uri_uid            = $this->uri_uid;
+
+        $current_parent_uid     = $content['parent_content_uid'];
+        $content_body_type_id   = $content['content_body_type_id'];
+        $new_parent_uid         = $this->parent_uid;
+
+        if ($current_uri_uid == $new_uri_uid && $current_parent_uid == $new_parent_uid) {
+            $return = true;
+        } else {
+            $content_uid        = $this->content_uid;
+            $parent_content_uid = $this->parent_uid;
+            $created_datetime   = $content['created_datetime'];
+            $modified_datetime  = null; // preserve natural modified datetime value
+
+            $archive            = $this->archiveContent($transaction, $content_uid);
+            $insert             = $this->insertContent($transaction, $parent_content_uid, $content_body_type_id, $new_uri_uid, $content_uid, $created_datetime);
+
+            $return             = ($archive && $insert);
         }
 
-        return true;
+        return $return;
     }
 
 
@@ -520,57 +600,63 @@ class Submit
      * @return bool
      * @throws Exception
      */
-    private function processUri(PdoMySql $transaction)
+    protected function processUri(PdoMySql $transaction)
     {
-        $this->uri_uid          = $this->post_data['original_uri_uid'];
-        $old_uri                = Get::uri($this->uri_uid);
-        $old_uri_as_array       = Utilities::uriAsArray($old_uri);
-        $parent_page_uri        = Get::uri($this->post_data['parent_page_uri']);
-        $this_uri_piece         = $this->post_data['this_uri_piece'];
-        $new_uri                = rtrim($parent_page_uri . '/' . $this_uri_piece, '/');
-        $new_uri_as_array       = Utilities::uriAsArray($new_uri);
-        $all_uris               = Get::allUris();
+        $current_uri_uid        = $this->post_data['uri_uid'] ?? null;
+        $current_uri            = Get::uri($current_uri_uid);
+        $content_body_type_id   = $this->post_data['content_body_type_id'];
+        $this_page_uri          = $this->content->body->generateTemplatedUri($content_body_type_id, $this->post_data);
+        $parent_content_uid     = !empty($this->post_data['parent_content_uid']) ? $this->post_data['parent_content_uid'] : null;
+        $parent_uri             = null;
+        $real_parent_uri        = null;
 
-        if ($old_uri == '/home' && $old_uri != $new_uri) {
-            $this->errors[] = 'The home page URI cannot be edited';
-            $this->checkAndThrowErrorException();
+        if (!empty($parent_content_uid)) {
+            $parent_content     = $this->content->contentByUid($parent_content_uid, 'active', true);
+            $real_parent_uri    = $this->content->contentUriAncestry($parent_content['content_uid']);
+
+            $this->parent_uid = $parent_content['content_uid'];
+        } else {
+            $this->parent_uid = null;
         }
 
-        // user changed URI and it matches an existing
-        if (($old_uri != $new_uri && ($this->uriExists($new_uri)) || empty($new_uri))) {
-            $this->checkAndThrowErrorException();
+        $new_full_uri   = '/' . trim($real_parent_uri . '/' . $this_page_uri, '/');
 
-        // user changed URI and it's unique (or it doesn't exist)
-        } elseif($old_uri != $new_uri && !$this->uriExists($new_uri)) {
-            /*
-             * NOTE
-             * instead of archiving the old URI, we simply want to add an entry in the uri_redirects table and keep it
-             * active. that way, the old URI still exists, but redirects to the new one (301 Moved Permanently)
-             */
-            if (!empty($this->uri_uid)) {
-                $this->insertRedirectUri($transaction, $this->uri_uid, $new_uri . '/');
-            }
+        $this->content_body_type_id = $content_body_type_id;
+        $this->generated_page_uri   = $this_page_uri;
 
-            $this->insertUri($transaction, $new_uri);
-            $this->uri_uid = $this->getUriUid($transaction, $new_uri);
-
-            $this->updateContent($transaction);
+        // Check homepage URI change (not allowed!)
+        if ($current_uri == '/home') {
+            $new_full_uri = '/home';
+            
+            $this->generated_page_uri = null;
         }
 
-        // user changed URI. loop through all URIs and attempt to find a match to also update child URIs
-        if (!empty($old_uri) && $old_uri != $new_uri) {
-            foreach ($all_uris as $uri_result) {
-                $result_uri             = $uri_result['uri'];
-                $result_uri_as_array    = Utilities::uriAsArray($result_uri);
+        // user changed URI to one that already exists...
+        if (($current_uri != $new_full_uri && ($this->uriExistsAsContent($new_full_uri)) || empty($new_full_uri))) {
+            $this->checkAndThrowException();
 
-                foreach($old_uri_as_array as $key => $val) {
-                    $ignore_uid = $this->getUriUid($transaction, $old_uri);
+        // URI already exists as a redirect, but we'll repurpose it for the content instead
+        } elseif($current_uri != $new_full_uri && Uri::uriExistsAsRedirect($new_full_uri)) {
+            $this->uri_uid = $this->removeRedirectUri($transaction, $new_full_uri);
 
-                    if (!empty($result_uri_as_array[$key]) && ($old_uri_as_array[$key] == $result_uri_as_array[$key]) && $uri_result['uid'] != $ignore_uid) {
-                        $this->updateUri($transaction, $uri_result['uid'], $new_uri_as_array);
-                    }
-                }
+            $this->insertRedirectUri($transaction, $current_uri_uid, $new_full_uri);
+
+        // user changed URI and it's unique (or created a new URI)
+        } elseif ($current_uri != $new_full_uri && !$this->uriExistsAsContent($new_full_uri)) {
+            $this->insertUri($transaction, $new_full_uri);
+
+            $this->uri_uid = $this->getUriUid($transaction, $new_full_uri);
+
+            if (!empty($current_uri_uid)) {
+                /*
+                 * NOTE
+                 * instead of archiving the old URI, we simply want to add an entry in the uri_redirects table and keep it
+                 * active. that way, the old URI still exists, but redirects to the new one (301 Moved Permanently)
+                 */
+                $this->insertRedirectUri($transaction, $current_uri_uid, $new_full_uri);
             }
+        } else {
+            $this->uri_uid = $current_uri_uid;
         }
 
         return true;
@@ -582,10 +668,12 @@ class Submit
      * @param $uri_uid
      * @param $destination_url
      * @return bool
+     * @throws Exception
      */
     private function insertRedirectUri(PdoMySql $transaction, $uri_uid, $destination_url)
     {
         $uri_redirect       = new Redirect();
+        $exists             = !empty($uri_redirect->getByUriUid($uri_uid));
 
         $data               = [
             'uri_uid'           => $uri_uid,
@@ -594,10 +682,14 @@ class Submit
             'description'       => 'Page URI was updated via the page editor',
         ];
 
-        $inserted_redirect  = $uri_redirect->insert(
-            $data,
-            $transaction
-        );
+        if ($exists) {
+            $inserted_redirect  = $uri_redirect->update($data, $transaction);
+        } else {
+            $inserted_redirect  = $uri_redirect->insert(
+                $data,
+                $transaction
+            );
+        }
 
         return $inserted_redirect;
     }
@@ -638,7 +730,17 @@ class Submit
     {
         $uri_obj = new Uri($transaction);
 
-        return $uri_obj->insertUri($uri);
+        return (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsContent($uri)) ? $uri_obj->insertUri($uri) : true;
+    }
+
+
+    private function removeRedirectUri(PdoMySql $transaction, $uri)
+    {
+        $redir      = new Redirect();
+        $uri_uid    = $this->getUriUid($transaction, $uri);
+        $archived   = $redir->archive($uri_uid, $transaction) ? $uri_uid : null;
+
+        return $archived;
     }
 
 
@@ -650,8 +752,9 @@ class Submit
     private function getUriUid(PdoMySql $transaction, $uri)
     {
         $uri_obj = new Uri($transaction);
+        $uri     = $uri_obj->getUriUid($uri);
 
-        return $uri_obj->getUriUid($uri);
+        return $uri;
     }
 
 
@@ -673,30 +776,9 @@ class Submit
 
         $result->execute($bind);
 
-        return $result->fetchColumn();
-    }
+        $uid = $result->fetchColumn();
 
-
-    /**
-     * @param PdoMySql $transaction
-     * @param $old_uri_uid
-     * @param $new_uri_as_array
-     * @return bool
-     * @throws Exception
-     */
-    private function updateUri(PdoMySql $transaction, $old_uri_uid, array $new_uri_as_array)
-    {
-        $old_uri            = Get::uri($old_uri_uid);                                           // foo/bar/baz/lorem/child/pages/several/levels/down/with/commonly/changed/upper-uri
-        $old_uri_as_array   = Utilities::uriAsArray($old_uri);                                  // [0] => foo, [1] => bar, [2] => baz, [3] => lorem ......... [12] => upper-uri
-        $updated_uri_array  = array_replace($old_uri_as_array, $new_uri_as_array);              // [0] => foo, [1] => bar, [2] => baz, [3] => lorem-ipsum ... [12] => upper-uri
-        $updated_uri        = Utilities::arrayAsUri($updated_uri_array);                        // foo/bar/baz/lorem-ipsum
-
-        $insert_new_uri = $this->insertUri($transaction, $updated_uri);
-        $new_uri_uid    = $this->getUriUid($transaction, $updated_uri);
-        $add_redirect   = $this->insertRedirectUri($transaction, $old_uri_uid, $updated_uri);
-        $update_pages   = $this->updateContent($transaction, $old_uri_uid, $new_uri_uid);
-
-        return ($insert_new_uri && $add_redirect && $update_pages);
+        return $uid;
     }
 
 
@@ -705,12 +787,24 @@ class Submit
      */
     private function validatePostData()
     {
-        // TODO - validatePostData() implies that we're validating all the $this->post_data. looks like we're only validating one field though - so rename the function to validateUriPiece() or actually do some more validation!
+        // Exceptions for date fields
+        if (isset($this->post_data['published_date']) && $this->process_type == 'new') {
+            $this->post_data['published_date'] = time();
+        }
 
-        preg_match('~[^a-z0-9\-]~', $this->post_data['this_uri_piece'],$fail_matches);
+        if (isset($this->post_data['published_date']) && $this->process_type == 'update') { // (edge case)
+            $strtotime = strtotime($this->post_data['published_date']);
 
-        if (!empty($fail_matches))
-            $this->errors[] = 'URI submission must be constructed with lowercase alphanumeric characters and dashes only.';
+            $this->post_data['published_date'] = $strtotime !== false ? $strtotime : $this->post_data['published_date'];
+        }
+
+        if (isset($this->post_data['revised_date']) && $this->process_type == 'update') {
+            $this->post_data['revised_date'] = time();
+        }
+
+        if (isset($this->post_data['revised_date']) && $this->process_type == 'new') {
+            $this->post_data['revised_date'] = null;
+        }
 
         return true;
     }
@@ -739,18 +833,13 @@ class Submit
      * @param string $uri
      * @return bool
      */
-    private function uriExists($uri)
+    private function uriExistsAsContent($uri)
     {
         $exists_as_content  = Uri::uriExistsAsContent($uri);
-        $exists_as_redirect = Uri::uriExistsAsRedirect($uri);
-
         $return             = false;
 
         if ($exists_as_content) {
             $this->errors[] = 'The URI, ' . $uri . ', already exists for another content item.';
-            $return         = true;
-        } elseif ($exists_as_redirect) {
-            $this->errors[] = 'The URI, ' . $uri . ', already exists as a redirect to another URL.';
             $return         = true;
         }
 
@@ -761,12 +850,12 @@ class Submit
     /**
      * @throws Exception
      */
-    private function checkAndThrowErrorException()
+    private function checkAndThrowException()
     {
         if (!empty($this->errors)) {
             $errors = implode('; ', $this->errors);
 
-            throw new ErrorException($errors);
+            throw new Exception($errors);
         }
 
         return true;

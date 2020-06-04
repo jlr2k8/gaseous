@@ -10,21 +10,21 @@
  *
  **/
 
-namespace Content\Pages;
+namespace Content;
 
 use Assets\Output;
-use Content\Menu;
+use Cache;
+use Db\PdoMySql;
 use Db\Query;
-use ErrorHandler;
 use Exception;
+use Log;
 use Seo\Minify;
-use Seo\Url;
 use Settings;
 use SmartyException;
 use Utilities\AdminView;
 use Utilities\DateTime;
 use Utilities\Debug;
-use Utilities\SystemPages;
+use Utilities\Pager;
 use Uri\Redirect;
 use Uri\Uri;
 
@@ -33,7 +33,8 @@ class Get
     const HOMEPAGE_URI = '/home';
 
     public $is_cms_editor   = false;
-    protected $uri, $redir;
+    protected $uri, $redir, $templator;
+    public $body, $cache;
 
     public static $home_pages = [
         '/index.html',
@@ -44,10 +45,12 @@ class Get
 
     public function __construct()
     {
-        $this->uri      = new Uri();
-        $this->redir    = new Redirect();
+        $this->uri          = new Uri();
+        $this->redir        = new Redirect();
+        $this->body         = new Body();
+        $this->templator    = new Templator();
+        $this->cache        = new Cache();
     }
-
 
     /**
      * @param null $uri
@@ -66,18 +69,19 @@ class Get
 
         $page   = self::isHomepage()
             ? $this->page(self::HOMEPAGE_URI, $find_replace)
-            : $this->page($uri, $find_replace);
+            : $this->page(Settings::value('relative_uri'), $find_replace);
 
         return $page;
     }
 
 
     /**
+     * @param null $uri
      * @return bool
      */
-    protected static function isHomepage()
+    public static function isHomepage($uri = null)
     {
-        $parsed_uri = parse_url($_SERVER['REQUEST_URI']);
+        $parsed_uri = parse_url($uri ?? Settings::value('relative_uri'));
 
         return ($parsed_uri['path'] == '/');
     }
@@ -89,10 +93,12 @@ class Get
      * @return string
      * @throws Exception
      */
-    public function page($page_uri, $find_replace = [])
+    public function page($uri, $find_replace = [])
     {
-        $valid_uri      = $this->uri->validate($page_uri);
-        $page_content   = $this->pageContent($valid_uri);
+        $page_content   = $this->contentByUri($uri, 'active', false, true);
+
+        $this->validateUri($page_content);
+
         $find_replace   = array_merge($page_content, $find_replace);
         $page           = null;
 
@@ -103,7 +109,7 @@ class Get
                 $page = Minify::html($page);
             }
         } else {
-            $page = HTTP::error(404);
+            $page = Http::error(404);
         }
 
         return $page;
@@ -121,15 +127,17 @@ class Get
     public function previewByIterationUid($content_iteration_uid, $content_uid, $content_only = false)
     {
         $diff                   = new Diff();
+
         $iteration              = $diff->getPageIteration($content_iteration_uid);
         $find_replace           = $this->contentForPreview($content_iteration_uid);
         $content                = $this->templatedPage($find_replace);
-        $return_url_encoded     = urlencode(Settings::value('full_web_url') . $_SERVER['REQUEST_URI']);
         $current_iteration      = $this->currentPageIteration($content_uid);
+
+        $return_url_encoded     = urlencode(Settings::value('full_web_url') . $_SERVER['REQUEST_URI']);
         $is_current_iteration   = ($current_iteration == $content_iteration_uid);
 
         if ($content_only == false) {
-            $templator = new Templator();
+            $templator = $this->templator;
 
             $templator->assign('find_replace', $find_replace);
             $templator->assign('content_iteration_uid', $content_iteration_uid);
@@ -170,75 +178,216 @@ class Get
 
 
     /**
-     * @param $page_uri
-     * @param $status
-     * @param $username
-     * @return array
+     * @param $content_uid
+     * @param $exclude_rendered_content
+     * @return string
      */
-    public function pageContent($page_uri, $status = 'active', $username = null)
+    public static function contentUidCacheKey($content_uid, $without_rendered_content = false)
     {
-        $username = $username ?? $_SESSION['account']['username'] ?? false;
+        return print_r($content_uid, true) . '_' . hash('md5', print_r(Pager::status(), true) . print_r($content_uid, true) . (int)$without_rendered_content);
+    }
 
-        if (empty($page_uri))
-            return [];
 
-        $sql = "
-            SELECT
-                uri.uri,
-                ci.page_title_seo,
-                ci.page_title_h1,
-                c.uri_uid,
-                c.uid AS content_uid,
-                ci.uid,
-                ci.meta_desc,
-                ci.meta_robots,
-                ci.content AS body,
-                ci.status,
-                ci.include_in_sitemap,
-                ci.minify_html_output,
-                pr.role_name,
-                COALESCE(ci.page_title_h1, ci.page_title_seo, uri.uri) AS page_identifier_label
-            FROM content AS c
-            INNER JOIN uri ON uri.uid = c.uri_uid
-            INNER JOIN current_content_iteration AS cci ON cci.content_uid = c.uid
-            INNER JOIN content_iteration AS ci ON ci.uid = cci.content_iteration_uid
-            LEFT JOIN content_roles AS pr
-              ON pr.content_iteration_uid = ci.uid
-            LEFT JOIN account_roles AS ar
-              ON pr.role_name = ar.role_name
-            LEFT JOIN account AS a
-              ON ar.account_username = a.username
-            WHERE uri.uri = ?
-            AND ci.status = ?
-            AND c.archived = '0'
-            AND ci.archived = '0'
-            AND cci.archived = '0'
+    /**
+     * @param $content_uid
+     * @param string $status
+     * @param $exclude_rendered_body
+     * @param bool $cache
+     * @return array
+     * @throws SmartyException
+     */
+    public function contentByUid($content_uid, $status = 'active', $exclude_rendered_body = false, $cache = false)
+    {
+        $cache          = false;
+        $username       = $_SESSION['account']['username'] ?? false;
+        $cache_key      = self::contentUidCacheKey($content_uid, $exclude_rendered_body);
+        $cached_content = $this->cache->get($cache_key);
+
+        // Only anonymous users should be getting/setting cache
+        if (!empty($cached_content) && $cache === true && empty($username)) {
+            $return = $cached_content;
+        } else {
+            if (is_array($content_uid)) {
+                $where_clause   =  " IN ('" . implode("', '", $content_uid) . "')";
+                $bind           = [
+                    $status
+                ];
+            } else {
+                $where_clause   = ' = ?';
+                $bind           = [
+                    $content_uid,
+                    $status,
+                ];
+            }
+
+            $sql        = "
+                SELECT
+                    uri.uri,
+                    ci.page_title_seo,
+                    ci.page_title_h1,
+                    c.uri_uid,
+                    c.uid AS content_uid,
+                    c.parent_uid AS parent_content_uid,
+                    c.content_body_type_id,
+                    cbt.label AS content_body_type_label,
+                    ci.uid,
+                    ci.meta_desc,
+                    ci.meta_robots,
+                    ci.generated_page_uri,
+                    ci.status,
+                    ci.include_in_sitemap,
+                    ci.minify_html_output,
+                    pr.role_name,
+                    c.created_datetime AS content_created,
+                    ci.created_datetime AS content_modified,
+                    c.created_datetime,
+                    ci.created_datetime AS modified_datetime,
+                    COALESCE(ci.page_title_h1, ci.page_title_seo, uri.uri) AS page_identifier_label
+                FROM content AS c
+                INNER JOIN content_body_types AS cbt ON cbt.type_id = c.content_body_type_id
+                INNER JOIN uri ON uri.uid = c.uri_uid
+                INNER JOIN current_content_iteration AS cci ON cci.content_uid = c.uid
+                INNER JOIN content_iteration AS ci ON ci.uid = cci.content_iteration_uid
+                LEFT JOIN content_roles AS pr
+                  ON pr.content_iteration_uid = ci.uid
+                LEFT JOIN account_roles AS ar
+                  ON pr.role_name = ar.role_name
+                LEFT JOIN account AS a
+                  ON ar.account_username = a.username
+                WHERE c.uid $where_clause
+                AND uri.archived = '0'
+                AND ci.status = ?
+                AND c.archived = '0'
+                AND ci.archived = '0'
+                AND cci.archived = '0'
+                AND cbt.archived = '0'
+            ";
+
+            if ($username) {
+                $sql .= "
+                   AND (
+                        pr.role_name IN (SELECT role_name FROM account_roles WHERE account_username = ? AND archived = '0')
+                        OR pr.role_name IS NULL
+                    )
+                ";
+
+                $bind[] = $username;
+            } else {
+                $sql .= " AND (pr.role_name IS NULL OR pr.archived = '1')";
+            }
+
+            $db = new Query($sql, $bind);
+
+            if (is_array($content_uid)) {
+                $results = $db->fetchAllAssoc();
+
+                foreach ($results as $row => $result) {
+                    $roles                  = $this->pageRoles($result['uid']);
+                    $results[$row]['roles'] = $roles;
+                    $results[$row]['url']   = Settings::value('full_web_url') . '/' . ltrim($result['uri'], '/');
+
+                    if (!$exclude_rendered_body) {
+                        $results[$row]['body']  = $this->body->renderTemplate($result['uid'], $this->templator, $result);
+                    }
+                }
+
+                $return = $results;
+            } else {
+                $result = $db->fetchAssoc() ?: [];
+
+                if (!empty($result)) {
+                    $roles              = $this->pageRoles($result['uid']);
+                    $result['roles']    = $roles;
+                    $result['url']      = Settings::value('full_web_url') . '/' . ltrim($result['uri'], '/');
+
+                    if (!$exclude_rendered_body) {
+                        $result['body'] = $this->body->renderTemplate($result['uid'], $this->templator, $result);
+                    }
+                }
+
+                $return = $result;
+            }
+
+            if ($cache === true && empty($username)) {
+                $this->cache->set($cache_key, $return);
+            }
+        }
+
+        return !empty($return) ? $return : [];
+    }
+
+
+    /**
+     * @param $page_uri
+     * @param string $status
+     * @param $exclude_rendered_template
+     * @param bool $cache
+     * @return array
+     * @throws SmartyException
+     */
+    public function contentByUri($page_uri, $status = 'active', $exclude_rendered_template = false, $cache = false)
+    {
+        $parsed_uri = parse_url($page_uri);
+        $page_uri   = '/' . trim($parsed_uri['path'], '/');
+
+        $sql        = "
+            SELECT DISTINCT
+                c.uid
+            FROM
+                content AS c
+            INNER JOIN
+                uri ON uri.uid = c.uri_uid
+            WHERE
+                uri.uri = ?
+            AND
+                c.archived = '0'
+            AND 
+                uri.archived = '0';
         ";
 
         $bind = [
             $page_uri,
-            $status,
         ];
 
-        if ($username) {
-            $sql .= "
-               AND (
-                    pr.role_name IN (SELECT role_name FROM account_roles WHERE account_username = ? AND archived = '0')
-                    OR pr.role_name IS NULL
-                )
-            ";
+        $db         = new Query($sql, $bind);
+        $uid        = $db->fetch();
+        $content    = !empty($uid) ? $this->contentByUid($uid, $status, $exclude_rendered_template, $cache) : [];
 
-            $bind[] = $username;
-        } else {
-            $sql .= " AND (pr.role_name IS NULL OR pr.archived = '1')";
-        }
+        return $content;
+    }
+
+
+    /**
+     * @param $parent_content_uid
+     * @param string $status
+     * @param bool $exclude_rendered_template
+     * @param bool $cache
+     * @return array
+     * @throws SmartyException
+     */
+    public function childContent($parent_content_uid, $status = 'active', $exclude_rendered_template = false, $cache = false)
+    {
+        $sql = "
+            SELECT
+                uid
+            FROM
+                content
+            WHERE
+                parent_uid = ?
+            AND 
+                archived = '0';
+        ";
+
+        $bind = [
+            $parent_content_uid,
+        ];
 
         $db                 = new Query($sql, $bind);
-        $result             = $db->fetchAssoc();
-        $roles              = $this->pageRoles($result['uid']);
-        $result['roles']    = $roles;
+        $child_content_uids = $db->fetchAll();
 
-        return !empty($result['uid']) ? $result : array();
+        $content = $this->contentByUid($child_content_uids, $status, $exclude_rendered_template, $cache);
+
+        return $content;
     }
 
 
@@ -285,16 +434,22 @@ class Get
                 ci.uid,
                 ci.meta_desc,
                 ci.meta_robots,
-                ci.content AS body,
+                ci.generated_page_uri,
                 ci.status,
                 ci.include_in_sitemap,
                 ci.minify_html_output,
                 ci.created_datetime,
                 ci.modified_datetime,
                 COALESCE(ci.page_title_h1, ci.page_title_seo) AS page_identifier_label
-            FROM content_iteration AS ci            
+            FROM content_iteration AS ci
+            INNER JOIN content_body_field_values AS cbfv ON ci.uid = cbfv.content_iteration_uid
+            INNER JOIN content_body_fields  AS cbf ON cbf.uid = cbfv.content_body_field_uid
+            INNER JOIN content_body_types AS cbt ON cbt.type_id = cbf.content_body_type_id
             WHERE ci.uid = ?
             AND ci.archived = '0'
+            AND cbfv.archived = '0'
+            AND cbf.archived = '0'
+            AND cbt.archived = '0';
         ";
 
         $bind = [
@@ -306,10 +461,11 @@ class Get
         $roles  = $this->pageRoles($result['uid']);
 
         $result['roles']                = $roles;
+        $result['body']                 = $this->body->renderTemplate($content_iteration_uid, $this->templator);
         $result['formatted_modified']   = DateTime::formatDateTime($result['modified_datetime']);
 
         if (empty($result['page_identifier_label']) && !empty($result['body'])) {
-            $result['page_identifier_label'] = \Content\Utilities::snippet($result['body']);
+            $result['page_identifier_label'] = Utilities::snippet($result['body']);
         }
 
         return !empty($result) ? $result : array();
@@ -318,31 +474,40 @@ class Get
 
     /**
      * @param $status
-     * @param $username
+     * @param $content_body_type_id
      * @return array
      */
-    public function all($status = 'active')
+    public function all($status = 'active', $content_body_type_id = null)
     {
         $sql = "
             SELECT DISTINCT
                 uri.uri,
+                c.uid AS content_uid,
+                c.parent_uid AS parent_content_uid,
+                c.content_body_type_id,
+                cbt.label AS content_body_type_label,
                 ci.page_title_seo,
                 ci.page_title_h1,
                 ci.uid,
                 ci.meta_desc,
-                ci.content AS body,
+                ci.meta_robots,
+                ci.generated_page_uri,
                 ci.status,
                 ci.include_in_sitemap,
                 ci.minify_html_output,
                 cic.author,
                 c.created_datetime AS content_created,
                 ci.created_datetime AS content_modified,
+                c.created_datetime,
+                ci.created_datetime AS modified_datetime,
+                
                 COALESCE(
                   NULLIF(ci.page_title_h1, ''),
                   NULLIF(ci.page_title_seo, ''),
                   NULLIF(uri.uri, '')
                 ) AS page_identifier_label
             FROM content AS c
+            INNER JOIN content_body_types AS cbt ON cbt.type_id = c.content_body_type_id
             INNER JOIN uri ON uri.uid = c.uri_uid
             INNER JOIN current_content_iteration AS cci ON cci.content_uid = c.uid
             INNER JOIN content_iteration AS ci ON ci.uid = cci.content_iteration_uid
@@ -354,10 +519,26 @@ class Get
             LEFT JOIN account AS a
               ON ar.account_username = a.username
             WHERE ci.status = ?
+        ";
+
+        $bind[] =   $status;
+
+        if (!empty($content_body_type_id)) {
+            $sql .= "
+                AND cbt.type_id = ?
+                AND cbt.archived = '0'
+            ";
+
+            $bind[] = $content_body_type_id;
+        }
+
+        $sql .= "
             AND c.archived = '0'
             AND ci.archived = '0'
             AND cci.archived = '0'
             AND (pr.role_name IS NULL OR pr.archived = '1')
+            AND uri != ''
+            AND uri IS NOT NULL
             GROUP BY uri
             ORDER BY
             CASE WHEN uri.uri = ?
@@ -367,10 +548,7 @@ class Get
             uri.uri
         ";
 
-        $bind = [
-            $status,
-            self::HOMEPAGE_URI,
-        ];
+        $bind[] =   self::HOMEPAGE_URI;
 
         $db         = new Query($sql, $bind);
         $results    = $db->fetchAllAssoc();
@@ -378,6 +556,7 @@ class Get
         foreach($results as $key => $val) {
             $results[$key]['formatted_content_created']    = DateTime::formatDateTime($val['content_created'], 'm/d/Y g:i A e');
             $results[$key]['formatted_content_modified']   = DateTime::formatDateTime($val['content_modified'], 'm/d/Y g:i A e');
+            $results[$key]['url']                          = Settings::value('full_web_url') . '/' . ltrim($val['uri'], '/');
         }
 
         return $results;
@@ -391,76 +570,31 @@ class Get
      */
     public function templatedPage($find_replace = array())
     {
-        $templator  = new Templator();
+        $templator      = $this->templator;
+        $breadcrumbs    = new Breadcrumbs();
 
         // core template items
         $find_replace = [
             'page_title_seo'        => $find_replace['page_title_seo'] ?? null,
+            'site_announcements'    => $_SESSION['site_announcements'] ?? [],
             'page_title_h1'         => $find_replace['page_title_h1'] ?? null,
-            'meta_description'      => $find_replace['meta_description'] ?? null,
+            'meta_description'      => $find_replace['meta_desc'] ?? null,
             'meta_robots'           => $find_replace['meta_robots'] ?? null,
             'css_output'            => Output::css($templator),
             'css_iterator_output'   => Output::latestCss($templator),
             'js_output'             => Output::js($templator),
             'js_iterator_output'    => Output::latestJs($templator),
-            'breadcrumbs'           => $find_replace['breadcrumbs'] ?? $this->cmsBreadcrumbs($_SERVER['REQUEST_URI']) ?? null,
+            'breadcrumbs'           => $find_replace['breadcrumbs'] ?? $breadcrumbs->cms(Settings::value('relative_uri'), $this) ?? null,
             'nav'                   => self::nav($templator, $find_replace),
-            'body'                  => $this->renderTemplate($find_replace['body'], $templator),
+            'body'                  => $find_replace['body'] ?? null,
             'footer'                => self::footer($templator, $find_replace),
             'administration'        => AdminView::renderAdminList(),
             'debug_footer'          => Debug::footer(),
         ];
 
-        $templated_page = $this->main($templator, $find_replace);
+        $templated_page = self::main($templator, $find_replace);
 
         return $templated_page;
-    }
-
-
-    /**
-     * @param $string
-     * @param Templator|null $templator
-     * @return string|null
-     * @throws SmartyException
-     */
-    private function renderTemplate($string, Templator $templator = null)
-    {
-        if (!empty($templator)) {
-            $templator->security->php_functions             = null;
-            $templator->security->php_handling              = $templator::PHP_REMOVE;
-            $templator->security->php_modifiers             = null;
-            $templator->security->trusted_static_methods    = [
-                '\Content' => [],
-            ];
-            $templator->security->allow_constants           = false;
-            $templator->security->allow_super_globals       = false;
-
-            $templator->enableSecurity($templator->security);
-        }
-
-        $return = null;
-        $error  = new ErrorHandler();
-
-        /***
-         * temporarily crank up error handling during this function's runtime so we can catch any errors including
-         * notices and warnings. if something goes wrong while trying to process a template, catch the error then
-         * output the template as a plain ol' string instead.
-        ***/
-
-        set_error_handler([$error, 'errorAsException'], E_ALL);
-
-        try{
-            $return = !empty($templator) && $this->is_cms_editor === false ? $templator->fetch('string: ' . $string) : $string;
-        } catch (Exception $e) {
-            $return = $string;
-        }
-
-        restore_error_handler();
-
-        // restore templator security settings
-        $templator->enableSecurity();
-
-        return $return;
     }
 
 
@@ -470,7 +604,7 @@ class Get
      * @return string
      * @throws SmartyException
      */
-    private function main(Templator $templator, array $find_replace)
+    private static function main(Templator $templator, array $find_replace)
     {
         foreach($find_replace as $key => $val)
             $templator->assign($key, $val);
@@ -529,37 +663,8 @@ class Get
      */
     public static function editPageCheck()
     {
-        if (!Settings::value('edit_pages'))
+        if (!Settings::value('edit_content'))
             throw new Exception('Editing pages not allowed');
-    }
-
-
-    /**
-     * @param $include_system_pages
-     * @return array|bool
-     */
-    public static function allUris($include_system_pages = false)
-    {
-        $sql = "
-          SELECT uri.uid, uri.uri
-          FROM uri
-          INNER JOIN content ON content.uri_uid = uri.uid
-          WHERE uri.archived = '0'
-          AND content.archived = '0'
-          ORDER BY uri.uri ASC
-        ";
-
-        $db         = new Query($sql);
-        $results    = $db->fetchAllAssoc();
-
-        if ($include_system_pages) {
-            $system_pages           = new SystemPages();
-            $system_pages_results   = $system_pages->getSystemPagesAsResultSet();
-
-            $results = array_merge($results, $system_pages_results);
-        }
-
-        return $results;
     }
 
 
@@ -598,67 +703,99 @@ class Get
 
 
     /**
-     * @param $uri
-     * @param array $crumb_array
+     * @param $content_uid
      * @return array
+     * @throws SmartyException
      */
-    protected function buildBreadcrumbArray($uri, $crumb_array = [])
+    private function contentAncestry($content_uid)
     {
-        $base_url   = Settings::value('full_web_url');
-        $valid_uri  = $this->uri->validate($uri);
+        $content = $this->contentByUid($content_uid, 'active', true);
 
-        if ($valid_uri) {
-            $uri_pieces     = Utilities::uriAsArray($valid_uri);
-            $parent_uri     = Utilities::generateParentUri($uri_pieces);
-
-            $page           = $this->pageContent($valid_uri);
-
-            if (!empty($page)) {
-                $crumb_array[]  = [
-                    'label' => $page['page_title_h1'],
-                    'url'   => $base_url . $valid_uri .'/',
-                ];
-            }
-
-            if (!empty($parent_uri)) {
-                return $this->buildBreadcrumbArray($parent_uri, $crumb_array);
-            }
+        if (!empty($content['parent_content_uid'])) {
+            $content['parent'] = $this->contentAncestry($content['parent_content_uid']);
         }
 
-        return $crumb_array;
+        return $content;
     }
 
 
     /**
-     * To build the breadcrumbs for the current CMS page, we parse/break up the URI and work our way up to the top.
-     * Since the breadcrumbs are built from the top down, however, we have to build the array then reverse it (before
-     * we feed it to the \Content\Pages\Breadcrumbs() class). Once we pass off the reversed array, then that class will
-     * apply the "Home" breadcrumb at the very beginning.
-     *
-     * @param $uri
-     * @return Breadcrumbs
+     * @param $content_uid
+     * @param array $uri
+     * @return string
      */
-    protected function cmsBreadcrumbs($uri)
+    public function contentUriAncestry($content_uid, $uri = [])
     {
-        $crumb_array    = array_reverse($this->buildBreadcrumbArray($uri));
-        $breadcrumbs    = new Breadcrumbs();
+        $content    = $this->contentAncestry($content_uid);
 
-        foreach ($crumb_array as $key => $crumb) {
-            $class      = [];
-            $class[]    = 'crumb-label-' . $crumb['label'];
-            $class[]    = 'crumb-url-' . Url::convert($crumb['url']);
+        if (!empty($content)) {
+            $uri[] = $content['generated_page_uri'];
 
-            if ($key == array_key_last($crumb_array)) {
-                $class[] = 'last-crumb';
+            if (!empty($content['parent']) && !empty($content['uri'])) {
+                return $this->contentUriAncestry($content['parent']['content_uid'], $uri);
             }
-
-            $breadcrumbs->crumb (
-                $crumb['label'],
-                $crumb['url'],
-                $class
-            );
         }
 
-        return $breadcrumbs;
+        $uri_array  = array_reverse($uri);
+        $real_uri   = implode('/', $uri_array);
+
+        return $real_uri;
+    }
+
+
+    /**
+     * @param bool $uri
+     * @return null
+     */
+    public function validateUri(array $content)
+    {
+        $uri        = !empty($content['uri']) ? (string)$content['uri'] : null;
+        $real_uri   = !empty($content['content_uid']) ? (string)$this->contentUriAncestry($content['content_uid']) : null;
+
+        if ($uri != $real_uri && $uri != '/home') {
+            $transaction    = new PdoMySql();
+            $uri_redirect   = new Redirect();
+
+            $data           = [
+                'uri_uid'           => $content['uri_uid'],
+                'destination_url'   => $real_uri,
+                'http_status_code'  => 301,
+                'description'       => 'Page URI was updated on page load to match the correct URI ancestry',
+            ];
+
+            $transaction->beginTransaction();
+
+            try {
+                $uri_obj    = new Uri($transaction);
+
+                if (!Uri::uriExists($real_uri)) {
+                    $uri_obj->insertUri($real_uri);
+                }
+
+                // get existing URI UID if this URI already exists, or retrieve it from the newly generated URI in this transaction
+                $new_uri_uid = $uri_obj->getUriUid($real_uri);
+
+                // make room for new URI rule in content by eliminating current redirect rules to this new URI, if needed
+                if (Uri::uriExistsAsRedirect($real_uri)) {
+                    $this->redir->archive($new_uri_uid, $transaction);
+                }
+
+                if (Submit::archiveContent($transaction, $content['content_uid'])) {
+                    Submit::insertContent($transaction, $content['parent_content_uid'], $content['content_body_type_id'], $new_uri_uid, $content['content_uid']);
+                }
+
+                $uri_redirect->insert($data, $transaction);
+            } catch (Exception $e) {
+                $transaction->rollBack();
+
+                Log::app('URI could not be automatically corrected while validating ancestry (during page load)', $content, $e->getMessage(), $e->getTraceAsString());
+            }
+
+            $transaction->commit();
+
+            return Http::redirect($real_uri, 301);
+        }
+
+        return true;
     }
 }

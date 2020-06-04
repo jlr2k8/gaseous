@@ -10,21 +10,21 @@
  *
  */
 
-use Content\Pages\Breadcrumbs;
-use Content\Pages\HTTP;
-use Content\Pages\Templator;
+use Content\Breadcrumbs;
+use Content\Http;
+use Content\Templator;
 use User\Roles;
 
 // check setting/role privileges
-
-if (!Settings::value('add_roles') && !Settings::value('edit_roles') && !Settings::value('archive_roles')) {
-    HTTP::error(403);
-}
 
 $templator  = new Templator();
 $roles      = new Roles();
 $all_roles  = $roles->getAll();
 $error      = null;
+
+if (!Settings::value('add_roles') && !Settings::value('edit_roles') && !Settings::value('archive_roles') && !empty($all_roles)) {
+    Http::error(403);
+}
 
 $role_name_value    = null;
 $description_value  = null;

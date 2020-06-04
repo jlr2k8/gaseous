@@ -10,8 +10,6 @@
  *
  **/
 
-require_once $_SERVER['WEB_ROOT'] . '/libraries/Vendor/SwiftMailer/vendor/autoload.php';
-
 class Email extends Swift_Mailer
 {
     public function __construct()
@@ -83,6 +81,7 @@ class Email extends Swift_Mailer
 
         try {
             $this->send($message);
+            Log::app('Email sent...', ['from: ' => $from], ['to' => $to], ['cc' => $cc], strip_tags($body));
         } catch(Exception $e) {
             throw $e;
         }

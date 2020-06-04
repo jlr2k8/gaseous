@@ -257,9 +257,6 @@ class Url
             '\'' => '',
         ];
 
-        //$str = 'Ǿ';
-        //so, $find_replace[$str] = '0'
-
         $find       = array_keys($find_replace);
         $replace    = array_values($find_replace);
 

@@ -10,7 +10,8 @@
  *
  */
 
-use Content\Pages\Templator;
+use Content\Http;
+use Content\Templator;
 use User\Login;
 
 $templator  = new Templator();
@@ -31,7 +32,7 @@ if (!empty($_SESSION['redir']['desc'])) {
 $templator->assign('login_message', $login_message);
 $templator->assign('recaptcha', ReCaptcha::draw());
 
-if (!empty($_POST)) {
+if (!empty($_POST) && !isset($_GET['forgot_password'])) {
     $valid_login        = $login->checkPostLogin();
     $recaptcha_required = Settings::value('require_recaptcha');
     $valid_recaptcha    = true;
@@ -41,16 +42,27 @@ if (!empty($_POST)) {
     }
 
     if ($valid_login && $valid_recaptcha) {
-        header('Location: ' . Settings::value('full_web_url'));
+        Http::redirect(Settings::value('full_web_url'));
     } elseif($valid_login && !$valid_recaptcha) {
-        header('HTTP/1.1 403 Forbidden');
+        Http::header(403);
 
         $templator->assign('login_message', 'Invalid Recaptcha');
     } else {
-        header('HTTP/1.1 401 Forbidden');
+        Http::header(403);
 
         $templator->assign('login_message', 'Invalid Login');
     }
+} elseif (!empty($_GET['token'])) {
+    $valid_token = $login->checkTokenLogin();
+
+    if ($valid_token) {
+        header('Location: ' . Settings::value('full_web_url'));
+    }
+} elseif (!empty($_GET['forgot_password'])) {
+    $email          = filter_var($_POST['registered_email'], FILTER_SANITIZE_EMAIL);
+    $valid_token    = $login->processTokenEmail($email);
+
+    $templator->assign('login_message', 'Forgotten password request is complete. If the email address is valid, you should receive an email shortly with next steps.');
 }
 
 $page_find_replace['body'] = $templator->fetch('user/login.tpl');

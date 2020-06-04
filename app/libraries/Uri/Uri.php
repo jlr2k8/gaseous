@@ -38,12 +38,9 @@ class Uri
 
         $bind = [rtrim($uri, '/')];
 
-        $this
-            ->transaction
+        return $this->transaction
             ->prepare($sql)
             ->execute($bind);
-
-        return true;
     }
 
 
@@ -57,16 +54,77 @@ class Uri
             SELECT uid
             FROM uri
             WHERE uri = ?
+            AND archived = '0';
         ";
 
-        $bind   = [rtrim($uri, '/')];
-        $result = $this
-            ->transaction
-            ->prepare($sql);
+        $bind   = [
+            rtrim($uri, '/')
+        ];
 
-        $result->execute($bind);
+        if (!empty($this->transaction)) {
+            $result = $this
+                ->transaction
+                ->prepare($sql);
 
-        return $result->fetchColumn();
+            $result->execute($bind);
+
+            $uid = $result->fetchColumn();
+        } else {
+            $db     = new Query($sql, $bind);
+            $uid    = $db->fetch();
+        }
+
+        return $uid;
+    }
+
+
+    /**
+     * @param $content_uid
+     * @return string|null
+     */
+    public function getUri($content_uid)
+    {
+        $sql = "
+            SELECT uri
+            FROM uri
+            INNER JOIN content ON content.uri_uid = uri.uid
+            WHERE content.uid = ?
+            AND content.archived = '0'
+            AND uri.archived = '0';
+        ";
+
+        $bind = [
+            $content_uid,
+        ];
+
+        $db     = new Query($sql, $bind);
+        $uri    = $db->fetch();
+
+        return $uri;
+    }
+
+
+    /**
+     * @param $uri
+     * @return int
+     */
+    public static function uriExists($uri)
+    {
+        $sql = "
+            SELECT
+                COUNT(*)
+            FROM
+                uri
+            WHERE
+                uri = ?
+            AND
+                archived = '0';
+        ";
+
+        $db     = new Query($sql, [$uri]);
+        $count  = $db->fetch();
+
+        return (int)($count > 0);
     }
 
 
@@ -74,7 +132,7 @@ class Uri
      * @param $uri
      * @return bool
      */
-    public static function uriExistsAsPage($uri)
+    public static function uriExistsAsContent($uri)
     {
         $sql = "
             SELECT
@@ -82,21 +140,21 @@ class Uri
             FROM
                 uri
             INNER JOIN
-                page
+                content
             ON
-                page.uri_uid = uri.uid
+                content.uri_uid = uri.uid
             WHERE
                 uri = ?
             AND
                 uri.archived = '0'
             AND
-                page.archived = '0';
+                content.archived = '0';
         ";
 
         $db     = new Query($sql, [$uri]);
         $count  = $db->fetch();
 
-        return ($count > 0);
+        return (int)($count > 0);
     }
 
 
@@ -126,6 +184,27 @@ class Uri
         $db     = new Query($sql, [$uri]);
         $count  = $db->fetch();
 
-        return ($count > 0);
+        return (int)($count > 0);
+    }
+
+
+    /**
+     * @return array|bool
+     */
+    public static function all()
+    {
+        $sql = "
+          SELECT uri.uid, uri.uri
+          FROM uri
+          INNER JOIN content ON content.uri_uid = uri.uid
+          WHERE uri.archived = '0'
+          AND content.archived = '0'
+          ORDER BY uri.uri ASC
+        ";
+
+        $db         = new Query($sql);
+        $results    = $db->fetchAllAssoc();
+
+        return $results;
     }
 }

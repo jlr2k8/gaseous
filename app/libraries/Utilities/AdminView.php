@@ -12,7 +12,7 @@
 
 namespace Utilities;
 
-use \Content\Pages\Templator;
+use \Content\Templator;
 use Settings;
 use SmartyException;
 
@@ -40,9 +40,9 @@ class AdminView
         $templator->assign('edit_roles', Settings::value('edit_roles'));
         $templator->assign('archive_roles', Settings::value('archive_roles'));
 
-        $templator->assign('add_pages', Settings::value('add_pages'));
-        $templator->assign('edit_pages', Settings::value('edit_pages'));
-        $templator->assign('archive_pages', Settings::value('archive_pages'));
+        $templator->assign('add_content', Settings::value('add_content'));
+        $templator->assign('edit_content', Settings::value('edit_content'));
+        $templator->assign('archive_content', Settings::value('archive_content'));
 
         $templator->assign('manage_css', Settings::value('manage_css'));
         $templator->assign('manage_js', Settings::value('manage_js'));

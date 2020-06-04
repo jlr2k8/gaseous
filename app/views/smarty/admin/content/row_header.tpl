@@ -3,7 +3,7 @@
         Page
     </th>
     <th>
-        Status
+        Type
     </th>
     <th>
         Last Modified

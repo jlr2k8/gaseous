@@ -10,9 +10,9 @@
  *
  **/
 
-use Content\Pages\Diff;
-use Content\Pages\Get;
-use Content\Pages\Templator;
+use Content\Diff;
+use Content\Get;
+use Content\Templator;
 
 $diff       = new Diff();
 $get        = new Get();

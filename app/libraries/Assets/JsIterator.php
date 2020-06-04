@@ -107,7 +107,8 @@ class JsIterator
      */
     public function setJsPreview($js_content, $minify = true, $uid = null)
     {
-        $_SESSION['js_preview'] = [];
+        $_SESSION['js_preview']                         = [];
+        $_SESSION['site_announcements']['js_preview']   = 'You are currently previewing custom javascript. To exit the preview, <a href="/admin/js/">return to the JS admin page</a> and choose "Exit Preview"';
 
         if (!empty($minify)) {
             $js_content = Minify::js($js_content);

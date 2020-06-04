@@ -6,16 +6,12 @@
  *
  * index.php
  *
- * Home page
+ * Landing page for general CMS content
  *
  **/
 
-use Content\Pages\GetHomePage;
+use Content\Get;
 
-$get = new GetHomePage();
-
-if (in_array($_SERVER['REQUEST_URI'], GetHomePage::$home_pages)) {
-    $get->redirectHome(); exit;
-}
+$get = new Get();
 
 echo $get->byUri();

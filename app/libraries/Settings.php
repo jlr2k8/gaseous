@@ -13,15 +13,15 @@
 use Db\PdoMySql;
 use Db\Query;
 use User\Roles;
-use Utilities\Reset;
 
 class Settings
 {
-    public $full_web_url;
+    public $full_web_url, $relative_uri;
 
     public function __construct()
     {
         $this->getFullWebURL();
+        $this->getRelativeUri();
     }
 
 
@@ -31,7 +31,21 @@ class Settings
     private function getFullWebURL()
     {
         $protocol           = self::getFromDB('enable_ssl') ? 'https:' : 'http:';
-        $this->full_web_url = $protocol . self::getFromDB('web_url');
+        $this->full_web_url = $protocol . rtrim(self::getFromDB('web_url'), '/');
+
+        return true;
+    }
+
+
+    /**
+     * @return bool
+     */
+    private function getRelativeUri()
+    {
+        $server_name            = $_SERVER['SERVER_NAME'];
+        $base_url               = trim(self::getFromDB('web_url'), '/');
+        $uri                    = (string)filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
+        $this->relative_uri     = str_replace($base_url, null, $server_name . $uri);
 
         return true;
     }
@@ -46,12 +60,35 @@ class Settings
      */
     public static function value($key, $value = false)
     {
-        // get setting from database
-        $setting    = self::getFromDB($key, $value);
+        $setting = self::getFromSession($key, $value);
 
-        // if setting not stored there, check fields in this class
+        // if the setting isn't in the session, try querying the database directly
+        if (empty($setting)) {
+            $setting    = self::getFromDB($key, $value);
+        }
+
+        // if setting not stored there either, check fields in this class
         if (empty($setting)) {
             $setting    = self::getFromSelfProperty($key, $value);
+        }
+
+        return $setting;
+    }
+
+
+    /**
+     * @param $key
+     * @param bool $value
+     * @return bool|mixed
+     */
+    private static function getFromSession($key, $value = false)
+    {
+        $setting = false;
+
+        if (!empty($_SESSION['settings'][$key])) {
+            // get value by key, or get value as explicitly sought by key
+            if (empty($value) || (!empty($value) && $_SESSION['settings'][$key] == $value))
+                $setting = $_SESSION['settings'][$key];
         }
 
         return $setting;
@@ -74,6 +111,30 @@ class Settings
         }
 
         return false;
+    }
+
+
+    /**
+     * @return array
+     * @throws ReflectionException
+     */
+    private static function getAllSelfProperties()
+    {
+        $settings   = new self();
+        $reflect    = new ReflectionClass($settings);
+        $properties = $reflect->getProperties(ReflectionProperty::IS_PUBLIC | ReflectionProperty::IS_PROTECTED);
+        $s          = [];
+
+        foreach ($properties as $property) {
+            // Exception - do NOT store the relative URI. this needs to be dynamic per page load...
+            if ($property->getName() == 'relative_uri') {
+                continue;
+            }
+
+            $s[$property->getName()] = $property->getValue($settings);
+        }
+
+        return $s;
     }
 
 
@@ -135,41 +196,26 @@ class Settings
 
     /**
      * @return bool
-     * @throws ErrorException
      */
-    public static function checkCoreTables()
+    public static function cacheSettings()
     {
-        $core_tables_clause  = "'" . implode("','", Reset::$core_tables) . "'";
-        asort(Reset::$core_tables, SORT_ASC);
+        if (empty($_SESSION['settings'])) {
+            $self_settings  = self::getAllSelfProperties();
+            $db_settings    = self::getAllFromDB(true, true);
 
-        $sql = "
-            SELECT
-                table_name
-            FROM
-                information_schema.TABLES
-            WHERE
-                table_schema = ?
-            AND
-                table_name IN($core_tables_clause)
-            ORDER BY table_name;
-        ";
+            $_SESSION['settings'] = array_merge($self_settings, $db_settings);
+        }
 
-        $bind = [
-            Settings::environmentIni('mysql_database'),
-        ];
-
-        $db         = new Query($sql, $bind);
-        $results    = $db->fetchAll();
-
-        return ($results == Reset::$core_tables);
+        return true;
     }
 
 
     /**
      * @param bool $values_only
+     * @param bool $exclude_role_based_settings
      * @return bool|mixed
      */
-    public static function getAllFromDB($values_only = false)
+    public static function getAllFromDB($values_only = false, $exclude_role_based_settings = false)
     {
         $sql = "
             SELECT *, COALESCE(s.display, s.key) AS key_display
@@ -177,9 +223,20 @@ class Settings
             INNER JOIN settings_values AS sv
               ON s.key = sv.settings_key
             WHERE s.archived='0'
+            AND sv.archived = '0'
         ";
 
-        $db         = new Query($sql);
+        $bind = [];
+
+        if ($exclude_role_based_settings === true) {
+            $sql .= "
+                AND s.role_based = ?
+            ";
+
+            $bind[] = 'false';
+        }
+
+        $db         = new Query($sql, $bind);
         $results    = $db->fetchAllAssoc();
 
         return self::processDbResults($results, $values_only);
@@ -239,11 +296,11 @@ class Settings
                 $processed_result['value']      = self::processDbResult($result);
                 $processed_result['properties'] = self::getSettingProperties($processed_result['key']);
                 $processed_result['roles']      = self::getSettingRoles($processed_result['key']);
-            } else {
-                $processed_result = self::processDbResult($result);
-            }
 
-            $processed_results[] = $processed_result;
+                $processed_results[] = $processed_result;
+            } else {
+                $processed_results[$result['key']] = self::processDbResult($result);
+            }
         }
 
         return $processed_results;
@@ -275,16 +332,16 @@ class Settings
     public function getSettingCategories()
     {
         $sql = "
-            SELECT DISTINCT category_key AS `key`, c.category
+            SELECT DISTINCT category_key AS `key`, sc.category
             FROM settings AS s
-            LEFT JOIN category AS c
-              ON s.category_key = c.key
+            LEFT JOIN settings_categories AS sc
+              ON s.category_key = sc.key
             WHERE
-              ((category_key IS NULL AND c.key IS NULL)
-                OR (category_key IS NOT NULL AND c.key IS NOT NULL))
+              ((category_key IS NULL AND sc.key IS NULL)
+                OR (category_key IS NOT NULL AND sc.key IS NOT NULL))
             AND
-              ((c.archived = '0'
-                OR c.archived IS NULL));
+              ((sc.archived = '0'
+                OR sc.archived IS NULL));
         ";
 
         $db = new Query($sql);
@@ -307,7 +364,9 @@ class Settings
         $transaction->beginTransaction();
 
         try {
-            self::updateSettingsValuesTable($transaction, $settings_data);
+            //self::updateSettingsValuesTable($transaction, $settings_data);
+            if (self::archiveSettingValue($transaction, $settings_data['key']))
+                self::insertSettingValue($transaction, $settings_data['key'], $settings_data['value']);
 
             // archive/re-add settings roles
             if (self::archiveSettingsRoles($transaction, $settings_data['key']) && !empty($settings_data['settings_roles']))
@@ -316,15 +375,16 @@ class Settings
         } catch (Exception $e) {
             $transaction->rollBack();
 
-            error_log($e->getMessage() . ' ' . $e->getTraceAsString());
+            Log::app($e->getMessage() . ' ' . $e->getTraceAsString());
 
-            return false;
+            throw $e;
         }
 
         $transaction->commit();
 
         return true;
     }
+
 
     /**
      * @throws Exception
@@ -333,33 +393,6 @@ class Settings
     {
         if (!Settings::value('edit_settings'))
             throw new Exception('Not allowed to edit settings');
-    }
-
-    /**
-     * @param PdoMySql $transaction
-     * @param array $settings_data
-     * @return bool
-     * @throws Exception
-     */
-    private function updateSettingsValuesTable(PdoMySql $transaction, array $settings_data)
-    {
-        self::editSettingsCheck();
-
-        $sql = "
-            UPDATE settings_values
-            SET
-              value = ?
-            WHERE settings_key = ?
-        ";
-
-        $bind = [
-            $settings_data['value'],
-            $settings_data['key'],
-        ];
-
-        return $transaction
-            ->prepare($sql)
-            ->execute($bind);
     }
 
 
@@ -375,6 +408,33 @@ class Settings
 
         $sql = "
             UPDATE settings_roles
+            SET
+              archived = '1',
+              archived_datetime = NOW()
+            WHERE settings_key = ?
+            AND archived = '0'
+        ";
+
+        $bind = [$key];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param PdoMySql $transaction
+     * @param string $key
+     * @return bool
+     * @throws Exception
+     */
+    private function archiveSettingValue(PdoMySql $transaction, $key)
+    {
+        self::editSettingsCheck();
+
+        $sql = "
+            UPDATE settings_values
             SET
               archived = '1',
               archived_datetime = NOW()
@@ -430,35 +490,64 @@ class Settings
 
 
     /**
+     * @param PdoMySql $transaction
+     * @param string $key
+     * @param array $settings_roles
+     * @return bool
+     * @throws Exception
+     */
+    private function insertSettingValue(PdoMySql $transaction, $key, $value)
+    {
+        self::editSettingsCheck();
+
+        $sql = "
+          INSERT INTO settings_values (settings_key, `value`)
+          VALUES (?, ?);
+        ";
+
+        $bind = [
+            $key,
+            $value,
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
      * @param $value
      * @return mixed
-     * @throws ErrorException
+     * @throws Exception
      */
     public static function environmentIni($value)
     {
-        $environment_ini_file = $_SERVER['WEB_ROOT'] . '/setup/environment.ini';
+        $environment_ini_file = ENVIRONMENT_INI;
 
         if (is_file($environment_ini_file) && is_readable($environment_ini_file)) {
             $parsed_environment_ini_file    = parse_ini_file($environment_ini_file, true);
-            $this_section                   = $parsed_environment_ini_file[ENVIRONMENT];
+            $this_section                   = $parsed_environment_ini_file[ENVIRONMENT] ?? null;
 
             if (empty($this_section)) {
                 if (PHP_SAPI == 'cli') {
-                    throw new ErrorException(
+                    throw new Exception(
                         'Since you are running this script via CLI, you\'ll need to pass in the environment name as the first argument'
                     );
                 } else {
-                    throw new ErrorException(
-                        'Empty or missing ' . $_SERVER['ENVIRONMENT'] . ' section in ' . $environment_ini_file
-                    );
+                    if (empty($_SESSION['setup_mode'])) {
+                        trigger_error('Empty or missing ' . $_SERVER['ENVIRONMENT'] . ' section in ' . $environment_ini_file, E_USER_WARNING);
+                    }
+
+                    return false;
                 }
             }
         } else {
-            throw new ErrorException(
-                'Missing '
-                . $environment_ini_file
-                . '. Please create that file and an array section that matches your Apache ENVIRONMENT directive.'
-            );
+            if (empty($_SESSION['setup_mode'])) {
+                trigger_error('Missing ' . ENVIRONMENT_INI, E_USER_WARNING);
+            }
+
+            return false;
         }
 
         return $this_section[$value];

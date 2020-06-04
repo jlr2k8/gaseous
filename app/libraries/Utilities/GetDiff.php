@@ -12,7 +12,7 @@
 
 namespace Utilities;
 
-require_once $_SERVER['WEB_ROOT'] . '/includes/simplediff.php';
+require_once WEB_ROOT . '/includes/simplediff.php';
 
 class GetDiff
 {

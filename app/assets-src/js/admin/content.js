@@ -1,48 +1,25 @@
 $(document).ready( function() {
-    $('.uri_preview_setter').on('change', function() {
-        var new_val = null;
-
-        if ($(this).is('select')) {
-            new_val = $(this).find('option:selected').text();
-        } else if ($(this).is('input[type="text"]')) {
-            new_val = $(this).val().replace(/[^a-z0-9\-]/g, '');
-        }
-
-        var original_uri_input_border   = $('input[name="this_uri_piece"]').css('border');
-        var original_preview_hint_color = $('#preview_hint').css('color');
-
-        if ($(this).val() != new_val && $(this).is('input[type="text"]')) {
-            $('input[name="this_uri_piece"]').css('border','2px solid red');
-            $('#preview_hint')
-                .text('URI must be constructed with lowercase alphanumeric characters and dashes only.')
-                .css('color', 'red');
-        } else {
-            $('input[name="this_uri_piece"]').css('border', original_uri_input_border);
-            $('#preview_hint').text('').css('color', original_preview_hint_color);
-        }
-
-        $('#preview_full_parent_uri').text($('select[name="parent_page_uri"] option:selected').text().replace(/\/$/g, ''));
-        $('#preview_this_url_piece').text($('input[name="this_uri_piece"]').val().replace(/\/$/g, ''));
-    });
-
-    $('#submit_page_iteration').on('click', function() {
+    $('#submit_content_iteration').on('click', function() {
         var new_cms_content         = ckeditor.getData();
-        var this_submit_button      = $('#submit_page_iteration');
+        var this_submit_button      = $('#submit_content_iteration');
         var this_submit_button_html = this_submit_button.html();
         var data                    = $('#form *').serializeArray(), data_obj = {};
+        var wyswyg_name             = $('textarea[data-is-wyswyg="true"]').attr('name');
 
-        data.push({
-            name: "body",
-            value: new_cms_content
-        });
+        if (typeof wyswyg_name !== "undefined" && typeof wyswyg_name !== false) {
+            data.push({
+                name: wyswyg_name,
+                value: new_cms_content
+            });
+        }
 
         $(data).each(function(key, val) {
             data_obj[val.name] = val.value;
         });
 
-        data_str = $.param(data);
+        var data_str = $.param(data);
 
-        $.post('/admin/pages/', data_str, function(response) {
+        $.post('/admin/content/', data_str, function(response) {
             this_submit_button
                 .attr('disabled', 'disabled')
                 .html('Updating...')
@@ -57,7 +34,7 @@ $(document).ready( function() {
 
                             hideSubmitError();
 
-                            window.location.replace('/admin/pages/');
+                            window.location.replace('/admin/content/');
                         } else {
                             this_submit_button
                                 .html('Oops!')
@@ -80,11 +57,11 @@ $(document).ready( function() {
                     e();
                 });
 
-            var page_master_uid = $('input[name="page_master_uid"]').val();
+            var content_uid = $('input[name="content_uid"]').val();
 
-            if (page_master_uid != '') {
-                $('#page_iterations_wrapper div').fadeOut(function() {
-                    $(this).load('/services/display_page_iterations.php?page_master_uid=' + page_master_uid, function() {
+            if (content_uid != '') {
+                $('#content_iterations_wrapper div').fadeOut(function() {
+                    $(this).load('/controllers/services/display_content_iterations.php?content_uid=' + content_uid, function() {
                         $(this).fadeIn();
                     });
                 })
@@ -112,18 +89,18 @@ $(document).ready( function() {
         return true;
     }
 
-    $('#archive_page').on('click', function(e) {
+    $('#archive_content').on('click', function(e) {
         var status = confirm('Are you sure?');
 
         if(status === false) {
             return false;
         }
 
-        var this_submit_button      = $('#archive_page');
+        var this_submit_button      = $('#archive_content');
         var this_submit_button_html = this_submit_button.html();
         var data                    = $('#form *').serialize() + '&archive';
 
-        $.post('/admin/pages/', data, function(response) {
+        $.post('/admin/content/', data, function(response) {
             this_submit_button
                 .attr('disabled', 'disabled')
                 .html('Kaboom!&#160;<i class="fas fa-check"></i>')
@@ -133,17 +110,17 @@ $(document).ready( function() {
                         .removeAttr('disabled');
                     e();
                 });
-           window.location.replace('/admin/pages/');
+           window.location.replace('/admin/content/');
         });
     });
 
     $('#is_public').on('change', function() {
         if ($(this).is(':checked')) {
-            $('.page_roles').each(function() {
+            $('.content_roles').each(function() {
                 $(this).prop('checked', false).attr('disabled', 'disabled');
             });
         } else {
-            $('.page_roles').each(function() {
+            $('.content_roles').each(function() {
                 $(this).removeAttr('disabled');
             });
         }
@@ -151,7 +128,7 @@ $(document).ready( function() {
 
     checkPageRoles();
 
-    $('.page_roles').on('change', function() {
+    $('.content_roles').on('change', function() {
         $('#is_public').prop('checked', false);
         checkPageRoles();
     });
@@ -159,7 +136,7 @@ $(document).ready( function() {
     function checkPageRoles() {
         var roles_checked = false;
 
-        $('.page_roles').each(function() {
+        $('.content_roles').each(function() {
             if ($(this).is(':checked')) {
                 roles_checked = true;
                 return false;
@@ -169,11 +146,16 @@ $(document).ready( function() {
         if (roles_checked === false) {
             $('#is_public').prop('checked', true);
 
-            $('.page_roles').each(function() {
+            $('.content_roles').each(function() {
                 $(this).prop('checked', false).attr('disabled', 'disabled');
             });
         }
 
         return true;
     }
+
+    $('select#new_content_selector').on('change', function() {
+        var new_content_type = $(this).find('option:selected').val();
+        window.location.replace('/admin/content/' + new_content_type);
+    });
 });

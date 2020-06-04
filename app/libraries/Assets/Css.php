@@ -28,7 +28,7 @@ class Css
      */
     public function get()
     {
-        $css_gz_file    = $_SERVER['WEB_ROOT'] . '/assets/styles.gz.css';
+        $css_gz_file    = WEB_ROOT . '/assets/styles.gz.css';
 
         $css_gz = file_exists($css_gz_file) && gzdecode(file_get_contents($css_gz_file))
             ? gzdecode(file_get_contents($css_gz_file))

@@ -10,29 +10,28 @@
  *
  **/
 
+use Assets\Output;
 use Content\Menu;
-use \Content\Pages\Get;
-use \Content\Pages\Breadcrumbs;
-use \Content\Pages\HTTP;
-use \Content\Pages\Templator;
-use \Uri\Redirect;
+use Content\Breadcrumbs;
+use Content\Http;
+use Content\Templator;
 use Uri\Uri;
 
-$templator      = new Templator();
-$menu           = new Menu();
+$templator  = new Templator();
+$menu       = new Menu();
 
 $title              = 'Site Menu';
 $error              = null;
 $menu->admin        = true;
 $rendered_menu      = $menu->renderMenu();
 $menu_items         = $menu->getMenuItems();
-$all_uris           = Get::allUris();
+$all_uris           = Uri::all();
 $manage_menu        = Settings::value('manage_menu');
 $post               = [];
 
 // check setting/role privileges
 if (!$manage_menu) {
-    HTTP::error(403);
+    Http::error(403);
 }
 
 if (!empty($_POST)) {
@@ -42,14 +41,22 @@ if (!empty($_POST)) {
 }
 
 if (!empty($_POST['update']) && $_POST['update'] == 'true') {
-    $post['menu_uri_uid'] = $post['uri_uid'];
-    $updated = $menu->updateMenuItem($post);
+    $post['menu_uri_uid']   = $post['uri_uid'];
+    $updated                = $menu->updateMenuItem($post);
 
     if ($updated) {
         header('Location: ' . Settings::value('full_web_url') . '/admin/menu/');
     }
 } elseif (!empty($_POST['update_sort']) && $_POST['update_sort'] == 'true') {
     $menu->processMenu($post['menu']);
+
+    exit;
+} elseif (!empty($_GET['archive'])) {
+    $uid    = filter_var($_GET['archive'], FILTER_SANITIZE_STRING);
+
+    $menu->archiveMenuItem($uid);
+    $menu->archiveOrphans();
+
     exit;
 } elseif (!empty($_POST['new']) && $_POST['new'] == 'true') {
     $add_menu_item  = false;
@@ -58,7 +65,7 @@ if (!empty($_POST['update']) && $_POST['update'] == 'true') {
         $uri_obj    = new Uri();
         $uri        = '/' . filter_var($post['custom_uri'], FILTER_SANITIZE_URL);
 
-        if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsPage($uri)) {
+        if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsContent($uri)) {
             $uri_obj->insertUri($uri);
         }
 
@@ -79,8 +86,8 @@ $templator->assign('rendered_menu', $rendered_menu);
 
 if (!empty($_GET['load_current_site_menu'])) {
     $templator->assign('admin', $manage_menu);
-    $templator->assign('css_output', Get::outputCss($templator));
-    $templator->assign('css_iterator_output', Get::outputLatestCss($templator));
+    $templator->assign('css_output', Output::css($templator));
+    $templator->assign('css_iterator_output', Output::latestCss($templator));
 
     echo $templator->fetch('admin/menu/menu-sortable.tpl');
 

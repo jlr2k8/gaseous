@@ -1,5 +1,5 @@
-.breadcrumbs {
-    margin: 20px 0;
+.breadcrumbs ol {
+    padding: 0;
 }
 
 .breadcrumbs ol li {

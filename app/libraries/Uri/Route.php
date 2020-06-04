@@ -14,7 +14,6 @@ namespace Uri;
 
 use Db\PdoMySql;
 use Db\Query;
-use ErrorException;
 use Exception;
 
 class Route
@@ -35,7 +34,7 @@ class Route
     {
         $parsed_uri_raw = parse_url($uri);
         $path_raw       = $parsed_uri_raw['path'];
-        $real_file      = $_SERVER['WEB_ROOT'] . $path_raw;
+        $real_file      = WEB_ROOT . $path_raw;
 
         // requests to index.php should go to an empty path
         if ($path_raw == '/index.php') {
@@ -263,6 +262,7 @@ class Route
             $this->archive($uid, $transaction);
 
             $data = [
+                'uid'                       => $uid,
                 'regex_pattern'             => $regex_pattern,
                 'destination_controller'    => $destination_controller,
                 'description'               => $description,
@@ -270,13 +270,13 @@ class Route
             ];
 
             $this->insert($data, $transaction);
-        } catch(ErrorException $e) {
+        } catch(Exception $e) {
             $transaction->rollBack();
 
             $this->errors[] = $e->getMessage();
 
             $this->generateJsonUpsertStatus('status', $e->getMessage());
-            $this->checkAndThrowErrorException();
+            $this->checkAndThrowException();
 
             return false;
         }
@@ -343,12 +343,12 @@ class Route
     /**
      * @throws Exception
      */
-    private function checkAndThrowErrorException()
+    private function checkAndThrowException()
     {
         if (!empty($this->errors)) {
             $errors = implode('; ', $this->errors);
 
-            throw new ErrorException($errors);
+            throw new Exception($errors);
         }
 
         return true;
@@ -389,13 +389,13 @@ class Route
             try {
                 $this->archive($uid, $transaction);
                 $this->insert($data, $transaction);
-            } catch(ErrorException $e) {
+            } catch(Exception $e) {
                 $transaction->rollBack();
 
                 $this->errors[] = $e->getMessage();
 
                 $this->generateJsonUpsertStatus('status', $e->getMessage());
-                $this->checkAndThrowErrorException();
+                $this->checkAndThrowException();
 
                 return false;
             }
@@ -414,22 +414,18 @@ class Route
     {
         $sql = "
             SELECT
-                priority_order
+                MAX(priority_order)+1
             FROM
                 uri_routes
             WHERE
                 archived = '0'
-            ORDER BY priority_order DESC
-            LIMIT 1;
         ";
 
-        $db     = new Query($sql);
-        $result = $db->fetch();
+        $db             = new Query($sql);
+        $result         = $db->fetch();
+        $priority_order = (int)($result);
 
-        // now increment that result by +1
-        $priority_order = (int)($result+1);
-
-        return (int)$priority_order;
+        return $priority_order;
     }
 
 }

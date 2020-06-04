@@ -69,7 +69,7 @@ class Validation
          **/
         if ($password) {
 
-            // TODO - make configurable (along with password requirements message)
+            // TODO - make configurable via settings (along with password requirements message)
             $password_pattern = '/^.*(?=.{7,})(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).*$/';
 
             if (preg_match($password_pattern, $password)) {
@@ -89,31 +89,23 @@ class Validation
      */
     public static function checkValidName($name, $allow_numbers = false)
     {
-        $name = !empty($name) ? $name : false;
+        $name       = strtolower((string)$name);
+        $is_valid   = false;
 
-        /** NOTICE
-         *    All names must contain 3 - 10 characters (letters only)
-         *      (unless $allow_numbers is true!)
-         **/
+        // All names must contain 3 - 10 alphabetic characters only - unless $allow_numbers is true
 
-        if ($name) {
+        // TODO - make configurable via settings (along with password requirements message)
+        $name_pattern   = '~[a-z' . ($allow_numbers ? '0-9' : null) . ']{3,10}~';
 
-            // TODO - make configurable (along with password requirements message)
-            $name_pattern   = '[A-Za-z';
-            $name_pattern   .= $allow_numbers ? $name_pattern . '0-9' : null;
-            $name_pattern   = '/^' . $name_pattern . ']{3,10}$/';
-
-            if (
-                preg_match($name_pattern, $name)
-                && self::checkProfanity($name) === false
-                && self::checkDeceitfulName($name) === false
-            ) {
-
-                return true;
-            }
+        if (
+            preg_match($name_pattern, $name)
+            && self::checkProfanity($name) === false
+            && self::checkDeceitfulName($name) === false
+        ) {
+            $is_valid = true;
         }
 
-        return false;
+        return $is_valid;
     }
 
 
@@ -138,7 +130,8 @@ class Validation
      */
     public static function checkProfanity($word)
     {
-        $word = !empty($word) ? strtolower($word) : false;
+        $word       = strtolower((string)$word);
+        $is_profane = false;
 
         /* Profanity - Per BannedWordList.com */
         $profane_name_arr = [
@@ -220,11 +213,10 @@ class Validation
         ];
 
         if (in_array($word, $profane_name_arr)) {
-
-            return true;
+            $is_profane = true;
         }
 
-        return false;
+        return $is_profane;
     }
 
 
@@ -236,32 +228,29 @@ class Validation
      */
     public static function checkDeceitfulName($word)
     {
-        $word = !empty($word) ? strtolower($word) : false;
+        $word           = strtolower((string)$word);
+        $is_deceitful   = false;
 
         /* Deceitful usernames */
-        if ($word) {
+        $bad_name_arr = [
+            'admin',
+            'administrator',
+            'adm',
+            'bot',
+            'root',
+            'moderator',
+            'owner',
+            'mod',
+            'super',
+            'superuser',
+            'manager',
+            'edit'
+        ];
 
-            $bad_name_arr = [
-                'admin',
-                'administrator',
-                'adm',
-                'bot',
-                'root',
-                'moderator',
-                'owner',
-                'mod',
-                'super',
-                'superuser',
-                'manager',
-                'edit'
-            ];
-
-            if (in_array($word, $bad_name_arr)) {
-
-                return true;
-            }
+        if (in_array($word, $bad_name_arr)) {
+            $is_deceitful = true;
         }
 
-        return false;
+        return $is_deceitful;
     }
 }

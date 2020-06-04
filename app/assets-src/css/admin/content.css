@@ -10,3 +10,11 @@
     float: left;
     clear: both;
 }
+
+iframe.file_upload {
+    border: none;
+    width: 100%;
+    background: none;
+    padding: 1em;
+    margin: 1em 0;
+}

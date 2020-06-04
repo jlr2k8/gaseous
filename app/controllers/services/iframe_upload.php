@@ -9,48 +9,83 @@
  * CK Editor upload image
  */
 
-use Utilities\Token;
+use Assets\Output;
+use Content\Http;
+use Content\Templator;
 
-$file_upload            = !empty($_FILES['upload']['tmp_name']) ? $_FILES['upload']['tmp_name'] : false;
-$file_reference         = !empty($_FILES['upload']['name']) ? $_FILES['upload']['name'] : false;
-$upload_root            = Settings::value('upload_root');
-$upload_url_relative    = Settings::value('upload_url_relative');
-
-if ($file_upload && $file_reference) {
-    $token                      = Token::generate();
-    $file_pathinfo              = pathinfo($file_reference);
-    $tokenized_file_reference   = $file_pathinfo['filename'] . '-' . $token . '.' . $file_pathinfo['extension'];
-
-    // img folder should always be writable (max permission ok here)
-    if (!is_dir($upload_root))
-        mkdir($upload_root, 0777, true);
-
-    if (!is_writable($upload_root))
-        chmod($upload_root, 0777);
-
-    // move it on up!
-    if (move_uploaded_file($file_upload, $upload_root . '/' . $tokenized_file_reference)) {
-
-        // callback for CK editor to see upload
-        $func_num = $_GET['CKEditorFuncNum'];
-
-        // url for callback to pass into cms
-        $url = $upload_url_relative . '/' . $tokenized_file_reference;
-
-        // message (dont need this)
-        $message = null;
-
-        // service echos out the script tag
-        echo "<script type='text/javascript'>window.parent.CKEDITOR.tools.callFunction($func_num, '$url', '$message');</script>";
-
-        exit;
-    }
-
-    http_response_code(500); // error
-
-    exit;
+if (!Settings::value('edit_content') || !Settings::value('add_content')) {
+    Http::error(403);
 }
 
-http_response_code(400); // bad request
+$content_field_uid      = !empty($_GET['content_field_uid']) ? filter_var($_GET['content_field_uid'], FILTER_SANITIZE_STRING) : null;
+$content_iteration_uid  = !empty($_GET['content_iteration_uid']) ? filter_var($_GET['content_iteration_uid'], FILTER_SANITIZE_STRING) : null;
 
-exit;
+$templator  = new Templator();
+$body       = new Content\Body();
+$file       = new File();
+
+$cms_field  = $body->getCmsField($content_field_uid, $content_iteration_uid);
+
+$templator->assign('content_field_uid', $content_field_uid);
+$templator->assign('content_iteration_uid', $content_iteration_uid);
+$templator->assign('css_output', Output::css($templator));
+$templator->assign('css_iterator_output', Output::latestCss($templator));
+
+foreach ($cms_field as $key => $val) {
+    $templator->assign($key, $val);
+}
+
+$upload_field = $templator->fetch('admin/content/field_types/inc/file_upload_form.tpl');
+
+$templator->assign('file_input', $upload_field);
+
+if (empty($cms_field)) {
+    Http::header(400);
+
+    $message = 'Invalid CMS field UID';
+
+    Log::app($message);
+
+    die($message);
+}
+
+if ($cms_field['content_body_field_type_id'] != 'file_upload') {
+    Http::header(400);
+
+    $message = 'Not a valid upload field type';
+
+    Log::app($message);
+
+    die($message);
+}
+
+if (empty($_FILES) && !empty($cms_field['value'])) {
+    $url = $cms_field['value'];
+    $templator->assign('url', $url);
+} elseif (!empty($_FILES)) {
+    $allowed_extensions = [];
+
+    if (!empty($cms_field['properties'])) {
+        foreach ($cms_field['properties'] as $property) {
+            if (!empty($property['property']) && $property['property'] == 'file_upload_allowed_extensions') {
+                $allowed_extensions = explode(',', $property['value']);
+            }
+        }
+    }
+
+    $url    = $file->uploadFormFile($cms_field['template_token'] . '_file', $allowed_extensions);
+
+    if (!empty($url)) {
+        $templator->assign('url', $url);
+    } else {
+        Http::header(400);
+
+        $message = 'No file uploaded';
+
+        Log::app($message);
+
+        die($message);
+    }
+}
+
+echo $templator->fetch('admin/content/field_types/inc/file_upload_form.tpl');

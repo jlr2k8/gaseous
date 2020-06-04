@@ -11,14 +11,14 @@
  */
 
 // check setting/role privileges
-use Content\Pages\Breadcrumbs;
-use Content\Pages\HTTP;
-use Content\Pages\Templator;
+use Content\Breadcrumbs;
+use Content\Http;
+use Content\Templator;
 use User\Account;
 use User\Roles;
 
 if (!Settings::value('edit_users') && !Settings::value('archive_users')) {
-    HTTP::error(403);
+    Http::error(403);
 }
 
 $templator      = new Templator();

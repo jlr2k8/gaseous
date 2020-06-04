@@ -10,7 +10,7 @@
  *
  **/
 
-namespace Content\Pages;
+namespace Content;
 
 use Db\Query;
 use Utilities\DateTime;

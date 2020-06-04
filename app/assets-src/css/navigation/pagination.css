@@ -1,0 +1,25 @@
+.pager_wrapper.default {
+    margin: 2em auto;
+    text-align: center;
+}
+
+.pager_wrapper.default .pager-nav,
+.pager_wrapper.default .pager-numbers {
+    display: inline-block;
+}
+
+.pager_wrapper.default a.pager-nav,
+.pager_wrapper.default a.pager-number {
+    margin: .5em;
+    display: inline-block;
+    text-decoration: none;
+    background-color: lightgray;
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: black;
+}
+
+.pager_wrapper.default .pager-number.selected {
+    font-weight: bold;
+    border: 1px solid black;
+}

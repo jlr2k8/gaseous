@@ -12,6 +12,11 @@ ul.menu_group {
     min-height: 500px;
 }
 
+#rendered_menu {
+    border: 1px dashed black;
+    min-height: 300px;
+}
+
 #edit_menu_items_wrapper input[type='text'] {
     width: 125px;
 }

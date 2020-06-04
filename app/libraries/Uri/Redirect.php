@@ -12,9 +12,10 @@
 
 namespace Uri;
 
+use Content\Get;
+use Content\Http;
 use Db\PdoMySql;
 use Db\Query;
-use ErrorException;
 use Exception;
 
 class Redirect
@@ -161,7 +162,7 @@ class Redirect
      */
     public function insert(array $data, PdoMySql $transaction = null)
     {
-        $uri_uid            = filter_var($data['redirect_uri_uid'], FILTER_SANITIZE_STRING);
+        $uri_uid            = filter_var($data['uri_uid'], FILTER_SANITIZE_STRING);
         $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
         $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING);
         $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);
@@ -203,45 +204,27 @@ class Redirect
 
     /**
      * @param array $data
+     * @param PdoMySql $transaction
      * @return bool
      * @throws Exception
      */
-    public function update(array $data)
+    public function update(array $data, PdoMySql $transaction)
     {
-        $uri_uid            = filter_var($data['redirect_uri_uid'], FILTER_SANITIZE_STRING);
+        $uri_uid            = filter_var($data['redirect_uri_uid'] ?? $data['uri_uid'], FILTER_SANITIZE_STRING);
         $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
         $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING);
         $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);
 
-        $transaction = new PdoMySql();
+        $this->archive($uri_uid, $transaction);
 
-        $transaction->beginTransaction();
+        $data = [
+            'uri_uid'           => $uri_uid,
+            'destination_url'   => $destination_url,
+            'http_status_code'  => $http_status_code,
+            'description'       => $description,
+        ];
 
-        try {
-            $this->archive($uri_uid, $transaction);
-
-            $data = [
-                'uri_uid'           => $uri_uid,
-                'destination_url'   => $destination_url,
-                'http_status_code'  => $http_status_code,
-                'description'       => $description,
-            ];
-
-            $this->insert($data, $transaction);
-        } catch(ErrorException $e) {
-            $transaction->rollBack();
-
-            $this->errors[] = $e->getMessage();
-
-            $this->generateJsonUpsertStatus('status', $e->getMessage());
-            $this->checkAndThrowErrorException();
-
-            return false;
-        }
-
-        $transaction->commit();
-
-        return true;
+        return $this->insert($data, $transaction);
     }
 
 
@@ -282,6 +265,33 @@ class Redirect
 
 
     /**
+     * @param array $parsed_uri
+     * @return bool
+     * @throws Exception
+     */
+    public function properUri($uri)
+    {
+        $parsed_uri     = parse_url($uri);
+        $current_uri    = $parsed_uri['path'];
+        $querystring    = !empty($parsed_uri['query']) ? '?' . $parsed_uri['query'] : null;
+
+        if (in_array($current_uri, Get::$home_pages)) {
+            Http::redirect('/' . $querystring, 301);
+        }
+
+        if (!empty($querystring) && $_SERVER['REQUEST_URI'] != $current_uri . $querystring) {
+            Http::redirect($current_uri . $querystring, 301);
+        }
+
+        if (!stristr($current_uri, '?') && substr($current_uri, -1) != '/') {
+            Http::redirect(rtrim($current_uri, '/') . '/' . $querystring, 301);
+        }
+
+        return false;
+    }
+
+
+    /**
      * @param $status
      * @param $message
      * @return bool
@@ -301,12 +311,12 @@ class Redirect
     /**
      * @throws Exception
      */
-    private function checkAndThrowErrorException()
+    private function checkAndThrowException()
     {
         if (!empty($this->errors)) {
             $errors = implode('; ', $this->errors);
 
-            throw new ErrorException($errors);
+            throw new Exception($errors);
         }
 
         return true;

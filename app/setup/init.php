@@ -10,22 +10,29 @@
  *
  **/
 
+use Setup\Utilities;
 use User\Login;
 
-define('PAGE_LOAD_START', microtime(true));
-
-require_once $_SERVER['WEB_ROOT'] . '/libraries/Autoload.php';
-require_once $_SERVER['WEB_ROOT'] . '/setup/constants.php';
+require_once dirname(__DIR__) . '/setup/constants.php';
+require_once GASEOUS_AUTOLOADER;
 
 if (PHP_SAPI != 'cli') {
     session_name(SESSION_NAME);
     session_start();
-}
 
-// persist login if cookie is valid/exists
-if (Settings::checkCoreTables() === true) {
-    $login = new Login();
-    $login->checkLogin();
-} else {
-    die('uh oh');
+    if (Utilities::checkCoreData() === true) {
+        // persist login if cookie is valid/exists
+        $login = new Login();
+
+        $login->checkLogin();
+
+        // store settings in session
+        Settings::cacheSettings();
+    } else {
+        $_SESSION['setup_mode'] = date('YmdHis', strtotime('+1 hour'));
+
+        require_once 'install.php';
+
+        exit;
+    }
 }

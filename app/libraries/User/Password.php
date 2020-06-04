@@ -73,7 +73,9 @@ class Password
 
 
     /**
-     * NOTE - unused until we change up password hashing algorithm
+     * NOTE - unused until we change up password hashing algorithm. If and when there is a new algorithm, this function
+     * is designed to check existing passwords from before the new algo was implemented and temporarily use the old algo
+     * to verify.
      *
      * @param $username
      * @return bool|false|string

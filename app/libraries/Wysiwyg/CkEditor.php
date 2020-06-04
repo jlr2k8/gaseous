@@ -38,6 +38,7 @@ class CkEditor
     private $plugin_list = [
         'stylesheetparser',
         'sourcedialog',
+        'codesnippet',
     ];
 
 
@@ -76,7 +77,7 @@ class CkEditor
                     customConfig: \'' . $custom_config . '\',
                     extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
                     skin: \'' . $this->skin[self::SKIN] . '\',
-                    filebrowserUploadUrl: \'/services/upload.php\',
+                    filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
                     filebrowserUploadMethod: \'form\'
                 });
             </script>
@@ -98,7 +99,7 @@ class CkEditor
                 var ckeditor = CKEDITOR.inline(\'' . $textarea_id . '\', {
                     customConfig: \'' . $custom_config . '\',
                     extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
-                    filebrowserUploadUrl: \'/services/upload.php\',
+                    filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
                     filebrowserUploadMethod: \'form\'
                 });
             </script>

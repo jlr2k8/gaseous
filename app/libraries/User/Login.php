@@ -12,9 +12,12 @@
 
 namespace User;
 
+use Content\Utilities;
 use Db\Query;
+use Email;
 use ReCaptcha;
 use Settings;
+use Utilities\Token;
 
 class Login
 {
@@ -72,15 +75,17 @@ class Login
         $sql    = "
             SELECT account.username 
             FROM account
-			INNER JOIN token_email ON token_email.email=account.account_email
+			INNER JOIN token_email ON token_email.email=account.email
 			WHERE token= ?
-			AND token_email.created_datetime >= NOW() - INTERVAL 12 HOUR;
+			AND token_email.created_datetime >= NOW() - INTERVAL 12 HOUR
+			AND account.archived = '0'
+			AND token_email.archived = '0';
         ";
 
         $db     = new Query($sql, [$token]);
-        $result = $db->fetchAssoc();
+        $result = $db->fetch();
 
-        return isset($result['account_id']) ? (int)$result['account_id'] : false;
+        return $result;
     }
 
 
@@ -95,11 +100,11 @@ class Login
             $account    = $this->account->getAccountFromCookieValidation();
             $username   = $account['username'];
 
-            if ($this->clearLoginSession($username))
-                return $this->createSession($username);
+            return $this->createSession($username);
         }
 
         $this->logout();
+
         return false;
     }
 
@@ -109,6 +114,8 @@ class Login
      */
     public function checkPostLogin()
     {
+        $logged_in = false;
+
         if (!empty($_POST['username']) && !empty($_POST['password'])) {
             $this->logout();
 
@@ -121,35 +128,11 @@ class Login
                 : false;
 
             if ($this->validateLogin($username, $password)) {
-                return $this->createSession($username);
-            } else {
-                $this->logout();
-                return false;
+                $logged_in = $this->createSession($username);
             }
         }
 
-        return false;
-    }
-
-
-    /**
-     * @return array|bool
-     */
-    public function checkRegistrationLogin()
-    {
-        $username           = !empty($_POST['username']) ? (string)filter_var($_POST['username'], FILTER_SANITIZE_STRING) : false;
-        $password           = !empty($_POST['password']) ? (string)filter_var($_POST['password'], FILTER_SANITIZE_STRING) : false;
-        $validated_username = $this->validateLogin($username, $password);
-
-        if ($validated_username !== false) {
-            $this->createSession($validated_username);
-
-            return true;
-        } else {
-            $this->logout();
-
-            return false;
-        }
+        return $logged_in;
     }
 
 
@@ -157,19 +140,25 @@ class Login
      * @param $token
      * @return bool
      */
-    public function checkTokenLogin($token)
+    public function checkTokenLogin()
     {
+        $logged_in = false;
+
+        $this->logout();
+
+        $token = !empty($_GET['token'])
+            ? (string)filter_var($_GET['token'], FILTER_SANITIZE_STRING)
+            : false;
+
         $username = $this->validateToken($token);
 
-        if ($username !== false) {
-            $this->createSession($username);
+        if ($username) {
+            $this->archiveToken($token);
 
-            return true;
-        } else {
-            $this->logout();
-
-            return false;
+            $logged_in = $this->createSession($username);
         }
+
+        return $logged_in;
     }
 
 
@@ -178,20 +167,35 @@ class Login
      * @param $email
      * @return bool
      */
-    public function addTokenEmail($token, $email)
+    public function processTokenEmail($email)
     {
-        $token = !empty($token) ? (string)filter_var($token, FILTER_SANITIZE_STRING) : false;
-        $email = !empty($email) ? (string)filter_var($email, FILTER_SANITIZE_EMAIL) : false;
+        $token                      = Token::generate(128);
+        $email                      = !empty($email) ? (string)filter_var($email, FILTER_SANITIZE_EMAIL) : false;
+        $validate_existing_email    = $this->validateExistingEmail($email);
 
-        if ($token && $email) {
-
+        if ($validate_existing_email) {
             $sql = "
-                INSERT INTO token_email (token,email)
-				VALUES( ? , ?)
+                INSERT INTO token_email (
+                    token,
+                    email
+                )
+				VALUES (
+				    ?,
+				    ?
+                )
 			";
 
-            $db = new Query($sql, [$token, $email]);
-            return $db->run();
+            $bind = [
+                $token,
+                $email,
+            ];
+
+            $db = new Query($sql, $bind);
+
+            $insert_token   = $db->run();
+            $send_email     = $this->sendTokenLoginEmail($email, $token);
+
+            return ($insert_token && $send_email);
         }
 
         return false;
@@ -199,12 +203,105 @@ class Login
 
 
     /**
+     * @param $email
+     * @return bool|string|null
+     */
+    public function validateExistingEmail($email)
+    {
+        $email  = filter_var($email, FILTER_SANITIZE_EMAIL);
+        $result = false;
+
+        if (!empty($email)) {
+            $sql = "
+                SELECT
+                    email
+                FROM
+                    account
+                WHERE
+                    email = ?
+                AND
+                    account.archived = '0';
+            ";
+
+            $bind = [
+                $email,
+            ];
+
+            $db     = new Query($sql, $bind);
+            $result = $db->fetch();
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * @param $email
+     * @param $token
+     * @return bool
+     * @throws \Exception
+     */
+    private function sendTokenLoginEmail($email, $token)
+    {
+        $email_obj          = new Email();
+        $full_web_url       = Settings::value('full_web_url');
+        $webmaster_name     = Settings::value('webmaster_name');
+        $webmaster_email    = Settings::value('webmaster_email');
+
+        $email_to_user      = $email_obj->sendEmail(
+            $webmaster_email,
+            (array)$email,
+            'Forgotten Password',
+            $webmaster_name,
+            [],
+            [],
+            [],
+            "Hello,
+                <br />
+                You are receiving this email because you have forgotten your password.
+                <br />
+                Click the following link or copy/paste it into your browser:
+                <br />
+                <a href='$full_web_url/login/?token=$token'>$full_web_url/login/?token=$token</a>.
+                <br /><br />
+                Once this link has been accessed or 12 hours has passed, it will no longer be available.
+                <br />
+                <br />
+                $webmaster_name
+                <br />
+                $webmaster_email
+            "
+        );
+
+        $email_to_webmaster = $email_obj->sendEmail(
+            $webmaster_email,
+            (array)$webmaster_email,
+            'Forgotten Password email was requested',
+            $webmaster_name,
+            [],
+            [],
+            [],
+            "Hello,
+                <br />
+                A user with the email address \"$email\" has requested a forgotten password email.
+                <br />
+                They should be receiving an email with a token-based login URL, which bypasses the need to log in via username and password.
+                <br />
+                No action is required.
+            "
+        );
+
+        return ($email_to_user && $email_to_webmaster);
+    }
+
+
+    /**
      * @param $token
      * @return bool
      */
-    public function deleteToken($token)
+    public function archiveToken($token)
     {
-        $sql    = "DELETE FROM token_email WHERE token = ?;";
+        $sql    = "UPDATE token_email SET archived = '1' WHERE token = ? AND archived = '0';";
         $db     = new Query($sql, [$token]);
 
         return $db->run();

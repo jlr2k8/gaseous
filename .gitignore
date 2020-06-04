@@ -1,6 +1,6 @@
 /.idea*
-/node_modules*
-/vendor*
+/node_modules
+/vendor
 **templates_c
 /app/controllers/test.php
 /app/setup/environments.ini

@@ -1,0 +1,2 @@
+app/assets/js/* linguist-vendored
+app/assets-src/js/jquery* linguist-vendored

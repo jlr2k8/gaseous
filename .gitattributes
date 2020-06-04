@@ -1,2 +1,4 @@
 app/assets/js/* linguist-vendored
 app/assets-src/js/jquery* linguist-vendored
+*.sql linguist-detectable=true
+*.sql linguist-language=sql

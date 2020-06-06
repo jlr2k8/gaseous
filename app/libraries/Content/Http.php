@@ -13,6 +13,7 @@
 namespace Content;
 
 use Exception;
+use Log;
 use Settings;
 use SmartyException;
 
@@ -44,14 +45,16 @@ class Http
      * @return bool
      * @throws Exception
      */
-    public static function error($status_code, $redirect = false)
+    public static function error($status_code, $message = null, $redirect = false)
     {
         self::header($status_code);
+
+        Log::app('HTTP Error', $status_code, $message, $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI']);
 
         if (!empty($redirect)) {
             self::redirect($redirect);
         } else {
-            die(self::renderErrorPage($status_code));
+            die(self::renderErrorPage($status_code, $message));
         }
 
         return true;
@@ -67,6 +70,8 @@ class Http
     public static function redirect($url, $http_response_code = false)
     {
         $url = !empty($url) ? filter_var($url, FILTER_SANITIZE_URL) : false;
+
+        Log::app('HTTP Redirect', $url, 'HTTP Response Code: ' . $http_response_code);
 
         if (!$url) {
             throw new Exception('Cannot redirect to "' . $url . '"');
@@ -90,6 +95,8 @@ class Http
     {
         $status_code = !array_key_exists((int)$status_code, self::$status_codes) ? 404 : $status_code;
 
+        Log::app('HTTP/1.1 ' . $status_code . ' ' . self::$status_codes[$status_code]);
+
         header('HTTP/1.1 ' . $status_code . ' ' . self::$status_codes[$status_code]);
 
         return true;
@@ -98,19 +105,21 @@ class Http
 
     /**
      * @param $status_code
+     * @param null $message
      * @return string
      * @throws SmartyException
      */
-    private static function renderErrorPage($status_code)
+    private static function renderErrorPage($status_code, $message = null)
     {
         $templator = new Templator();
 
         $templator->assign('error_code', $status_code);
-        $templator->assign('error_name', self::$status_codes[$status_code]);
-        $templator->assign('full_web_url', Settings::value('full_web_url'));
+        $templator->assign('error_name', self::$status_codes[$status_code] . ' ' .  $message);
 
         $body_template          = Settings::value('http_error_template');
         $find_replace['body']   = $templator->fetch('string: ' . $body_template);
+
+        Log::app('HTTP Error Page', $status_code);
 
         return $templator::page($find_replace);
     }

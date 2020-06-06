@@ -13,6 +13,7 @@
 namespace Db;
 
 use Error;
+use Log;
 use PDO;
 use \Exception;
 use PDOException;
@@ -163,6 +164,7 @@ class Query extends PdoMySql
      */
     private static function handlePdoException(PDOException $e)
     {
+        Log::app($e->getMessage() . ' ' . $e->getTraceAsString());
         throw new PDOException($e->getMessage() . ' ' . $e->getTraceAsString());
     }
 
@@ -174,6 +176,7 @@ class Query extends PdoMySql
     private static function handleErrorAsWarning(Error $e)
     {
         if (empty($_SESSION['setup_mode'])) {
+            Log::app($e->getMessage() . ' ' . $e->getTraceAsString());
             trigger_error($e->getMessage() . ' ' . $e->getTraceAsString(), E_USER_WARNING);
         }
 

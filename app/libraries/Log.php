@@ -49,7 +49,7 @@ class Log
      */
     private static function formatAppLog($file, $line_number, $log)
     {
-        $logged_in_user = $_SESSION['user']['UWNetID'] ?? null;
+        $logged_in_user = $_SESSION['account']['username'] ?? null;
         $content        =
             date('Y-m-d H:i:s')
             . (!empty($logged_in_user) ? ' (' . $logged_in_user . ')' : null)
@@ -73,7 +73,7 @@ class Log
      */
     private static function getLogFileName()
     {
-        $log_file_settings  = \Settings::value('log_file') ?: '/var/log/gaseous-{{today}}.log';
+        $log_file_settings  = Settings::value('log_file') ?: '/var/log/gaseous-{{today}}.log';
         $today_log_file     = str_replace('{{today}}', date('Y-m-d'), $log_file_settings);
 
         return $today_log_file;

@@ -202,7 +202,7 @@ class Account
 
             $transaction->rollBack();
 
-            echo $e->getMessage() . ' ' . $e->getTraceAsString();
+            Log::app($e->getTraceAsString(), $e->getMessage());
 
             return false;
         }

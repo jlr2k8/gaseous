@@ -52,6 +52,10 @@ class ReCaptcha
 
         $response = json_decode($response, true);
 
+        if(empty($response['success']) || $response['success'] !== 'true') {
+            Log::app('Recaptcha fail ', $response, $_POST, $_SERVER);
+        }
+
         return ($response['success'] == 'true');
     }
 

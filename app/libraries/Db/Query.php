@@ -21,26 +21,64 @@ use PDOStatement;
 class Query extends PdoMySql
 {
     public $query, $con;
-    protected $sql, $bind_array;
+    protected $sql, $bind_array, $select, $from;
 
+    protected static $
 
     /**
      * @param $sql
      * @param array $bind
      * @throws PDOException
      */
-    public function __construct($sql, $bind = array())
+    public function __construct($sql = null, $bind = array())
     {
         parent::__construct();
 
-        try {
-            $this->sql			= $sql;
-            $this->bind_array	= $bind;
+        if (!empty($sql)) {
+            try {
+                $this->sql          = $sql;
+                $this->bind_array   = $bind;
 
-            $this->query = $this->runQuery();
-        } catch(Exception $e) {
-            trigger_error('Queries cancelled because connection to the database could not be established.', E_WARNING);
+                $this->query = $this->runQuery();
+            } catch(Exception $e) {
+                trigger_error('Queries cancelled because connection to the database could not be established.', E_WARNING);
+            }
         }
+    }
+
+
+    public function select(array $columns, $from = null)
+    {
+        $i              = (int)0;
+        $select_clause  = [];
+
+        foreach ($columns as $alias => $col) {
+            $col = self::buildObjectName($col);
+
+            if ($i == $alias) {
+                $select_clause[] = $col;
+            } else {
+                $select_clause[] = $col . ' AS ' . $alias;
+            }
+
+            if (is_int($alias)) {
+                $i = (int)($alias+1);
+            }
+        }
+
+        $this->select   = 'SELECT ' . implode(', ', $select_clause);
+        $this->from     = !empty($from) ? ' FROM ' . self::buildObjectName($from) : null;
+
+        return $this;
+    }
+
+
+    private static function buildObjectName($expression)
+    {
+        $expression_exploded   = explode('.', $expression);
+        $expression            = '`' . implode('`.`', $expression_exploded) . '`';
+
+        return $expression;
     }
 
 

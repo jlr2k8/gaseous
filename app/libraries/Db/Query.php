@@ -13,6 +13,7 @@
 namespace Db;
 
 use Error;
+use Log;
 use PDO;
 use \Exception;
 use PDOException;
@@ -145,7 +146,7 @@ class Query extends PdoMySql
         if (!empty($this->select)) {
             $this->sql = $this->select . $this->from . $this->where;
         }
-var_dump($this->bind_array);
+
         return $this->sql;
     }
 
@@ -287,6 +288,7 @@ var_dump($this->bind_array);
     private static function handleErrorAsWarning(Error $e)
     {
         if (empty($_SESSION['setup_mode'])) {
+            Log::app($e->getMessage() . ' ' . $e->getTraceAsString());
             trigger_error($e->getMessage() . ' ' . $e->getTraceAsString(), E_USER_WARNING);
         }
 

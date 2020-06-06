@@ -14,6 +14,7 @@ namespace User;
 
 use Db\PdoMySql;
 use Db\Query;
+use Email;
 use Exception;
 use Settings;
 use Setup\Reset\System;
@@ -103,10 +104,67 @@ class Register
                 Roles::insertAccountRole($primary_role_data, $transaction);
             }
 
-            return $transaction->commit();
+            if ($transaction->commit()) {
+                $this->createdAccountNotifyEmail();
+                return true;
+            }
         }
 
         return false;
+    }
+
+
+    private function createdAccountNotifyEmail()
+    {
+        $email_obj          = new Email();
+        $full_web_url       = Settings::value('full_web_url');
+        $webmaster_name     = Settings::value('webmaster_name');
+        $webmaster_email    = Settings::value('webmaster_email');
+        $site_title         = Settings::value('site_title') ?: $full_web_url;
+
+        $account_data       = $this->post;
+        $username           = $account_data->username;
+        $email              = $account_data->email;
+
+        $email_to_user      = $email_obj->sendEmail(
+            $webmaster_email,
+            (array)$email,
+            'Welcome to ' . $site_title . '!',
+            $webmaster_name,
+            (array)$username,
+            [],
+            [],
+            "Hello $username,
+                <br />
+                You are receiving this email because you have successfully registered an account at $full_web_url using this email address.
+                <br />
+                Welcome aboard!
+                <br />
+                <br />
+                $webmaster_name
+                <br />
+                $webmaster_email
+            "
+        );
+
+        $email_to_webmaster = $email_obj->sendEmail(
+            $webmaster_email,
+            (array)$webmaster_email,
+            'A new user has just registered',
+            $webmaster_name,
+            [],
+            [],
+            [],
+            "Hello,
+                <br />
+                $username ($email) has just registered with $site_title.
+                <br />
+                <br />
+                No action is required.
+            "
+        );
+
+        return ($email_to_user && $email_to_webmaster);
     }
 
 

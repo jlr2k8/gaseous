@@ -375,7 +375,7 @@ class Settings
         } catch (Exception $e) {
             $transaction->rollBack();
 
-            Log::app($e->getMessage() . ' ' . $e->getTraceAsString());
+            Log::app($e->getTraceAsString(), $e->getMessage());
 
             throw $e;
         }

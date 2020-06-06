@@ -230,6 +230,9 @@ class Assets
                 ->execute($bind);
         } catch (PDOException $p) {
             $transaction->rollBack();
+
+            Log::app($p->getTraceAsString(), $p->getMessage());
+
             throw $p;
         }
 
@@ -280,6 +283,9 @@ class Assets
                 ->execute($bind);
         } catch (PDOException $p) {
             $transaction->rollBack();
+
+            Log::app($p->getTraceAsString(), $p->getMessage());
+
             throw $p;
         }
 

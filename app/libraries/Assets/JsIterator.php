@@ -168,7 +168,7 @@ class JsIterator
             $this->markAllIterationsAsUnselected($transaction);
             $this->markIterationAsSelected($transaction, $js_iteration_uid);
         } catch (Exception $e) {
-            var_dump($e->getMessage(), $e->getTraceAsString());
+            Log::app($e->getTraceAsString(), $e->getMessage());
 
             $transaction->rollBack();
 

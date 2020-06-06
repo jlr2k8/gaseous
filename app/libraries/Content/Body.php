@@ -118,7 +118,7 @@ class Body
 
             $return = $templator->fetch('string: ' . $template);
         } catch (Exception $e) {
-            var_dump($e->getMessage(), $e->getTraceAsString());
+            Log::app($e->getTraceAsString(), $e->getMessage());
 
             throw $e;
         }

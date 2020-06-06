@@ -83,6 +83,8 @@ class Changesets
             echo $e->getTraceAsString();
             echo $e->getMessage();
 
+            Log::app($e->getTraceAsString(), $e->getMessage());
+
             $transaction->rollBack();
 
             echo '

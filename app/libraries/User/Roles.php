@@ -152,7 +152,7 @@ class Roles
 
             $transaction->rollBack();
 
-            echo $e->getMessage() . ' ' . $e->getTraceAsString();
+            Log::app($e->getTraceAsString(), $e->getMessage());
 
             return false;
         }
@@ -199,6 +199,8 @@ class Roles
             self::archivePageRole($role_data['role_name'], $transaction);
         } catch (Exception $e) {
             $transaction->rollBack();
+
+            Log::app($e->getTraceAsString(), $e->getMessage());
 
             throw $e;
         }

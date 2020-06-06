@@ -34,8 +34,8 @@ try {
     Http::redirect($return_url);
 } catch (Exception $e) {
     echo 'There was an error';
-    echo $e->getTraceAsString();
-    echo $e->getMessage();
+
+    Log::app($e->getTraceAsString(), $e->getMessage());
 
     $transaction->rollBack();
 }

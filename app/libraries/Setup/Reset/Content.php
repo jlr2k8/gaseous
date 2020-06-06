@@ -393,6 +393,9 @@ class Content
             }
         } catch (PDOException $p) {
             $transaction->rollBack();
+
+            Log::app($p->getTraceAsString(), $p->getMessage());
+
             throw $p;
         }
 
@@ -440,6 +443,9 @@ class Content
             }
         } catch (PDOException $p) {
             $transaction->rollBack();
+
+            Log::app($p->getTraceAsString(), $p->getMessage());
+
             throw $p;
         }
 
@@ -514,6 +520,9 @@ class Content
             }
         } catch (PDOException $p) {
             $transaction->rollBack();
+
+            Log::app($p->getTraceAsString(), $p->getMessage());
+
             throw $p;
         }
 
@@ -550,6 +559,9 @@ class Content
             }
         } catch (PDOException $p) {
             $transaction->rollBack();
+
+            Log::app($p->getTraceAsString(), $p->getMessage());
+
             throw $p;
         }
 
@@ -716,6 +728,9 @@ class Content
             }
         } catch (PDOException $p) {
             $transaction->rollBack();
+
+            Log::app($p->getTraceAsString(), $p->getMessage());
+
             throw $p;
         }
 

@@ -21,9 +21,24 @@ use PDOStatement;
 class Query extends PdoMySql
 {
     public $query, $con;
-    protected $sql, $bind_array, $select, $from;
+    protected $bind_array = [];
+    protected $sql, $select, $from, $where, $or_where, $join, $inner_join, $cross_join, $straight_join, $left_join,
+        $right_join, $natural_join, $natural_left_join, $natural_right_join, $group_by, $having, $window, $order_by,
+        $limit, $for, $into;
 
-    protected static $
+    protected static $select_expressions = [
+        '*',
+        'ALL',
+        'DISTINCT',
+        'DISTINCT_ROW',
+        'HIGH_PRIORITY',
+        'STRAIGHT_JOIN',
+        'SQL_SMALL_RESULT',
+        'SQL_BIG_RESULT',
+        'SQL_BUFFER_RESULT',
+        'SQL_NO_CACHE',
+        'SQL_CACHE_FOUND_ROWS',
+    ];
 
     /**
      * @param $sql
@@ -40,8 +55,10 @@ class Query extends PdoMySql
                 $this->bind_array   = $bind;
 
                 $this->query = $this->runQuery();
-            } catch(Exception $e) {
-                trigger_error('Queries cancelled because connection to the database could not be established.', E_WARNING);
+            } catch(PDOException $p) {
+                self::handlePdoException($p);
+            } catch (Error $e) {
+                self::handleErrorAsWarning($e);
             }
         }
     }
@@ -53,7 +70,7 @@ class Query extends PdoMySql
         $select_clause  = [];
 
         foreach ($columns as $alias => $col) {
-            $col = self::buildObjectName($col);
+            $col = self::buildSelectExpression($col);
 
             if ($i == $alias) {
                 $select_clause[] = $col;
@@ -67,18 +84,69 @@ class Query extends PdoMySql
         }
 
         $this->select   = 'SELECT ' . implode(', ', $select_clause);
-        $this->from     = !empty($from) ? ' FROM ' . self::buildObjectName($from) : null;
+        $this->from     = !empty($from) ? ' FROM ' . self::buildSelectExpression($from) : null;
 
         return $this;
     }
 
 
-    private static function buildObjectName($expression)
+    public function where(array $clause)
     {
-        $expression_exploded   = explode('.', $expression);
-        $expression            = '`' . implode('`.`', $expression_exploded) . '`';
+        $i              = (int)0;
+        $where_clause   = [];
 
-        return $expression;
+        foreach ($clause as $key => $val) {
+            if (is_int($key)) {
+                $where = $val;
+            } else {
+                $where              = $key;
+                $bind_array         = $val;
+                $this->bind_array   = array_merge($this->bind_array, $bind_array);
+            }
+
+            if ($i > (int)0) {
+                $where_clause[] = 'AND ' . $where;
+            } else {
+                if (empty($this->where)) {
+                    $where_clause[] = ' WHERE (' . $where;
+                } else {
+                    $where_clause[] = ' AND (' . $where;
+                }
+            }
+
+            $i++;
+        }
+
+        $this->where    .= implode(' ', $where_clause) . ')';
+
+        return $this;
+    }
+
+
+    private static function buildSelectExpression($expression)
+    {
+        $expression_exploded    = explode('.', $expression);
+        $e                      = [];
+
+        foreach ($expression_exploded as $ee) {
+            if (in_array($ee, self::$select_expressions)) {
+                $e[] = $ee;
+            } else {
+                $e[] = '`' . $ee . '`';
+            }
+        }
+
+        return implode('.', $e);
+    }
+
+
+    public function buildQuery()
+    {
+        if (!empty($this->select)) {
+            $this->sql = $this->select . $this->from . $this->where;
+        }
+var_dump($this->bind_array);
+        return $this->sql;
     }
 
 
@@ -198,10 +266,17 @@ class Query extends PdoMySql
 
     /**
      * @param PDOException $e
+     * @return bool
      */
     private static function handlePdoException(PDOException $e)
     {
-        throw new PDOException($e->getMessage() . ' ' . $e->getTraceAsString());
+        if (empty($_SESSION['setup_mode'])) {
+            throw new PDOException($e->getMessage() . ' ' . $e->getTraceAsString());
+        } else {
+            trigger_error($e->getMessage() . ' ' . $e->getTraceAsString(), E_USER_WARNING);
+        }
+
+        return false;
     }
 
 

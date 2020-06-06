@@ -34,14 +34,22 @@ class PdoMySql extends PDO
             $this->username = $mysql_user;
             $this->password = $mysql_password;
 
-            $this->con = parent::__construct (
-                $this->dsn,
-                $this->username,
-                $this->password,
-                [
-                    parent::ATTR_PERSISTENT => true,
-                ]
-            );
+            try {
+                $this->con = parent::__construct (
+                    $this->dsn,
+                    $this->username,
+                    $this->password,
+                    [
+                        parent::ATTR_PERSISTENT => true,
+                    ]
+                );
+            } catch (\PDOException $p) {
+                if (empty($_SESSION['setup_mode'])) {
+                    throw $p;
+                } else {
+                    trigger_error($p, E_USER_WARNING);
+                }
+            }
 
             if ($this->debug === true) { // TODO - create binary setting (true or false) for debug mode
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);

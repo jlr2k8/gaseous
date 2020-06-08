@@ -198,7 +198,6 @@ class Get
      */
     public function contentByUid($content_uid, $status = 'active', $exclude_rendered_body = false, $cache = false)
     {
-        $cache          = false;
         $username       = $_SESSION['account']['username'] ?? false;
         $cache_key      = self::contentUidCacheKey($content_uid, $exclude_rendered_body);
         $cached_content = $this->cache->get($cache_key);
@@ -207,76 +206,87 @@ class Get
         if (!empty($cached_content) && $cache === true && empty($username)) {
             $return = $cached_content;
         } else {
+            $db = new Query();
+
+            $db->select(
+                [
+                    'uri.uri',
+                    'ci.page_title_seo',
+                    'ci.page_title_h1',
+                    'c.uri_uid',
+                    'content_uid'               => 'c.uid',
+                    'parent_content_uid'        => 'c.parent_uid',
+                    'c.content_body_type_id',
+                    'content_body_type_label'   => 'cbt.label',
+                    'ci.uid',
+                    'ci.meta_desc',
+                    'ci.meta_robots',
+                    'ci.generated_page_uri',
+                    'ci.status',
+                    'ci.include_in_sitemap',
+                    'ci.minify_html_output',
+                    'pr.role_name',
+                    'content_created'           => 'c.created_datetime',
+                    'content_modified'          => 'ci.created_datetime',
+                    'c.created_datetime',
+                    'modified_datetime'         => 'ci.created_datetime',
+                    'page_identifier_label'     => 'COALESCE(ci.page_title_h1, ci.page_title_seo, uri.uri)'
+                ], 'content AS c'
+            )->innerJoin(
+                'content_body_types AS cbt', 'cbt.type_id = c.content_body_type_id'
+            )->innerJoin(
+                'uri', 'uri.uid = c.uri_uid'
+            )->innerJoin(
+                'current_content_iteration AS cci', 'cci.content_uid = c.uid'
+            )->innerJoin(
+                'content_iteration AS ci', 'ci.uid = cci.content_iteration_uid'
+            )->leftJoin(
+                'content_roles AS pr', 'pr.content_iteration_uid = ci.uid'
+            )->leftJoin(
+                'account_roles AS ar', 'pr.role_name = ar.role_name'
+            )->leftJoin(
+                'account AS a', 'ar.account_username = a.username'
+            );
+
+
             if (is_array($content_uid)) {
-                $where_clause   =  " IN ('" . implode("', '", $content_uid) . "')";
-                $bind           = [
-                    $status
-                ];
+                $db->where(
+                    [
+                        "c.uid IN ('" . implode("', '", $content_uid) . "')"
+                    ]
+                );
             } else {
-                $where_clause   = ' = ?';
-                $bind           = [
-                    $content_uid,
-                    $status,
-                ];
+                $db->where(
+                    [
+                        "c.uid = ?" => [$content_uid]
+                    ]
+                );
             }
 
-            $sql        = "
-                SELECT
-                    uri.uri,
-                    ci.page_title_seo,
-                    ci.page_title_h1,
-                    c.uri_uid,
-                    c.uid AS content_uid,
-                    c.parent_uid AS parent_content_uid,
-                    c.content_body_type_id,
-                    cbt.label AS content_body_type_label,
-                    ci.uid,
-                    ci.meta_desc,
-                    ci.meta_robots,
-                    ci.generated_page_uri,
-                    ci.status,
-                    ci.include_in_sitemap,
-                    ci.minify_html_output,
-                    pr.role_name,
-                    c.created_datetime AS content_created,
-                    ci.created_datetime AS content_modified,
-                    c.created_datetime,
-                    ci.created_datetime AS modified_datetime,
-                    COALESCE(ci.page_title_h1, ci.page_title_seo, uri.uri) AS page_identifier_label
-                FROM content AS c
-                INNER JOIN content_body_types AS cbt ON cbt.type_id = c.content_body_type_id
-                INNER JOIN uri ON uri.uid = c.uri_uid
-                INNER JOIN current_content_iteration AS cci ON cci.content_uid = c.uid
-                INNER JOIN content_iteration AS ci ON ci.uid = cci.content_iteration_uid
-                LEFT JOIN content_roles AS pr
-                  ON pr.content_iteration_uid = ci.uid
-                LEFT JOIN account_roles AS ar
-                  ON pr.role_name = ar.role_name
-                LEFT JOIN account AS a
-                  ON ar.account_username = a.username
-                WHERE c.uid $where_clause
-                AND uri.archived = '0'
-                AND ci.status = ?
-                AND c.archived = '0'
-                AND ci.archived = '0'
-                AND cci.archived = '0'
-                AND cbt.archived = '0'
-            ";
+            $db->where(
+                [
+                    "uri.archived = '0'",
+                    "ci.status = ?"         => ['active'],
+                    "c.archived = '0'",
+                    "ci.archived = '0'",
+                    "cci.archived = '0'",
+                    "cbt.archived = '0'",
+                ]
+            );
 
             if ($username) {
-                $sql .= "
-                   AND (
-                        pr.role_name IN (SELECT role_name FROM account_roles WHERE account_username = ? AND archived = '0')
-                        OR pr.role_name IS NULL
-                    )
-                ";
-
-                $bind[] = $username;
+                $db->where(
+                    [
+                        "(pr.role_name IN (SELECT role_name FROM account_roles WHERE account_username = ? AND archived = '0') OR pr.role_name IS NULL)" => [$username]
+                    ]
+                );
             } else {
-                $sql .= " AND (pr.role_name IS NULL OR pr.archived = '1')";
+                $db->where(
+                    [
+                        "(pr.role_name IS NULL OR pr.archived = '1')"
+                    ]
+                );
             }
-
-            $db = new Query($sql, $bind);
 
             if (is_array($content_uid)) {
                 $results = $db->fetchAllAssoc();
@@ -536,7 +546,6 @@ class Get
             AND c.archived = '0'
             AND ci.archived = '0'
             AND cci.archived = '0'
-            AND (pr.role_name IS NULL OR pr.archived = '1')
             AND uri != ''
             AND uri IS NOT NULL
             GROUP BY uri

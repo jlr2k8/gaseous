@@ -51,15 +51,40 @@ class PdoMySql extends PDO
                 }
             }
 
+            $this->traceExpansionQueries();
+
             if ($this->debug === true) { // TODO - create binary setting (true or false) for debug mode
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
             } else {
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
-
         } else {
             $this->con      = false;
             $this->status   = false;
         }
+    }
+
+
+    public function traceExpansionQueries()
+    {
+        return true; // stubbing this out for now. not sure what to do with this check yet
+/*        $trace              = debug_backtrace();
+        $expansion_queries  = [];
+
+        foreach ($trace as $t) {
+            if (strpos($t['file'],EXPANSION_ROOT) !== false) {
+                foreach ($t['args'] as $arg) {
+                    if (stripos($arg, 'insert into') !== false || stripos($arg, 'update ') !== false || stripos($arg, 'delete from') !== false) {
+                        // do something about data being changed to a db table via an expansion
+                    }
+                }
+
+                if (!empty($t['object']->insert) || !empty($t['object']->update) || !empty($t['object']->delete)) {
+                    // do something about data being changed to a db table via an expansion, using the query builder
+                }
+            }
+        }
+
+        return $expansion_queries;*/
     }
 }

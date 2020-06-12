@@ -72,7 +72,7 @@ class Settings
             $setting    = self::getFromSelfProperty($key, $value);
         }
 
-        return $setting;
+        return (new Expandable())->return($setting);
     }
 
 
@@ -239,7 +239,7 @@ class Settings
         $db         = new Query($sql, $bind);
         $results    = $db->fetchAllAssoc();
 
-        return self::processDbResults($results, $values_only);
+        return (new Expandable())->return(self::processDbResults($results, $values_only));
     }
 
 

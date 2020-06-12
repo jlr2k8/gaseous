@@ -17,6 +17,7 @@ use Cache;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
+use Expandable;
 use Log;
 use Seo\Minify;
 use Settings;
@@ -33,7 +34,7 @@ class Get
     const HOMEPAGE_URI = '/home';
 
     public $is_cms_editor   = false;
-    protected $uri, $redir, $templator;
+    protected $uri, $redir, $templator, $expandable;
     public $body, $cache;
 
     public static $home_pages = [
@@ -50,6 +51,7 @@ class Get
         $this->body         = new Body();
         $this->templator    = new Templator();
         $this->cache        = new Cache();
+        $this->expandable   = new Expandable();
     }
 
     /**
@@ -83,7 +85,7 @@ class Get
     {
         $parsed_uri = parse_url($uri ?? Settings::value('relative_uri'));
 
-        return ($parsed_uri['path'] == '/');
+        return (new Expandable())->return($parsed_uri['path'] == '/');
     }
 
 
@@ -266,7 +268,7 @@ class Get
             $db->where(
                 [
                     "uri.archived = '0'",
-                    "ci.status = ?"         => ['active'],
+                    "ci.status = ?"         => [$status],
                     "c.archived = '0'",
                     "ci.archived = '0'",
                     "cci.archived = '0'",
@@ -323,7 +325,7 @@ class Get
             }
         }
 
-        return !empty($return) ? $return : [];
+        return $this->expandable->return(!empty($return) ? $return : []);
     }
 
 
@@ -802,9 +804,9 @@ class Get
 
             $transaction->commit();
 
-            return Http::redirect($real_uri, 301);
+            return $this->expandable->return(Http::redirect($real_uri, 301));
         }
 
-        return true;
+        return $this->expandable->return(true);
     }
 }

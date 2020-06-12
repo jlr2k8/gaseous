@@ -11,9 +11,15 @@
  */
 
 define('PAGE_LOAD_START', microtime(true));
+
 define('APP_VERSION', '0.0');
+
 define('WEB_ROOT', dirname(__DIR__));
+define('DB_ROOT', realpath(WEB_ROOT . '/../db'));
+define('EXPANSION_ROOT', realpath(WEB_ROOT . '/../expansions'));
+
 define('GASEOUS_AUTOLOADER', WEB_ROOT . '/libraries/Autoload.php');
+
 define('ENVIRONMENT_INI', WEB_ROOT . '/setup/environments.ini');
 define('DEFAULT_ENVIRONMENT', 'default');
 
@@ -25,6 +31,5 @@ if (PHP_SAPI != 'cli') {
     define('ENVIRONMENT', $environment_param ?? DEFAULT_ENVIRONMENT);
 }
 
-// Bootstrap configuration for cookie/session handling
 define('LOGIN_COOKIE', ($_SERVER['LOGIN_COOKIE'] ?? 'login'));
 define('SESSION_NAME', ($_SERVER['SESSION_NAME'] ?? 'session'));

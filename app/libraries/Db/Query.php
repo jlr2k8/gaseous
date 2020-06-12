@@ -630,7 +630,7 @@ class Query extends PdoMySql
         }
 
         $this->select   = 'SELECT ' . implode(",\n", $select_clause);
-        $this->from     = !empty($from) ? ' FROM ' . self::buildExpression($from) : null;
+        $this->from     = !empty($from) ? (' FROM ' . self::buildExpression($from)) : null;
 
         if (!empty($this->from) && !empty($partition)) {
             $this->from .= $partition;
@@ -850,8 +850,8 @@ class Query extends PdoMySql
                 $order  = self::buildExpression($val);
                 $sort   = self::DEFAULT_ORDER_SORT;
             } else {
-                $order              = self::buildExpression($key);
-                $sort               = in_array(strtoupper($val), ['ASC', 'DESC']) ? $val : self::DEFAULT_ORDER_SORT;
+                $order  = self::buildExpression($key);
+                $sort   = in_array(strtoupper($val), ['ASC', 'DESC']) ? $val : self::DEFAULT_ORDER_SORT;
             }
 
             $order_by_clause[]  = $order . ' ' . $sort;
@@ -1113,10 +1113,9 @@ class Query extends PdoMySql
 
             try {
                 $this->query = $this->prepare($this->sql);
+                $this->query->execute($this->bind_array);
 
-                if (!empty($this->query->execute($this->bind_array))) {
-                    debug_backtrace();
-                }
+                $this->traceExpansionQueries();
             } catch (PDOException $p) {
                 self::handlePdoException($p);
             } catch (Error $e) {

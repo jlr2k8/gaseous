@@ -12,12 +12,13 @@
 
 class Expandable
 {
-    private $return, $caller;
+    private $return, $caller, $callable_array;
     private $loaded_expansions = [];
 
 
-    public function __construct()
+    public function __construct($callable_array = [])
     {
+        $this->callable_array = $callable_array;
     }
 
 
@@ -25,7 +26,7 @@ class Expandable
      * @param $return
      * @return mixed
      */
-    public function return($return)
+    public function return($return = null)
     {
         $this->caller = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT);
         $this->return = $return;
@@ -42,12 +43,11 @@ class Expandable
      */
     protected function load()
     {
-        $class  = $this->caller[1]['class'];
-
-        $scandir = scandir(EXPANSION_ROOT);
+        $class      = $this->callable_array[0][0] ?? $this->caller[1]['class'];
+        $scandir    = scandir(EXPANSION_ROOT);
 
         foreach($scandir as $s) {
-            if ($s == '.' || $s == '..') {
+            if (substr($s, 0, 1) == '.') {
                 continue;
             }
 
@@ -73,9 +73,9 @@ class Expandable
      */
     protected function run()
     {
-        $function                   = $this->caller[1]['function'];
-        $args                       = $this->caller[1]['args'];
-        $class                      = $this->caller[1]['class'];
+        $function   = $this->callable_array[0][1] ?? $this->caller[1]['function'];
+        $args       = $this->callable_array[1] ?? $this->caller[1]['args'] ?? [];
+        $class      = $this->callable_array[0][0] ?? $this->caller[1]['class'];
 
         $this->caller[1]['return']  = $this->return;
 

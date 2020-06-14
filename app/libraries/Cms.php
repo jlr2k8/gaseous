@@ -23,6 +23,22 @@ use Content\Get;
 
 
      /**
+      * Allows developers to create their own CMS static methods for templating. If a called method does not exist in
+      * this class, this will attempt to call an existing method in an expanded Cms class with this function name. If no
+      * matching method from any loaded expansion exists, a null value is returned.
+      *
+      * @param $name
+      * @param $arguments
+      * @return mixed|null
+      */
+     static function __callStatic($name, $arguments)
+    {
+        $expandable = new Expandable([['Cms', $name], $arguments]);
+
+        return $expandable->return();
+    }
+
+     /**
       * @param null $uri
       * @return array
       * @throws SmartyException

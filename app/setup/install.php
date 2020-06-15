@@ -18,10 +18,7 @@ use Setup\Reset\Content;
 use Setup\Reset\System;
 
 if (!empty($_SESSION['setup_mode']) && date('YmdHis') < $_SESSION['setup_mode']) {
-    $install        = new Install();
-    $pdo_connected  = $install->testPdoConnection();
-
-    echo Install::outputStyles();
+    $install = new Install();
 
     if (Install::checkIniSectionExists()) {
         $install->mysql_server      = Settings::environmentIni('mysql_server');
@@ -30,6 +27,10 @@ if (!empty($_SESSION['setup_mode']) && date('YmdHis') < $_SESSION['setup_mode'])
         $install->mysql_user        = Settings::environmentIni('mysql_user');
         $install->mysql_password    = Settings::environmentIni('mysql_password');
     }
+
+    echo Install::outputStyles();
+
+    $pdo_connected  = $install->testPdoConnection();
 
     // Step 1 - Establish PDO connection
     if (!$pdo_connected) {

@@ -24,7 +24,7 @@ class Log
      */
     public static function app($_)
     {
-        $backtrace      = debug_backtrace();
+        $backtrace      = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1);
         $last_level     = array_shift($backtrace);
         $line_number    = $last_level['line'];
         $file           = $last_level['file'];

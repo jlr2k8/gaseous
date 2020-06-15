@@ -10,18 +10,6 @@
  *
  **/
 
-// form for db con info
-// on successful connection
-// --> write new environment.ini file with ENVIRONMENT as the array key (just do a try/catch on file_put_contents). on catch, provide copy/paste/instructions instead
-
-// user clicks next. session $_SESSION['setup_mode'] = true. when page reloads, db should be able to connect - but no core tables have been setup yet. run changesets.
-// once successful, begin registration and name for role (e.g. admin)
-// provide fields for most important setting values to set:
-// --> web url
-// --> SMTP/webmaster values
-// --> log directory, upload directory, relative img directory, relative file directory
-// --> on submit, enable all role-based settings by default and set each role to newly added role ONLY. this inherently makes this user a super-admin
-
 use Content\Http;
 use Db\PdoMySql;
 use Setup\Install;
@@ -31,7 +19,7 @@ use Setup\Reset\System;
 
 if (!empty($_SESSION['setup_mode']) && date('YmdHis') < $_SESSION['setup_mode']) {
     $install        = new Install();
-    $pdo_connected  =   !$install->testPdoConnection();
+    $pdo_connected  = $install->testPdoConnection();
 
     echo Install::outputStyles();
 

@@ -79,11 +79,16 @@ class Email extends Swift_Mailer
         
         $message->setBody($body, 'text/html');
 
+        $return = false;
+
         try {
-            $this->send($message);
+            $return = $this->send($message);
             Log::app('Email sent...', ['from: ' => $from], ['to' => $to], ['cc' => $cc], strip_tags($body));
         } catch(Exception $e) {
-            throw $e;
+            Log::app($e->getTraceAsString(), $e->getMessage());
+            trigger_error($e->getMessage(), E_USER_WARNING);
         }
+
+        return $return;
     }
 }

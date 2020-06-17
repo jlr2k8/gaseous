@@ -17,8 +17,7 @@ use \Content\Http;
 use \Uri\Route;
 use \Uri\Redirect;
 
-$relative_uri   = Settings::value('relative_uri');
-$uri_route      = new Route();
+$relative_uri   = Settings::value('relative_uri') ?: '/';
 $uri_redir      = new Redirect();
 
 // first, check to see if this URI is actively being redirected
@@ -33,12 +32,14 @@ if (!empty($redirect)) {
     exit;
 }
 
+$uri_route  = new Route();
 $uri_data   = $uri_route->parseUri($relative_uri);
 
-$path   = !empty($uri_data['path']) ? (string)filter_var($uri_data['path'], FILTER_SANITIZE_URL) : false;
-$_GET   = array_merge($_GET, $uri_data['query']);
+$path               = !empty($uri_data['path']) ? (string)filter_var($uri_data['path'], FILTER_SANITIZE_URL) : false;
+$_GET               = array_merge($_GET, $uri_data['query']);
+$is_disallowed_path = Route::isDisallowedPath($path);
 
-if (!empty($path)) {
+if (!empty($path) && !$is_disallowed_path) {
     require_once $path;
 } else {
     Http::error(404);

@@ -73,8 +73,12 @@ class Log
      */
     private static function getLogFileName()
     {
-        $log_file_settings  = Settings::value('log_file') ?: '/var/log/gaseous-{{today}}.log';
-        $today_log_file     = str_replace('{{today}}', date('Y-m-d'), $log_file_settings);
+        if (!empty($_SESSION['setup_mode'])) {
+            $today_log_file = '/tmp/gaseous-setup.log';
+        } else {
+            $log_file_settings  = Settings::value('log_file') ?: '/var/log/gaseous-{{today}}.log';
+            $today_log_file     = str_replace('{{today}}', date('Y-m-d'), $log_file_settings);
+        }
 
         return $today_log_file;
     }

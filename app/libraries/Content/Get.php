@@ -63,7 +63,7 @@ class Get
      */
     public function byUri($uri = null, $find_replace = [], $redirect_proper_uri = true)
     {
-        $uri    = filter_var($uri ?? $_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
+        $uri    = filter_var($uri ?? (Settings::value('relative_uri')), FILTER_SANITIZE_URL);
 
         if ($redirect_proper_uri === true) {
             $this->redir->properUri($uri);
@@ -85,7 +85,7 @@ class Get
     {
         $parsed_uri = parse_url($uri ?? Settings::value('relative_uri'));
 
-        return (new Expandable())->return($parsed_uri['path'] == '/');
+        return (new Expandable())->return(!empty($parsed_uri['path']) && $parsed_uri['path'] == '/');
     }
 
 
@@ -581,26 +581,28 @@ class Get
      */
     public function templatedPage($find_replace = array())
     {
-        $templator      = $this->templator;
-        $breadcrumbs    = new Breadcrumbs();
+        $templator              = $this->templator;
+        $breadcrumbs            = new Breadcrumbs();
+        $official_canonical_url = filter_var(Settings::value('official_canonical_url'), FILTER_SANITIZE_URL);
 
         // core template items
         $find_replace = [
-            'page_title_seo'        => $find_replace['page_title_seo'] ?? null,
-            'site_announcements'    => $_SESSION['site_announcements'] ?? [],
-            'page_title_h1'         => $find_replace['page_title_h1'] ?? null,
-            'meta_description'      => $find_replace['meta_desc'] ?? null,
-            'meta_robots'           => $find_replace['meta_robots'] ?? null,
-            'css_output'            => Output::css($templator),
-            'css_iterator_output'   => Output::latestCss($templator),
-            'js_output'             => Output::js($templator),
-            'js_iterator_output'    => Output::latestJs($templator),
-            'breadcrumbs'           => $find_replace['breadcrumbs'] ?? $breadcrumbs->cms(Settings::value('relative_uri'), $this) ?? null,
-            'nav'                   => self::nav($templator, $find_replace),
-            'body'                  => $find_replace['body'] ?? null,
-            'footer'                => self::footer($templator, $find_replace),
-            'administration'        => AdminView::renderAdminList(),
-            'debug_footer'          => Debug::footer(),
+            'page_title_seo'            => $find_replace['page_title_seo'] ?? null,
+            'site_announcements'        => $_SESSION['site_announcements'] ?? [],
+            'page_title_h1'             => $find_replace['page_title_h1'] ?? null,
+            'meta_description'          => $find_replace['meta_desc'] ?? null,
+            'meta_robots'               => $find_replace['meta_robots'] ?? null,
+            'css_output'                => Output::css($templator),
+            'css_iterator_output'       => Output::latestCss($templator),
+            'js_output'                 => Output::js($templator),
+            'js_iterator_output'        => Output::latestJs($templator),
+            'official_canonical_url'    => !empty($official_canonical_url) ? rtrim($official_canonical_url, '/') . $_SERVER['REQUEST_URI'] : 'boogers',
+            'breadcrumbs'               => $find_replace['breadcrumbs'] ?? $breadcrumbs->cms(Settings::value('relative_uri'), $this) ?? null,
+            'nav'                       => self::nav($templator, $find_replace),
+            'body'                      => $find_replace['body'] ?? null,
+            'footer'                    => self::footer($templator, $find_replace),
+            'administration'            => AdminView::renderAdminList(),
+            'debug_footer'              => Debug::footer(),
         ];
 
         $templated_page = self::main($templator, $find_replace);

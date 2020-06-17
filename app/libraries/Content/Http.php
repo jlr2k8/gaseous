@@ -114,7 +114,8 @@ class Http
         $templator = new Templator();
 
         $templator->assign('error_code', $status_code);
-        $templator->assign('error_name', self::$status_codes[$status_code] . ' ' .  $message);
+        $templator->assign('error_name', self::$status_codes[$status_code]);
+        $templator->assign('message', $message);
 
         $body_template          = Settings::value('http_error_template');
         $find_replace['body']   = $templator->fetch('string: ' . $body_template);

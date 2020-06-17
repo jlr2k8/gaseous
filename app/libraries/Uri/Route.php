@@ -15,6 +15,7 @@ namespace Uri;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
+use Settings;
 
 class Route
 {
@@ -428,4 +429,29 @@ class Route
         return $priority_order;
     }
 
+
+    /**
+     * Putting Apache .htaccess files in forbidden directories with the "deny all" directive won't work since everything
+     * in the app is funneled through the top-level index.php file.
+     *
+     * @param $path
+     * @return bool
+     */
+    public static function isDisallowedPath($path)
+    {
+        $is_disallowed      = false;
+        $disallowed_paths   = [
+            WEB_ROOT . '/setup',
+            WEB_ROOT . '/views',
+            WEB_ROOT . '/includes',
+        ];
+
+        foreach ($disallowed_paths as $dp) {
+            if (strpos($path, $dp) !== false) {
+                $is_disallowed = true;
+            }
+        }
+
+        return $is_disallowed;
+    }
 }

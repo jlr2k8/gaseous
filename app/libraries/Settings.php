@@ -30,8 +30,11 @@ class Settings
      */
     private function getFullWebURL()
     {
-        $protocol           = self::getFromDB('enable_ssl') ? 'https:' : 'http:';
-        $this->full_web_url = $protocol . rtrim(self::getFromDB('web_url'), '/');
+        $protocol           = self::getFromDB('force_https_redirect') ? 'https:' : 'http:';
+        $this->full_web_url = $protocol
+            . '//'
+            . trim($_SERVER['SERVER_NAME'] . '/' . self::getFromDB('web_uri'), '/')
+        ;
 
         return true;
     }
@@ -42,10 +45,17 @@ class Settings
      */
     private function getRelativeUri()
     {
-        $server_name            = $_SERVER['SERVER_NAME'];
-        $base_url               = trim(self::getFromDB('web_url'), '/');
-        $uri                    = (string)filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
-        $this->relative_uri     = str_replace($base_url, null, $server_name . $uri);
+        $web_uri                = (string)trim(self::getFromDB('web_uri'), '/');
+        $uri                    = $_SERVER['REQUEST_URI'];
+
+        if (!empty($web_uri)) {
+            $web_uri_in_request_uri = (strpos($_SERVER['REQUEST_URI'], $web_uri) !== false);
+
+            if ($web_uri_in_request_uri) {
+                $uri = str_replace('/' . $web_uri, null, $uri);
+            }
+        }
+$this->relative_uri = $uri;
 
         return true;
     }

@@ -29,7 +29,6 @@ class System
 
     static $roles = [
         self::ADMIN_ROLE    => 'Administrator',
-        'basic'             => 'Basic User',
     ];
 
     static $uri_routes = [
@@ -169,12 +168,20 @@ class System
             'value'         => 'Gaseous Content Management System',
             'properties'    => [],
         ],
-        'web_url' =>    [
-            'display'       => 'Web URL',
+        'web_uri' =>    [
+            'display'       => 'Website URI Path',
             'category_key'  => 'administrative',
             'role_based'    => '0',
-            'description'   => '',
-            'value'         => 'localhost',
+            'description'   => 'If this site is hosted on a sub-path of the domain, set the value of the URI here. If the application\'s homepage is the top-level URI of the site, leave this blank.',
+            'value'         => '',
+            'properties'    => [],
+        ],
+        'official_canonical_url' =>    [
+            'display'       => 'Official Canonical URL',
+            'category_key'  => 'administrative',
+            'role_based'    => '0',
+            'description'   => 'If several domains point to this site, use this setting to determine the real (canonical) URL. Leave this blank to disable canonicalization.',
+            'value'         => '',
             'properties'    => [],
         ],
         'force_https_redirect' => [
@@ -458,59 +465,60 @@ class System
             'role_based'    => '0',
             'description'   => '',
             'value'         => '
-                    &lt;!DOCTYPE html&gt;&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; itemscope=&quot;itemscope&quot; itemtype=&quot;http://schema.org/WebPage&quot;&gt;
-                    &lt;head&gt;
-                        {$css_output}
-                        {$css_iterator_output}
-                        &lt;meta itemprop=&quot;description&quot; name=&quot;description&quot; content=&quot;{$meta_description}&quot; /&gt;
-                        &lt;meta charset=&quot;UTF-8&quot; /&gt;
-                        &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
-                        &lt;meta name=&quot;robots&quot; content=&quot;{$meta_robots}&quot; /&gt;
-                        &lt;title itemprop=&quot;name&quot;&gt;{$page_title_seo}&lt;/title&gt;
-                        &lt;link rel=&quot;shortcut icon&quot; href=&quot;/assets/img/favicon.ico&quot;&gt;
-                    &lt;/head&gt;
-                    &lt;body&gt;
-                    &lt;nav&gt;
-                        {$nav}
-                    &lt;/nav&gt;
-                    &lt;main&gt;
-                        &lt;div class=&quot;page&quot; id=&quot;container&quot;&gt;
-                            &lt;div class=&quot;page&quot; id=&quot;content&quot;&gt;
-                                &lt;div&gt;
-                                    {if !empty({$page_title_h1})}
-                                        &lt;h1&gt;{$page_title_h1}&lt;/h1&gt;
-                                    {/if}
-                                    {$breadcrumbs}
-                                &lt;/div&gt;
-                                &lt;div&gt;
-                                    {$body}
-                    
-                                    {if !empty($site_announcements)}    
-                                        &lt;div class=&quot;site_dialog&quot; title=&quot;Notifications&quot;&gt;
-                                            &lt;ul&gt;
-                                                {foreach key=key from=$site_announcements item=sa}
-                                                    &lt;li&gt;{$sa}&lt;/li&gt;
-                                                {/foreach}
-                                            &lt;/ul&gt;
-                                        &lt;/div&gt;
-                                        {include file="common/dialog.tpl"}
-                                    {/if}
-                                &lt;/div&gt;
-                                &lt;div style=&quot;clear:both;&quot;&gt;
-                                    
-                                &lt;/div&gt;
+                &lt;!DOCTYPE html&gt;&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; itemscope=&quot;itemscope&quot; itemtype=&quot;http://schema.org/WebPage&quot;&gt;
+                &lt;head&gt;
+                    {$css_output}
+                    {$css_iterator_output}
+                    &lt;meta itemprop=&quot;description&quot; name=&quot;description&quot; content=&quot;{$meta_description}&quot; /&gt;
+                    &lt;meta charset=&quot;UTF-8&quot; /&gt;
+                    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+                    &lt;meta name=&quot;robots&quot; content=&quot;{$meta_robots}&quot; /&gt;
+                    &lt;title itemprop=&quot;name&quot;&gt;{$page_title_seo}&lt;/title&gt;
+                    &lt;link rel=&quot;shortcut icon&quot; href=&quot;/assets/img/favicon.ico&quot;&gt;
+                    {if !empty($official_canonical_url)}&lt;link rel=&quot;canonical&quot; href=&quot;{$official_canonical_url}&quot;&gt;{/if}
+                &lt;/head&gt;
+                &lt;body&gt;
+                &lt;nav&gt;
+                    {$nav}
+                &lt;/nav&gt;
+                &lt;main&gt;
+                    &lt;div class=&quot;page&quot; id=&quot;container&quot;&gt;
+                        &lt;div class=&quot;page&quot; id=&quot;content&quot;&gt;
+                            &lt;div&gt;
+                                {if !empty({$page_title_h1})}
+                                    &lt;h1&gt;{$page_title_h1}&lt;/h1&gt;
+                                {/if}
+                                {$breadcrumbs}
+                            &lt;/div&gt;
+                            &lt;div&gt;
+                                {$body}
+                
+                                {if !empty($site_announcements)}    
+                                    &lt;div class=&quot;site_dialog&quot; title=&quot;Notifications&quot;&gt;
+                                        &lt;ul&gt;
+                                            {foreach key=key from=$site_announcements item=sa}
+                                                &lt;li&gt;{$sa}&lt;/li&gt;
+                                            {/foreach}
+                                        &lt;/ul&gt;
+                                    &lt;/div&gt;
+                                    {include file="common/dialog.tpl"}
+                                {/if}
+                            &lt;/div&gt;
+                            &lt;div style=&quot;clear:both;&quot;&gt;
+                                
                             &lt;/div&gt;
                         &lt;/div&gt;
-                    &lt;/main&gt;
-                    &lt;footer&gt;
-                        {$footer}
-                        {$administration}
-                    &lt;/footer&gt;
-                    {$debug_footer}
-                    &lt;/body&gt;
-                        {$js_output}
-                        {$js_iterator_output}
-                    &lt;/html&gt;
+                    &lt;/div&gt;
+                &lt;/main&gt;
+                &lt;footer&gt;
+                    {$footer}
+                    {$administration}
+                &lt;/footer&gt;
+                {$debug_footer}
+                &lt;/body&gt;
+                    {$js_output}
+                    {$js_iterator_output}
+                &lt;/html&gt;
             ',
             'properties'    => [
                 'codemirror',
@@ -524,7 +532,15 @@ class System
             'value'         => '
                 &lt;div class=&quot;margin_on_top&quot;&gt;
                     &lt;p&gt;
-                        {$error_code} {$error_name}. Please click &lt;a href=&quot;{$full_web_url}&quot;&gt;here&lt;/a&gt; to return home.
+                        &lt;h2&gt;
+                            {$error_code} {$error_name}
+                        &lt;/h2&gt;
+                        &lt;h3&gt;
+                            {$message}
+                        &lt;/h3&gt;
+                        &lt;p&gt;
+                            Please click &lt;a href=&quot;{$full_web_url}&quot;&gt;here&lt;/a&gt; to return home.
+                        &lt;/p&gt;
                     &lt;/p&gt;
                 &lt;/div&gt;
             ',
@@ -557,7 +573,7 @@ class System
             'value'         => '
                 &lt;div&gt;
                     &lt;div class=&quot;page&quot; id=&quot;footer&quot;&gt;
-                        &amp;copy; {date(\'Y\')} Josh L. Rogers. All Rights Reserved.
+                        &amp;copy; {date(\'Y\')}. Powered by &lt;a href=&quot;https://gaseo.us&quot;&gt;Gaseous&lt;/a&gt;. All Rights Reserved.
                     &lt;/div&gt;
                 &lt;/div&gt;
             ',
@@ -635,9 +651,16 @@ class System
                     <p>&#160;</p>
                     <div>
                         <label>
-                            Web URL:
+                            Real Site Domain (canonical). Include the <code>http(s)://</code> protocol. Leave blank to disable canonicalization:
                         </label><br />
-                        http(s)://<input type="text" name="web_url" id="web_url" placeholder="Site domain" value="' . ($_POST['web_url'] ?? null) . '" />
+                        <input type="text" name="official_canonical_url" id="official_canonical_url" value="' . ($_POST['official_canonical_url'] ?? filter_var((!empty($_SERVER['SERVER_NAME']) ? 'http://' . $_SERVER['SERVER_NAME'] : null) ?? null, FILTER_SANITIZE_URL, FILTER_NULL_ON_FAILURE) ?? null) . '" />
+                    </div>
+                    <p>&#160;</p>
+                   <div>
+                        <label>
+                            Site URI Path (Leave blank if the site\'s homepage is the top-level URI):
+                        </label><br />
+                        <input type="text" name="web_uri" id="web_uri" value="' . ($_POST['web_uri'] ?? null) . '" />
                     </div>
                     <p>&#160;</p>
                 </div>
@@ -647,30 +670,30 @@ class System
                     </h2>
                     <div>
                         <label>
-                            SMTP Host:
+                            SMTP Host (Leave blank to disable SMTP):
                         </label><br />
                         <input type="text" name="smtp_host" id="smtp_host" placeholder="Domain name or IP address for SMTP server" value="' . ($_POST['smtp_host'] ?? null) . '" />
                     </div>
                     <p>&#160;</p>
                     <div>
                         <label>
-                            SMTP Username:
+                            SMTP Username (Leave blank to disable SMTP):
                         </label><br />
                         <input type="text" name="smtp_user" id="smtp_user" placeholder="User for SMTP server" value="' . ($_POST['smtp_user'] ?? null) . '" />
                     </div>
                     <p>&#160;</p>
                     <div>
                         <label>
-                            SMTP Password:
+                            SMTP Password (Leave blank to disable SMTP):
                         </label><br />
                         <input type="text" name="smtp_password" id="smtp_password" placeholder="Password for SMTP server" value="' . ($_POST['smtp_password'] ?? null) . '" />
                     </div>
                     <p>&#160;</p>
                     <div>
                         <label>
-                            SMTP Port:
+                            SMTP Port (Leave blank to disable SMTP):
                         </label><br />
-                        <input type="text" name="smtp_port" id="smtp_port" placeholder="Port for SMTP server, usually TCP 25" value="' . ($_POST['smtp_port'] ?? null) . '" />
+                        <input type="text" name="smtp_port" id="smtp_port" placeholder="Port for SMTP server, usually TCP 25" value="' . ($_POST['smtp_port'] ?? 25) . '" />
                     </div>
                     <p>&#160;</p>
                     <div>
@@ -907,10 +930,7 @@ class System
                 $is_role_based          = $data['role_based'] ? 'true' : 'false';
                 $setting_description    = $data['description'];
                 $setting_value          = (string)($key_val[$key] ?? $data['value']);
-
-                if ($key == 'web_url') {
-                    $setting_value = '//' . str_replace(['//', 'http://', 'https://'], null, $setting_value);
-                }
+                $setting_value          = preg_replace('~(^[ ]{16})~m', null, $setting_value); // cleanup leading spaces in template values from array
 
                 if ($is_role_based == 'true') {
                     $sql = "

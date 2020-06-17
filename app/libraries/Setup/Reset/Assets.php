@@ -20,7 +20,7 @@ class Assets
     static $css = '
         .page#banner {
             height: 150px;
-            background: radial-gradient(circle, lightsteelblue 0%, steelblue 100%);
+            background: radial-gradient(circle, lightsteelblue 0%, steelblue 150%);
             box-shadow: -2px 2px 4px #646464;
             position: fixed;
             width: 100%;

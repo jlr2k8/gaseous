@@ -17,6 +17,7 @@ use Content\Http;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
+use Settings;
 
 class Redirect
 {
@@ -275,16 +276,19 @@ class Redirect
         $current_uri    = $parsed_uri['path'];
         $querystring    = !empty($parsed_uri['query']) ? '?' . $parsed_uri['query'] : null;
 
-        if (in_array($current_uri, Get::$home_pages)) {
-            Http::redirect('/' . $querystring, 301);
+        if (empty($current_uri) || in_array($current_uri, Get::$home_pages)) {
+            Http::redirect(Settings::value('web_uri') . '/' . $querystring, 301);
+            exit;
         }
 
-        if (!empty($querystring) && $_SERVER['REQUEST_URI'] != $current_uri . $querystring) {
-            Http::redirect($current_uri . $querystring, 301);
+        if (!empty($querystring) && Settings::value('relative_uri') != $current_uri . $querystring) {
+           Http::redirect($current_uri . $querystring, 301);
+            exit;
         }
 
         if (!stristr($current_uri, '?') && substr($current_uri, -1) != '/') {
-            Http::redirect(rtrim($current_uri, '/') . '/' . $querystring, 301);
+            Http::redirect(rtrim(Settings::value('web_uri'), '/') . '/' . $querystring, 301);
+            exit;
         }
 
         return false;

@@ -1223,9 +1223,9 @@ class Query extends PdoMySql
      */
     private static function handlePdoException(PDOException $e)
     {
-        Log::app($e->getMessage(), $e->getTraceAsString());
-
         if (empty($_SESSION['setup_mode'])) {
+            Log::app($e->getMessage(), $e->getTraceAsString());
+
             throw new PDOException($e->getMessage() . ' ' . $e->getTraceAsString());
         } else {
             trigger_error($e->getMessage() . ' ' . $e->getTraceAsString(), E_USER_WARNING);

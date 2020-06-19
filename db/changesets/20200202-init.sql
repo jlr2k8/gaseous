@@ -54,7 +54,7 @@ CREATE TABLE `cache` (
 
 
 CREATE TABLE `changesets` (
-  `uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `filename` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `processed_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `archived` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
@@ -66,14 +66,16 @@ CREATE TABLE `changesets` (
 
 
 CREATE TRIGGER `changeset_uuid` BEFORE INSERT ON `changesets` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = UUID();
-END IF;
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = UUID();
+    END IF;
+END;
 
 
 CREATE TABLE `content` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `parent_uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `content_body_type_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `uri_uid` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -87,13 +89,15 @@ CREATE TABLE `content` (
 
 
 CREATE TRIGGER `before_insert_page` BEFORE INSERT ON `content` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = UUID();
-END IF;
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = UUID();
+    END IF;
+END;
 
 CREATE TABLE `content_body_fields` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `content_body_type_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `content_body_field_type_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `template_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -111,9 +115,11 @@ CREATE TABLE `content_body_fields` (
 
 
 CREATE TRIGGER `uuid` BEFORE INSERT ON `content_body_fields` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = UUID();
-END IF;
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = UUID();
+    END IF;
+END;
 
 CREATE TABLE `content_body_field_properties` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -189,7 +195,7 @@ CREATE TABLE `content_body_types` (
 
 CREATE TABLE `content_iteration` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uid` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `page_title_seo` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `page_title_h1` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `meta_desc` varchar(160) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -251,10 +257,14 @@ CREATE TABLE `css_iteration` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
-CREATE TRIGGER `before_insert_css` BEFORE INSERT ON `css_iteration` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = MD5(new.css);
-END IF;
+CREATE TRIGGER `before_insert_css`
+BEFORE INSERT ON `css_iteration`
+FOR EACH ROW
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = MD5(new.css);
+    END IF;
+END;
 
 CREATE TABLE `current_content_iteration` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -285,14 +295,16 @@ CREATE TABLE `js_iteration` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TRIGGER `before_insert_js` BEFORE INSERT ON `js_iteration` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = MD5(new.js);
-END IF;
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = MD5(new.js);
+    END IF;
+END;
 
 CREATE TABLE `login_session` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `account_username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `expiration` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `archived` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
   `created_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -305,7 +317,7 @@ CREATE TABLE `login_session` (
 
 CREATE TABLE `menu` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `parent_uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `uri_uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
   `sort_order` int(11) NOT NULL DEFAULT '0',
@@ -323,9 +335,11 @@ CREATE TABLE `menu` (
 
 
 CREATE TRIGGER `before_insert_menu` BEFORE INSERT ON `menu` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = UUID();
-END IF;
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = UUID();
+    END IF;
+END;
 
 
 CREATE TABLE `property` (
@@ -438,7 +452,7 @@ CREATE TABLE `token_email` (
 
 CREATE TABLE `uri` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `uid` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `uri` text COLLATE utf8mb4_unicode_ci NOT NULL,
   `archived` enum('0','1') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
   `created_datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -451,9 +465,11 @@ CREATE TABLE `uri` (
 
 
 CREATE TRIGGER `before_insert_uri` BEFORE INSERT ON `uri` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = UUID();
-END IF;
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = UUID();
+    END IF;
+END;
 
 CREATE TABLE `uri_redirects` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -488,6 +504,8 @@ CREATE TABLE `uri_routes` (
 
 
 CREATE TRIGGER `before_insert_uri_routes` BEFORE INSERT ON `uri_routes` FOR EACH ROW
-IF new.uid IS NULL THEN
-    SET new.uid = UUID();
-END IF;
+BEGIN
+    IF new.uid IS NULL THEN
+        SET new.uid = UUID();
+    END IF;
+END;

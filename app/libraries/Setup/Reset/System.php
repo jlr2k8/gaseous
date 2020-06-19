@@ -40,9 +40,9 @@ class System
         '/js(\\-([\\w]{32}))?.gz.js'            => 'controllers/services/js_output.php?iteration=$2',
         '/robots.txt'                           => 'controllers/services/robots.txt.php',
         '/logout/?'                             => 'controllers/user/logout.php',
-        '/img/(.*)'                             => 'controllers/services/images.php?src=$1',
+        '/img/(.*)'                             => 'controllers/services/images.php?src=$1&upload_root=true',
         '/assets/img/(.*)'                      => 'controllers/services/images.php?src=$1',
-        '/files/(.*)'                           => 'controllers/services/files.php?src=$1',
+        '/files/(.*)'                           => 'controllers/services/files.php?src=$1&upload_root=true',
         '/admin/?'                              => 'controllers/admin/index.php',
         '/admin/css/?'                          => 'controllers/admin/css.php',
         '/admin/js/?'                           => 'controllers/admin/js.php',
@@ -727,20 +727,6 @@ class System
                             Daily Log File (use <code>{{today}}</code> for dynamic date as part of filename):
                         </label><br />
                         <input type="text" name="log_file" id="log_file" placeholder="e.g. /var/log/gaseous-{{today}}.log" value="' . ($_POST['log_file'] ?? null) . '" />
-                    </div>
-                    <p>&#160;</p>
-                    <div>
-                        <label>
-                            Relative File URI:
-                        </label><br />
-                        <input type="text" name="upload_file_relative" id="upload_file_relative" placeholder="e.g. /files" value="' . ($_POST['upload_file_relative'] ?? null) . '" />
-                    </div>
-                    <p>&#160;</p>
-                    <div>
-                        <label>
-                            Relative Image URI:
-                        </label><br />
-                        <input type="text" name="upload_image_relative" id="upload_image_relative" placeholder="e.g. /img" value="' . ($_POST['upload_image_relative'] ?? null) . '" />
                     </div>
                     <p>&#160;</p>
                 </div>

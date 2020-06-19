@@ -26,7 +26,7 @@ define('DEFAULT_ENVIRONMENT', 'default');
 if (PHP_SAPI != 'cli') {
     define('ENVIRONMENT', $_SERVER['ENVIRONMENT'] ?? DEFAULT_ENVIRONMENT);
 } else {
-    $environment_param = filter_var($argv[1], FILTER_SANITIZE_STRING, FILTER_NULL_ON_FAILURE);
+    $environment_param = filter_var($argv[1] ?? null, FILTER_SANITIZE_STRING, FILTER_NULL_ON_FAILURE);
 
     define('ENVIRONMENT', $environment_param ?? DEFAULT_ENVIRONMENT);
 }

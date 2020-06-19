@@ -8,7 +8,7 @@ html {
 body {
     font-family: 'Lato',Arial,Helvetica,sans-serif;
     text-shadow: 0 0 0;
-    font-size: 12px;
+    font-size: 1em;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -248,6 +248,20 @@ button.revert {
 
 .clear_both {
     clear: both;
+}
+
+.half_left {
+    width: 45%;
+    margin-right: 1%;
+    padding: 1%;
+    float: left;
+}
+
+.half_right {
+    width: 45%;
+    margin-left: 1%;
+    padding: 1%;
+    float: right;
 }
 
 .one-third_left {
@@ -538,8 +552,8 @@ nav .current {
 
     .one-quarter_left,
     .one-quarter_right,
-    .two-quarters_left,
-    .two-quarters_right {
+    .half_left,
+    .half_right {
         float: none;
         clear: both;
         margin-left: 0;

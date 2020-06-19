@@ -31,7 +31,6 @@ class Uri
      */
     public function insertUri($uri)
     {
-        var_dump($uri);
         $sql = "
             INSERT INTO uri (uri)
             VALUES(?);

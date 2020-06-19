@@ -15,6 +15,7 @@ namespace Assets;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
+use Log;
 use Seo\Minify;
 use User\Account;
 use Utilities\DateTime;
@@ -168,7 +169,7 @@ class CssIterator
             $this->markAllIterationsAsUnselected($transaction);
             $this->markIterationAsSelected($transaction, $css_iteration_uid);
         } catch (Exception $e) {
-            var_dump($e->getMessage(), $e->getTraceAsString());
+            Log::app($e->getMessage(), $e->getTraceAsString());
 
             $transaction->rollBack();
 

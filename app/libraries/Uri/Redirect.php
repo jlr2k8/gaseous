@@ -282,12 +282,12 @@ class Redirect
         }
 
         if (!empty($querystring) && Settings::value('relative_uri') != $current_uri . $querystring) {
-           Http::redirect($current_uri . $querystring, 301);
+            Http::redirect($current_uri . $querystring, 301);
             exit;
         }
 
         if (!stristr($current_uri, '?') && substr($current_uri, -1) != '/') {
-            Http::redirect(rtrim(Settings::value('web_uri'), '/') . '/' . $querystring, 301);
+            Http::redirect(rtrim(Settings::value('relative_uri'), '/') . '/' . $querystring, 301);
             exit;
         }
 

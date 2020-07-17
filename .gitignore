@@ -4,6 +4,6 @@ vendor*
 **templates_c
 app/controllers/test.php
 app/setup/environments.ini
-
+.buildinfo.ini
 expansions/*
 !expansions/.gitkeep

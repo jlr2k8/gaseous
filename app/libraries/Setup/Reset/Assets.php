@@ -19,7 +19,7 @@ class Assets
 {
     static $css = '
         .page#banner {
-            height: 150px;
+            height: 100px;
             background: radial-gradient(circle, lightsteelblue 0%, steelblue 150%);
             box-shadow: -2px 2px 4px #646464;
             position: fixed;
@@ -28,15 +28,15 @@ class Assets
         }
         
         .page#banner #logo img {
-            max-height: 75px;
+            max-height: 50px;
             width: auto;
             position: absolute;
-            top: 36px;
+            top: 28px;
             left: 36px;
         }
         
         .page#banner.reduced {
-            height: 50px;
+            height: 40px;
         }
         
         .page#banner.reduced #logo img {
@@ -50,11 +50,11 @@ class Assets
             float: left;
             width: 100%;
             position: relative; 
-            margin-top: 100px;
+            margin-top: 75px;
         }
         
         .page#content {
-            padding: 100px 2% 2%;
+            padding: 75px 2% 2%;
             background-color: #fff;
             position: relative;
             width: 80%;
@@ -74,7 +74,7 @@ class Assets
         
         .page#banner.reduced #menu_container {
           right: initial;
-          top: 50px;
+          top: 40px;
           width: 100%;
           max-width: initial;
           background: steelblue;
@@ -88,7 +88,7 @@ class Assets
         }
         
         .page#menu_container .menu_group li.menu-item {
-            height: 1em;
+            height: 20px;
             padding: .5em 0;
             text-align: center;
             list-style-type: none;

@@ -25,7 +25,7 @@ class CkEditor
         'kama',
     ];
 
-    private $version = '4.10.1';
+    private $version = '4.14.1';
 
     private $dist = [
         'basic',
@@ -59,6 +59,7 @@ class CkEditor
         $this->cdn = '
             <script src="https://cdn.ckeditor.com/' . $this->version . '/' . $this->dist[self::DIST] . '/ckeditor.js"></script>
         ';
+
 
         return true;
     }
@@ -99,6 +100,7 @@ class CkEditor
                 var ckeditor = CKEDITOR.inline(\'' . $textarea_id . '\', {
                     customConfig: \'' . $custom_config . '\',
                     extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
+                    skin: \'' . $this->skin[self::SKIN] . '\',
                     filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
                     filebrowserUploadMethod: \'form\'
                 });

@@ -114,6 +114,10 @@ class Register
     }
 
 
+    /**
+     * @return bool
+     * @throws Exception
+     */
     private function createdAccountNotifyEmail()
     {
         $email_obj          = new Email();
@@ -293,7 +297,3 @@ class Register
             ->execute($bind);
     }
 }
-
-
-
-

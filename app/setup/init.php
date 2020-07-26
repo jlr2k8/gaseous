@@ -20,6 +20,11 @@ if (PHP_SAPI != 'cli') {
     session_name(SESSION_NAME);
     session_start();
 
+    // Acquire new session ID on page load (but keep current session data)
+    if (!empty(session_id())) {
+        session_regenerate_id();
+    }
+
     if (Utilities::checkCoreData() === true) {
         // persist login if cookie is valid/exists
         $login = new Login();

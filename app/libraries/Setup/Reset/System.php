@@ -34,6 +34,7 @@ class System
     static $uri_routes = [
         '/register/?'                           => 'controllers/user/register.php',
         '/login/?'                              => 'controllers/user/login.php',
+        '/users(/([\d\w-]+))?(/)?'              => 'controllers/user/authors.php?account_username=$2',
         '/admin/settings/?'                     => 'controllers/admin/settings.php',
         '/sitemap.xml'                          => 'controllers/services/sitemap_output.php',
         '/styles(\\-([\\w]{32}))?.gz.css'       => 'controllers/services/css_output.php?iteration=$2',

@@ -21,12 +21,13 @@ use Utilities\Token;
 
 class Login
 {
-    public $account, $reCaptcha;
+    public $account, $reCaptcha, $cookie_domain;
     
     public function __construct()
     {
-        $this->account      = new Account();
-        $this->reCaptcha    = new ReCaptcha();
+        $this->account          = new Account();
+        $this->reCaptcha        = new ReCaptcha();
+        $this->cookie_domain    = Settings::value('cookie_domain') ?: '.' . $_SERVER['SERVER_NAME'];
     }
 
 
@@ -117,8 +118,6 @@ class Login
         $logged_in = false;
 
         if (!empty($_POST['username']) && !empty($_POST['password'])) {
-            $this->logout();
-
             $username   = !empty($_POST['username'])
                 ? (string)filter_var($_POST['username'], FILTER_SANITIZE_STRING)
                 : false;
@@ -143,8 +142,6 @@ class Login
     public function checkTokenLogin()
     {
         $logged_in = false;
-
-        $this->logout();
 
         $token = !empty($_GET['token'])
             ? (string)filter_var($_GET['token'], FILTER_SANITIZE_STRING)
@@ -354,9 +351,9 @@ class Login
     /**
      * @return bool
      */
-    public static function clearLoginCookie()
+    public function clearLoginCookie()
     {
-        return (setcookie(LOGIN_COOKIE, null, time() - 3600, '/', Settings::value('cookie_domain')));
+        return (setcookie(LOGIN_COOKIE, null, time() - 3600, '/', $this->cookie_domain));
     }
 
 
@@ -365,30 +362,9 @@ class Login
      */
     public function logout()
     {
-        self::clearLoginCookie();
-        self::clearSession();
+        $logout = ($this->clearLoginCookie() && self::clearSession());
 
-        return true;
-    }
-
-
-    /**
-     * @param $username
-     * @return bool
-     */
-    private function clearLoginSession($username)
-    {
-        $sql = "
-          UPDATE login_session
-          SET
-            archived = '1',
-            archived_datetime = NOW()
-          WHERE account_username = ?;
-        ";
-
-        $db = new Query($sql, [$username]);
-
-        return $db->run();
+        return $logout;
     }
 
 
@@ -400,7 +376,7 @@ class Login
     {
         $days_int   = Settings::value('login_cookie_expire_days');
         $expire     = date('Y-m-d', strtotime('+' . $days_int . ' day'));
-        $domain     = Settings::value('cookie_domain');
+        $domain     = $this->cookie_domain;
 
         $login_cookie_value = (new Login())->hashCookie($username, $uid, $expire);
 

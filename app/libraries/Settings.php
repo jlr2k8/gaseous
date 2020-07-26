@@ -555,6 +555,7 @@ $this->relative_uri = $uri;
         } else {
             if (empty($_SESSION['setup_mode'])) {
                 trigger_error('Missing ' . ENVIRONMENT_INI, E_USER_WARNING);
+                exit;
             }
 
             return false;

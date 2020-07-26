@@ -133,21 +133,21 @@ use Content\Get;
       * @param int $page
       * @param int $items_per_page
       * @param string $sort_by
-      * @param bool $sort_descending
+      * @param bool $sort_ascending
       * @return array
       */
-    static function getContentPaged(array $content, $page = 1, $items_per_page = 2, $sort_by = 'created_datetime', $sort_descending = true)
+    static function getContentPaged(array $content, $page = 1, $items_per_page = 10, $sort_by = 'created_datetime', $sort_ascending = false)
     {
         $pager_status = Pager::status();
 
         $page               = $pager_status['p'] ?? $page;
         $items_per_page     = $pager_status['per_page'] ?? $items_per_page;
         $sort_by            = $pager_status['sort_by'] ?? $sort_by;
-        $sort_descending    = $pager_status['sort_descending'] ?? $sort_descending;
+        $sort_ascending    = $pager_status['sort_ascending'] ?? $sort_ascending;
 
         $sort_by_col        = array_column($content, $sort_by);
 
-        array_multisort($sort_by_col, $sort_descending ? SORT_DESC : SORT_ASC, $content);
+        array_multisort($sort_by_col, $sort_ascending ? SORT_ASC : SORT_DESC, $content);
 
         $displayed_content      = [];
         $page_range['start']    = (int)(($page*$items_per_page)-$items_per_page);
@@ -184,21 +184,21 @@ use Content\Get;
       * @param int $page
       * @param int $items_per_page
       * @param string $sort_by
-      * @param bool $sort_descending
+      * @param bool $sort_ascending
       * @param string $pager_style
       * @return bool|string
       * @throws SmartyException
       */
-    static function pager(array $content, $page = 1, $items_per_page = 2, $sort_by = 'created_datetime', $sort_descending = true, $pager_style = 'default')
+    static function pager(array $content, $page = 1, $items_per_page = 10, $sort_by = 'created_datetime', $sort_ascending = false, $pager_style = 'default')
     {
         $templator      = new Templator();
         $content_count  = (int)count($content);
         $pager_status   = Pager::status();
 
-        $page               = $pager_status['p'] ?? $page;
-        $items_per_page     = $pager_status['per_page'] ?? $items_per_page;
-        $sort_by            = $pager_status['sort_by'] ?? $sort_by;
-        $sort_descending    = $pager_status['sort_descending'] ?? $sort_descending;
+        $page           = $pager_status['p'] ?? $page;
+        $items_per_page = $pager_status['per_page'] ?? $items_per_page;
+        $sort_by        = $pager_status['sort_by'] ?? $sort_by;
+        $sort_ascending = $pager_status['sort_ascending'] ?? $sort_ascending;
 
         $page_range['start']    = (int)(($page*$items_per_page)-$items_per_page);
         $page_range['end']      = (int)($page_range['start']+$items_per_page);
@@ -209,7 +209,7 @@ use Content\Get;
         $templator->assign('page', $page);
         $templator->assign('items_per_page', $items_per_page);
         $templator->assign('sort_by', $sort_by);
-        $templator->assign('sort_descending', $sort_descending);
+        $templator->assign('sort_ascending', $sort_ascending);
         $templator->assign('pager_style', $pager_style);
         $templator->assign('page_range', $page_range);
         $templator->assign('total_pages', $total_pages);

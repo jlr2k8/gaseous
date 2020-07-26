@@ -15,6 +15,7 @@ namespace Content;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
+use Log;
 use Seo\Url;
 use SmartyException;
 

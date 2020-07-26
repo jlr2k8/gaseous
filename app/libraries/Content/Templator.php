@@ -90,7 +90,7 @@ class Templator extends Smarty
      */
     public function enableSecurity($security_class = null, $trusted_static_methods = [])
     {
-        $this->security->php_functions             = array_merge($this->security->php_functions, ['strtotime', 'date']);
+        $this->security->php_functions             = array_merge($this->security->php_functions, ['strtotime', 'date', 'array_merge']);
         $this->security->php_handling              = null;
         $this->security->php_modifiers             = null;
         $this->security->trusted_static_methods    = $trusted_static_methods;

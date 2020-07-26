@@ -44,45 +44,51 @@ class Content
                 'label'             => 'Blog Landing Page Layout',
                 'template'          => '
                     &lt;div&gt;{$heading}&lt;/div&gt;
-                    
-                    {assign var=all_blogs value=\Cms::getAllContent(\'blog_article\')}
-                    {assign var=blogs value=\Cms::getContentPaged($all_blogs)}
-                    
-                    &lt;div class="two-thirds_left"&gt;
-                        {foreach from=$blogs item=blog}
-                            &lt;h3&gt;
-                                &lt;a href="{$blog.url}"&gt;
-                                    {$blog.page_title_h1}&lt;/a&gt;
-                                &lt;/h3&gt;
-                                &lt;p&gt;
-                                    {if !empty($blog.body_fields.subtitle)}
-                                        {$blog.body_fields.subtitle}
-                                    {else}
-                                        {\Cms::teaser($blog.body_fields.body)}
-                                    {/if}
-                                &lt;br /&gt;
-                                &lt;span class="caption"&gt;
-                                    By:
-                                    &lt;a href="/users/{$blog.body_fields.author}"&gt;{$blog.body_fields.author}&lt;/a&gt;
-                                    on {date(\'F d, Y g:i:s A T\', $blog.body_fields.published_date)}
-                                &lt;/span&gt;
-                            &lt;/p&gt;
-                        {/foreach}
-                        
-                        {\Cms::pager($all_blogs)}
-                    &lt;/div&gt;
-                    
+
                     {assign var=blp value=\Cms::getContentByUri()}
                     {assign var=categories value=\Cms::getChildContentByContentUid($blp.content_uid)}
+                    {assign var=blogs value=[]}
                     
+                    {foreach from=$categories item=category}
+                        {$blogs = array_merge($blogs, \Cms::getChildContentByContentUid($category.content_uid))}
+                    {/foreach}
+                    
+                    {assign var=paged_blogs value=\Cms::getContentPaged($blogs)}
+                    
+                    &lt;div class="two-thirds_left"&gt;
+                    {if !empty($blp.content_uid)}
+                        {foreach from=$paged_blogs item=blog}
+                            &lt;h3&gt;
+                            &lt;a href="{$blog.url}"&gt;
+                            {$blog.page_title_h1}&lt;/a&gt;
+                            &lt;/h3&gt;
+                            &lt;p&gt;
+                            {if !empty($blog.body_fields.subtitle)}
+                                {$blog.body_fields.subtitle}
+                            {else}
+                                {\Cms::teaser($blog.body_fields.body)}
+                            {/if}
+                            &lt;br /&gt;
+                            &lt;span class="caption"&gt;
+                            By:
+                            &lt;a href="/users/{$blog.body_fields.author}"&gt;{$blog.body_fields.author}&lt;/a&gt;
+                            on {date(\'F d, Y g:i:s A T\', $blog.body_fields.published_date)}
+                            &lt;/span&gt;
+                            &lt;/p&gt;
+                        {/foreach}
+                    {/if}
+                                        
+                    {\Cms::pager($blogs)}
+                    &lt;/div&gt;
+                                        
                     {if !empty($blp.content_uid)}
                         &lt;div class="one-third_right slight_padding gray_background"&gt;
-                            {foreach from=$categories item=category}
-                                &lt;h4&gt;
-                                    &lt;a href="{$category.uri}"&gt;
-                                        {$category.page_title_h1}&lt;/a&gt;
-                                    &lt;/h4&gt;
-                            {/foreach}
+                        {foreach from=$categories item=category}
+                            &lt;h4&gt;
+                            &lt;a href="{$category.uri}"&gt;
+                            {$category.page_title_h1}&lt;/a&gt;
+                            &lt;/h4&gt;
+                        {/foreach}
                         &lt;/div&gt;
                     {/if}
                 ',

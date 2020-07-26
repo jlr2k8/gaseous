@@ -295,6 +295,7 @@ class Get
 
                 foreach ($results as $row => $result) {
                     $roles                  = $this->pageRoles($result['uid']);
+
                     $results[$row]['roles'] = $roles;
                     $results[$row]['url']   = Settings::value('full_web_url') . '/' . ltrim($result['uri'], '/');
 
@@ -309,6 +310,7 @@ class Get
 
                 if (!empty($result)) {
                     $roles              = $this->pageRoles($result['uid']);
+
                     $result['roles']    = $roles;
                     $result['url']      = Settings::value('full_web_url') . '/' . ltrim($result['uri'], '/');
 

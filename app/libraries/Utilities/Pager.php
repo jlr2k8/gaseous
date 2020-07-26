@@ -30,7 +30,7 @@ class Pager
             'p'                 => $_GET['p'] ?? null,
             'per_page'          => $_GET['per_page'] ?? null,
             'sort_by'           => $_GET['sort_by'] ?? null,
-            'sort_descending'   => !empty($_GET['sort_descending']) && $_GET['sort_descending'] == 'true' ? true : false,
+            'sort_ascending'   => !empty($_GET['sort_ascending']) && $_GET['sort_ascending'] == 'true' ? true : false,
         ];
 
         return $paginator;

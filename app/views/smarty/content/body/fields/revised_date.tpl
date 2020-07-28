@@ -1,1 +1,1 @@
-{if !empty($revised_date)}{date('F d, Y', $revised_date)}{/if}
+{if !empty($revised_date)}{date('F d, Y g:i:s A T', $revised_date)}{/if}

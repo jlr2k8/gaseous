@@ -81,11 +81,15 @@ use Content\Get;
       * @return array
       * @throws SmartyException
       */
-     static function getChildContentByContentUid($content_uid, $page = 0, $items_per_page = -1, $sortby = 'created_datetime', $order = 'desc')
+     static function getChildContentByContentUid($content_uid, $sort_by = 'page_title_h1', $sort_ascending = true)
     {
         $get                        = new Get();
         $content_children           = $get->childContent($content_uid, 'active', true);
         $processed_content_children = [];
+
+        $sort_by_col        = array_column($content_children, $sort_by);
+
+        array_multisort($sort_by_col, ($sort_ascending === true ? SORT_ASC : SORT_DESC), $content_children);
 
         foreach ($content_children as $content) {
             foreach ($content as $row => $row_item) {

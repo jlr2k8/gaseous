@@ -1,1 +1,1 @@
-{date('F d, Y', $published_date)}
+{date('F d, Y g:i:s A T', $published_date)}

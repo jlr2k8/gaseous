@@ -12,7 +12,7 @@
                 }
             ],
             "name": "{$page_title_h1}",
-            "datePublished": "{date('Y-m-d', strtotime($published_date))}",
+            "datePublished": "{date('Y-m-d', $published_date)}",
             "headline": "{if !empty($subtitle)}{$subtitle}{else}{$page_title_seo}{/if}",
             "publisher":
             {

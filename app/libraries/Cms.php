@@ -11,38 +11,38 @@
  **/
 
 use Content\Get;
- use Content\Templator;
- use Content\Utilities;
- use Utilities\Pager;
+use Content\Templator;
+use Content\Utilities;
+use Utilities\Pager;
 
- class Cms
+class Cms
 {
     public function __construct()
     {
     }
 
 
-     /**
-      * Allows developers to create their own CMS static methods for templating. If a called method does not exist in
-      * this class, this will attempt to call an existing method in an expanded Cms class with this function name. If no
-      * matching method from any loaded expansion exists, a null value is returned.
-      *
-      * @param $name
-      * @param $arguments
-      * @return mixed|null
-      */
-     static function __callStatic($name, $arguments)
+    /**
+     * Allows developers to create their own CMS static methods for templating. If a called method does not exist in
+     * this class, this will attempt to call an existing method in an expanded Cms class with this function name. If no
+     * matching method from any loaded expansion exists, a null value is returned.
+     *
+     * @param $name
+     * @param $arguments
+     * @return mixed|null
+     */
+    static function __callStatic($name, $arguments)
     {
         $expandable = new Expandable([['Cms', $name], $arguments]);
 
         return $expandable->return();
     }
 
-     /**
-      * @param null $uri
-      * @return array
-      * @throws SmartyException
-      */
+    /**
+     * @param null $uri
+     * @return array
+     * @throws SmartyException
+     */
     static function getContentByUri($uri = null)
     {
         $uri    = filter_var($uri ?? Settings::value('relative_uri'), FILTER_SANITIZE_URL);
@@ -58,12 +58,12 @@ use Content\Get;
     }
 
 
-     /**
-      * @param $content_uid
-      * @return array
-      * @throws SmartyException
-      */
-     static function getContentByContentUid($content_uid)
+    /**
+     * @param $content_uid
+     * @return array
+     * @throws SmartyException
+     */
+    static function getContentByContentUid($content_uid)
     {
         $get        = new Get();
         $content    = $get->contentByUid($content_uid, 'active', true);
@@ -72,22 +72,21 @@ use Content\Get;
     }
 
 
-     /**
-      * @param $content_uid
-      * @param int $page
-      * @param int $items_per_page
-      * @param string $sortby
-      * @param string $order
-      * @return array
-      * @throws SmartyException
-      */
-     static function getChildContentByContentUid($content_uid, $sort_by = 'page_title_h1', $sort_ascending = true)
+    /**
+     * @param $content_uid
+     * @param int $page
+     * @param int $items_per_page
+     * @param string $sortby
+     * @param string $order
+     * @return array
+     * @throws SmartyException
+     */
+    static function getChildContentByContentUid($content_uid, $sort_by = 'page_title_h1', $sort_ascending = true)
     {
         $get                        = new Get();
         $content_children           = $get->childContent($content_uid, 'active', true);
+        $sort_by_col                = array_column($content_children, $sort_by);
         $processed_content_children = [];
-
-        $sort_by_col        = array_column($content_children, $sort_by);
 
         array_multisort($sort_by_col, ($sort_ascending === true ? SORT_ASC : SORT_DESC), $content_children);
 
@@ -109,10 +108,10 @@ use Content\Get;
     }
 
 
-     /**
-      * @param null $content_body_type_id
-      * @return array
-      */
+    /**
+     * @param null $content_body_type_id
+     * @return array
+     */
     static function getAllContent($content_body_type_id = null)
     {
         $get                = new Get();
@@ -132,14 +131,14 @@ use Content\Get;
     }
 
 
-     /**
-      * @param array $content
-      * @param int $page
-      * @param int $items_per_page
-      * @param string $sort_by
-      * @param bool $sort_ascending
-      * @return array
-      */
+    /**
+     * @param array $content
+     * @param int $page
+     * @param int $items_per_page
+     * @param string $sort_by
+     * @param bool $sort_ascending
+     * @return array
+     */
     static function getContentPaged(array $content, $page = 1, $items_per_page = 10, $sort_by = 'created_datetime', $sort_ascending = false)
     {
         $pager_status = Pager::status();
@@ -169,11 +168,11 @@ use Content\Get;
      }
 
 
-     /**
-      * @param $content
-      * @param int $strlen
-      * @return mixed|string
-      */
+    /**
+     * @param $content
+     * @param int $strlen
+     * @return mixed|string
+     */
     static function teaser($content, $strlen = 150)
     {
         $decoded_content    = htmlspecialchars_decode($content);
@@ -183,16 +182,16 @@ use Content\Get;
     }
 
 
-     /**
-      * @param array $content
-      * @param int $page
-      * @param int $items_per_page
-      * @param string $sort_by
-      * @param bool $sort_ascending
-      * @param string $pager_style
-      * @return bool|string
-      * @throws SmartyException
-      */
+    /**
+     * @param array $content
+     * @param int $page
+     * @param int $items_per_page
+     * @param string $sort_by
+     * @param bool $sort_ascending
+     * @param string $pager_style
+     * @return bool|string
+     * @throws SmartyException
+     */
     static function pager(array $content, $page = 1, $items_per_page = 10, $sort_by = 'created_datetime', $sort_ascending = false, $pager_style = 'default')
     {
         $templator      = new Templator();

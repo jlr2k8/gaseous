@@ -17,17 +17,19 @@
     <input type="submit" value="Login &#187;" />
 </form>
 
-<div>
-    <button type="button" id="show_forgot_password">
-        Forgot my password &#9785;
-    </button>
+{if $smtp_host_is_set}
+    <div>
+        <button type="button" id="show_forgot_password">
+            Forgot my password &#9785;
+        </button>
 
-    <form id="forgot_password_form" class="display_none" method="post" action="{$full_web_url}/login/?forgot_password=true">
-        <label for="registered_email">
-            Enter the email address associated with your account to continue.
-            After submission, you should receive an email with instructions to proceed.
-        </label>
-        <input id="registered_email" name="registered_email" type="email" required="required" placeholder="Registered Email Address" />
-        <input type="submit" value="Send Email &#187;" />
-    </form>
-</div>
+        <form id="forgot_password_form" class="display_none" method="post" action="{$full_web_url}/login/?forgot_password=true">
+            <label for="registered_email">
+                Enter the email address associated with your account to continue.
+                After submission, you should receive an email with instructions to proceed.
+            </label>
+            <input id="registered_email" name="registered_email" type="email" required="required" placeholder="Registered Email Address" />
+            <input type="submit" value="Send Email &#187;" />
+        </form>
+    </div>
+{/if}

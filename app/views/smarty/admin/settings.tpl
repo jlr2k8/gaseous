@@ -4,7 +4,7 @@
 
 <div class="clear_both">&#160;</div>
 
-<div class="one-third_right">
+<div id="settings_categories" class="one-third_right">
     <h3>Categories:</h3>
     <div class="gray_background slight_padding">
         <ul>

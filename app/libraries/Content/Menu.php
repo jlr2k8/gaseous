@@ -87,7 +87,9 @@ class Menu
                     $sort_order = filter_var($i, FILTER_SANITIZE_NUMBER_INT);
                     $class      = filter_var($menu_item[$i]['class'], FILTER_SANITIZE_STRING);
                     $uid        = filter_var($uid, FILTER_SANITIZE_STRING);
-                    $parent_uid = $parent_uid == 'null' ? null : filter_var($parent_uid, FILTER_SANITIZE_STRING);
+                    $parent_uid = ($parent_uid == 'null')
+                        ? null
+                        : filter_var($parent_uid, FILTER_SANITIZE_STRING);
 
                     $this->insertMenuItem($label, $uri_uid, $nofollow, $target, $class, $sort_order, $uid, $parent_uid, $transaction);
                 }
@@ -152,7 +154,7 @@ class Menu
         $menu   = $db->fetchAllAssoc();
 
         foreach ($menu as $key => $item) {
-            $menu[$key]['uid'] = str_replace('-', '', $item['uid']);
+            $menu[$key]['uid']      = str_replace('-', '', $item['uid']);
             $menu[$key]['children'] = $this->getMenu($item['uid']);
         }
 

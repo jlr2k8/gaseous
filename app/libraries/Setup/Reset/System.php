@@ -559,7 +559,11 @@ class System
                     &lt;div class=&quot;page&quot; id=&quot;menu_container&quot;&gt;
                         {$menu}
                     &lt;/div&gt;
-                    &lt;div id=&quot;logo&quot;&gt;&lt;img src=&quot;{$full_web_url}/assets/img/gaseous.png&quot; alt=&quot;Gaseous logo&quot; /&gt;&lt;/div&gt;
+                    &lt;div id=&quot;logo&quot;&gt;
+                        &lt;a href=&quot;{$full_web_url}&quot;&gt;
+                            &lt;img src=&quot;{$full_web_url}/assets/img/gaseous.png&quot; alt=&quot;Gaseous logo&quot; /&gt;
+                        &lt;/a&gt;
+                    &lt;/div&gt;
                 &lt;/div&gt;
             ',
             'properties'    => [

@@ -55,7 +55,8 @@ class Settings
                 $uri = str_replace('/' . $web_uri, null, $uri);
             }
         }
-$this->relative_uri = $uri;
+
+        $this->relative_uri = $uri;
 
         return true;
     }

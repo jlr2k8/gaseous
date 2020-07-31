@@ -2,6 +2,11 @@ form#new_menu_item #custom_uri_input_container {
     display: none;
 }
 
+form#new_menu_item input,
+form#new_menu_item select {
+    width: 90%;
+}
+
 ul.menu_group {
     padding-left: 1em;
 }

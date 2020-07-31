@@ -25,6 +25,13 @@ $client_headers = apache_request_headers();
 // 404 if img not provided or doesn't exist locally
 if (!$filename) {
     Http::error(404);
+    exit;
+}
+
+// 400 if requested image is not valid
+if (!File::validatePath($filename)) {
+    Http::error(400);
+    exit;
 }
 
 $headers    = (new Headers($filename))->images($filetype);

@@ -90,4 +90,16 @@ class File
 
         return (!empty($getimagesize[2]) && in_array($getimagesize[2], self::$getimagesize_imagetypes));
     }
+
+
+    /**
+     * @param $path
+     * @return bool
+     */
+    public static function validatePath($path)
+    {
+        $path = filter_var($path, FILTER_SANITIZE_URL);
+
+        return !preg_match('~\/\.{1,2}\/~', $path);
+    }
 }

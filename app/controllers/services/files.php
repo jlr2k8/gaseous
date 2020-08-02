@@ -15,11 +15,11 @@ use Assets\Headers;
 use Content\Http;
 
 $upload_root    = Settings::value('upload_root');
-$filename       = !empty($_GET['src']) && is_readable($upload_root . '/' . $_GET['src']) ? $upload_root . '/' . $_GET['src'] : false;
+$filename       = filter_var($upload_root . '/' . $_GET['src'], FILTER_SANITIZE_URL);
 $client_headers = apache_request_headers();
 
 // 404 if file src not provided or doesn't exist locally
-if (empty($filename)) {
+if (empty($filename) || !is_readable($filename)) {
     Http::error(404);
     exit;
 }

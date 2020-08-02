@@ -118,7 +118,7 @@ class Http
         $templator->assign('message', $message);
 
         $body_template          = Settings::value('http_error_template');
-        $find_replace['body']   = $templator->fetch('string: ' . $body_template);
+        $find_replace['body']   = $templator->fetch('string:' . $body_template);
 
         Log::app('HTTP Error Page', $status_code);
 

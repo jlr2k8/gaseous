@@ -286,7 +286,7 @@ class Redirect
             exit;
         }
 
-        if (!stristr($current_uri, '?') && substr($current_uri, -1) != '/') {
+        if (empty($querystring) && substr($current_uri, -1) != '/') {
             Http::redirect(rtrim(Settings::value('relative_uri'), '/') . '/' . $querystring, 301);
             exit;
         }

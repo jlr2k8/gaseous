@@ -235,13 +235,17 @@ class Get
                     'page_identifier_label'     => 'COALESCE(ci.page_title_h1, ci.page_title_seo, uri.uri)'
                 ], 'content AS c'
             )->innerJoin(
-                'content_body_types AS cbt', 'cbt.type_id = c.content_body_type_id'
+                'content_body_types AS cbt',
+                'cbt.type_id = c.content_body_type_id'
             )->innerJoin(
-                'uri', 'uri.uid = c.uri_uid'
+                'uri',
+                'uri.uid = c.uri_uid'
             )->innerJoin(
-                'current_content_iteration AS cci', 'cci.content_uid = c.uid'
+                'current_content_iteration AS cci',
+                'cci.content_uid = c.uid'
             )->innerJoin(
-                'content_iteration AS ci', 'ci.uid = cci.content_iteration_uid'
+                'content_iteration AS ci',
+                'ci.uid = cci.content_iteration_uid'
             )->leftJoin(
                 'content_roles AS pr', 'pr.content_iteration_uid = ci.uid'
             )->leftJoin(
@@ -625,7 +629,7 @@ class Get
             $templator->assign($key, $val);
 
         $main_template          = Settings::value('main_template');
-        $fetch_encoded_template = $templator->fetch('string: ' . $main_template);
+        $fetch_encoded_template = $templator->fetch('string:' . $main_template);
         $decoded_template       = htmlspecialchars_decode($fetch_encoded_template);
 
         return $decoded_template;
@@ -647,7 +651,7 @@ class Get
             $templator->assign($key, $val);
 
         $nav_template           = Settings::value('nav_template');
-        $fetch_encoded_template = $templator->fetch('string: ' . $nav_template);
+        $fetch_encoded_template = $templator->fetch('string:' . $nav_template);
         $decoded_template       = htmlspecialchars_decode($fetch_encoded_template);
 
         return $decoded_template;
@@ -666,7 +670,7 @@ class Get
             $templator->assign($key, $val);
 
         $footer_template        = Settings::value('footer_template');
-        $fetch_encoded_template = $templator->fetch('string: ' . $footer_template);
+        $fetch_encoded_template = $templator->fetch('string:' . $footer_template);
         $decoded_template       = htmlspecialchars_decode($fetch_encoded_template);
 
         return $decoded_template;

@@ -97,7 +97,7 @@ class Body
 
             foreach ($body[$content_iteration_uid] as $key => $find_replace) {
                 $find       = $find_replace['template_token'];
-                $replace    = $find_replace['value'];
+                $replace    = $templator->fetch('string:' . htmlspecialchars_decode($find_replace['value'], ENT_QUOTES));
 
                 $templator->assign($find, $replace);
             }
@@ -105,7 +105,7 @@ class Body
 
             foreach ($body[$content_iteration_uid] as $key => $find_replace) {
                 $find       = $find_replace['template_token'];
-                $replace    = $find_replace['value'];
+                $replace    = $templator->fetch('string:' . htmlspecialchars_decode($find_replace['value'], ENT_QUOTES));
 
                 $field_override_template = 'content/body/fields/' . $find . '.tpl';
 
@@ -117,7 +117,8 @@ class Body
                 $templator->assign($find, $replace);
             }
 
-            $return = $templator->fetch('string: ' . $template);
+            $return = $templator->fetch('string:' . $template);
+
         } catch (Exception $e) {
             Log::app($e->getTraceAsString(), $e->getMessage());
 
@@ -491,7 +492,7 @@ class Body
             $templator->assign($key, $val);
         }
 
-        $uri    = $templator->fetch('string: ' . $template);
+        $uri    = $templator->fetch('string:' . $template);
         $uri    = Url::convert($uri);
 
         return $uri;

@@ -19,11 +19,11 @@ use Content\Http;
 
 $upload_root    = !empty($_GET['upload_root']) && $_GET['upload_root'] === 'true' ? Settings::value('upload_root') : WEB_ROOT . '/assets/img';
 $filetype       = !empty($_GET['filetype']) ? $_GET['filetype'] : false;
-$filename       = !empty($_GET['src']) && is_readable($upload_root . '/' . $_GET['src']) ? $upload_root . '/' . $_GET['src'] : false;
+$filename       = filter_var($upload_root . '/' . $_GET['src'], FILTER_SANITIZE_URL);
 $client_headers = apache_request_headers();
 
 // 404 if img not provided or doesn't exist locally
-if (!$filename) {
+if (empty($filename) || !is_readable($filename)) {
     Http::error(404);
     exit;
 }

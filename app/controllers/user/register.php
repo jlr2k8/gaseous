@@ -22,8 +22,8 @@ $access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['a
 $has_valid_access   = ($access_code == Settings::value('registration_access_code'));
 
 $page_find_replace = [
-    'page_title'    => 'User Registration',
-    'breadcrumbs'   => (new Breadcrumbs())->crumb('Register'),
+    'page_title_seo'    => 'User Registration',
+    'breadcrumbs'       => (new Breadcrumbs())->crumb('Register'),
 ];
 
 $body = null;

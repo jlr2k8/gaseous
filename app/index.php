@@ -39,7 +39,7 @@ $path               = !empty($uri_data['path']) ? (string)filter_var($uri_data['
 $_GET               = array_merge($_GET, $uri_data['query']);
 $is_disallowed_path = Route::isDisallowedPath($path);
 
-if (!empty($path) && !$is_disallowed_path) {
+if (!empty($path) && !$is_disallowed_path && File::validatePath($path)) {
     require_once $path;
 } else {
     Http::error(404);

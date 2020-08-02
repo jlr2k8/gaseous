@@ -21,7 +21,7 @@ $smtp_host_is_set   = !empty(Settings::value('smtp_host'));
 $templator->assign('smtp_host_is_set', $smtp_host_is_set);
 
 $page_find_replace  = [
-    'page_title'        => 'Log In',
+    'page_title_seo'    => 'Log In',
     'breadcrumbs'       => null,
 ];
 

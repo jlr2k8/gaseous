@@ -817,4 +817,72 @@ class Get
 
         return $this->expandable->return(true);
     }
+
+
+    /**
+     * @param false $author
+     * @return array
+     * @throws SmartyException
+     */
+    public function promotedUserContent($author = false)
+    {
+        $db = new Query();
+
+        $db->select (
+            [
+                'DISTINCT cci.content_uid',
+            ],
+            'content_iteration_commits AS cic'
+        )->innerJoin (
+            'content_iteration AS ci',
+            'ON cic.content_iteration_uid = ci.uid'
+        )->innerJoin(
+            'current_content_iteration AS cci',
+            'ON cci.content_iteration_uid = ci.uid'
+        )->innerJoin (
+            'content_body_field_values AS cbfv',
+                'ON cbfv.content_iteration_uid = ci.uid'
+        )->innerJoin (
+            'content_body_fields AS cbf',
+                'ON cbf.uid = cbfv.content_body_field_uid'
+        )->innerJoin (
+            'content_body_types AS cbt',
+            'ON cbt.type_id = cbf.content_body_type_id'
+        );
+
+        if (!empty($author)) {
+            $db->where (
+                [
+                    'author = ?' => [$author]
+                ]
+            );
+        }
+
+        $db->where (
+            [
+                'cbt.promoted_user_content = ?' => ['1'],
+                "ci.archived = '0'",
+                "cic.archived = '0'",
+                "cci.archived = '0'",
+                "cbfv.archived = '0'",
+                "cbf.archived = '0'",
+                "cbt.archived = '0'",
+            ]
+        );
+
+        $content_uids   = $db->fetchAll();
+        $results        = $this->contentByUid($content_uids, 'active', true, true);
+
+        foreach ($results as $i => $item) {
+            $content_body_fields    = $this->body->getBodyFieldValues($results[$i]['uid']);
+
+            foreach ($content_body_fields as $key_val) {
+                foreach ($key_val as $key => $val) {
+                    $results[$i]['body_fields'][$val['template_token']] = $val['value'];
+                }
+            }
+        }
+
+        return $results;
+    }
 }

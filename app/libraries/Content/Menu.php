@@ -156,6 +156,7 @@ class Menu
         foreach ($menu as $key => $item) {
             $menu[$key]['uid']      = str_replace('-', '', $item['uid']);
             $menu[$key]['children'] = $this->getMenu($item['uid']);
+            $menu[$key]['uri']      = \Settings::value('full_web_url') . $item['uri'] . '/';
         }
 
         return $menu;

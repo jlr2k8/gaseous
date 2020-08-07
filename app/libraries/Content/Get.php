@@ -818,7 +818,7 @@ class Get
         if ($uri != $real_uri && $uri != '/home') {
             $transaction    = new PdoMySql();
             $uri_redirect   = new Redirect();
-            
+
             $this->clearCaches($content);
 
             $data           = [

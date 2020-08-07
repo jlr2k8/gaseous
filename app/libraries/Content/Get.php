@@ -208,52 +208,7 @@ class Get
         if (!empty($cached_content) && $cache === true && empty($username)) {
             $return = $cached_content;
         } else {
-            $db = new Query();
-
-            $db->select(
-                [
-                    'uri.uri',
-                    'ci.page_title_seo',
-                    'ci.page_title_h1',
-                    'c.uri_uid',
-                    'content_uid'               => 'c.uid',
-                    'parent_content_uid'        => 'c.parent_uid',
-                    'c.content_body_type_id',
-                    'content_body_type_label'   => 'cbt.label',
-                    'ci.uid',
-                    'ci.meta_desc',
-                    'ci.meta_robots',
-                    'ci.generated_page_uri',
-                    'ci.status',
-                    'ci.include_in_sitemap',
-                    'ci.minify_html_output',
-                    'pr.role_name',
-                    'content_created'           => 'c.created_datetime',
-                    'content_modified'          => 'ci.created_datetime',
-                    'c.created_datetime',
-                    'modified_datetime'         => 'ci.created_datetime',
-                    'page_identifier_label'     => 'COALESCE(ci.page_title_h1, ci.page_title_seo, uri.uri)'
-                ], 'content AS c'
-            )->innerJoin(
-                'content_body_types AS cbt',
-                'cbt.type_id = c.content_body_type_id'
-            )->innerJoin(
-                'uri',
-                'uri.uid = c.uri_uid'
-            )->innerJoin(
-                'current_content_iteration AS cci',
-                'cci.content_uid = c.uid'
-            )->innerJoin(
-                'content_iteration AS ci',
-                'ci.uid = cci.content_iteration_uid'
-            )->leftJoin(
-                'content_roles AS pr', 'pr.content_iteration_uid = ci.uid'
-            )->leftJoin(
-                'account_roles AS ar', 'pr.role_name = ar.role_name'
-            )->leftJoin(
-                'account AS a', 'ar.account_username = a.username'
-            );
-
+            $db = $this->contentBaseQuery();
 
             if (is_array($content_uid)) {
                 $db->where(
@@ -332,6 +287,58 @@ class Get
         }
 
         return $this->expandable->return(!empty($return) ? $return : []);
+    }
+
+
+    private function contentBaseQuery()
+    {
+        $db = new Query();
+
+        $db->select(
+            [
+                'uri.uri',
+                'ci.page_title_seo',
+                'ci.page_title_h1',
+                'c.uri_uid',
+                'content_uid'               => 'c.uid',
+                'parent_content_uid'        => 'c.parent_uid',
+                'c.content_body_type_id',
+                'content_body_type_label'   => 'cbt.label',
+                'ci.uid',
+                'ci.meta_desc',
+                'ci.meta_robots',
+                'ci.generated_page_uri',
+                'ci.status',
+                'ci.include_in_sitemap',
+                'ci.minify_html_output',
+                'pr.role_name',
+                'content_created'           => 'c.created_datetime',
+                'content_modified'          => 'ci.created_datetime',
+                'c.created_datetime',
+                'modified_datetime'         => 'ci.created_datetime',
+                'page_identifier_label'     => 'COALESCE(ci.page_title_h1, ci.page_title_seo, uri.uri)'
+            ], 'content AS c'
+        )->innerJoin(
+            'content_body_types AS cbt',
+            'cbt.type_id = c.content_body_type_id'
+        )->innerJoin(
+            'uri',
+            'uri.uid = c.uri_uid'
+        )->innerJoin(
+            'current_content_iteration AS cci',
+            'cci.content_uid = c.uid'
+        )->innerJoin(
+            'content_iteration AS ci',
+            'ci.uid = cci.content_iteration_uid'
+        )->leftJoin(
+            'content_roles AS pr', 'pr.content_iteration_uid = ci.uid'
+        )->leftJoin(
+            'account_roles AS ar', 'pr.role_name = ar.role_name'
+        )->leftJoin(
+            'account AS a', 'ar.account_username = a.username'
+        );
+
+        return $db;
     }
 
 
@@ -576,7 +583,7 @@ class Get
             $results[$key]['url']                          = Settings::value('full_web_url') . '/' . ltrim($val['uri'], '/');
         }
 
-        return $results;
+        return $results ?: [];
     }
 
 
@@ -728,7 +735,25 @@ class Get
      */
     private function contentAncestry($content_uid)
     {
-        $content = $this->contentByUid($content_uid, 'active', true);
+        $db = $this->contentBaseQuery();
+
+        $db->where(
+            [
+                "c.uid = ?" => [$content_uid]
+            ]
+        );
+
+        $db->where(
+            [
+                "uri.archived = '0'",
+                "c.archived = '0'",
+                "ci.archived = '0'",
+                "cci.archived = '0'",
+                "cbt.archived = '0'",
+            ]
+        );
+
+        $content = $db->fetchAssoc();
 
         if (!empty($content['parent_content_uid'])) {
             $content['parent'] = $this->contentAncestry($content['parent_content_uid']);
@@ -763,6 +788,24 @@ class Get
 
 
     /**
+     * @param array $content
+     */
+    private function clearCaches(array $content)
+    {
+        $cache_keys = [
+            self::contentUidCacheKey($content['content_uid']),
+            self::contentUidCacheKey($content['content_uid'], true),
+            self::contentUidCacheKey($content['parent_content_uid']),
+            self::contentUidCacheKey($content['parent_content_uid'], true),
+        ];
+
+        foreach ($cache_keys as $cache_key) {
+            $this->cache->archive($cache_key, false, true);
+        }
+    }
+
+
+    /**
      * @param bool $uri
      * @return null
      */
@@ -770,10 +813,13 @@ class Get
     {
         $uri        = !empty($content['uri']) ? (string)$content['uri'] : null;
         $real_uri   = !empty($content['content_uid']) ? (string)$this->contentUriAncestry($content['content_uid']) : null;
+        $real_uri   = '/' . trim($real_uri, '/');
 
         if ($uri != $real_uri && $uri != '/home') {
             $transaction    = new PdoMySql();
             $uri_redirect   = new Redirect();
+
+            $this->clearCaches($content);
 
             $data           = [
                 'uri_uid'           => $content['uri_uid'],
@@ -808,11 +854,13 @@ class Get
                 $transaction->rollBack();
 
                 Log::app('URI could not be automatically corrected while validating ancestry (during page load)', $content, $e->getMessage(), $e->getTraceAsString());
+
+                Http::error(500);
             }
 
-            $transaction->commit();
-
-            return $this->expandable->return(Http::redirect($real_uri, 301));
+            if ($transaction->commit()) {
+                return $this->expandable->return(Http::redirect($real_uri, 301));
+            }
         }
 
         return $this->expandable->return(true);

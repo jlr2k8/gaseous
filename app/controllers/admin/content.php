@@ -112,6 +112,7 @@ if (!empty($this_page)) {
     $templator->assign('list_of_home_page_uris', $home_page_uris);
     $templator->assign('cms_fields', $cms_fields);
     $templator->assign('parent_content', $parent_content);
+    $templator->assign('content_body_type_id', $content_body_type_id);
 
     $page_find_replace = [
         'page_title_seo'    => $specific_title,
@@ -125,10 +126,11 @@ if (!empty($this_page)) {
 } elseif ($new_page) {
     $cms_fields     = $pages->body->showCmsFieldsBlock($content_body_type_id, $templator);
     $parent_content_type    = $pages->body->getParentContentBodyType($content_body_type_id);
-    $parent_content         = $pages->all('active', $parent_content_type['type_id'], true);
+    $parent_content         = !empty($parent_content_type) ? $pages->all('active', $parent_content_type['type_id'], true) : [];
 
     $templator->assign('cms_fields', $cms_fields);
     $templator->assign('parent_content', $parent_content);
+    $templator->assign('content_body_type_id', $content_body_type_id);
 
     $page_find_replace  = [
         'page_title_seo'    => $title,

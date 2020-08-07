@@ -197,8 +197,8 @@ class Submit
         self::archivePageCheck();
 
         $transaction    = new PdoMySql();
-        $this->uri_uid  = $this->post_data['original_uri_uid'];
-        $uri            = Get::uri($this->post_data['original_uri_uid']);
+        $this->uri_uid  = $this->post_data['uri_uid'];
+        $uri            = Get::uri($this->post_data['uri_uid']);
 
         $transaction->beginTransaction();
 
@@ -557,7 +557,11 @@ class Submit
      */
     private function updateContent(PdoMySql $transaction)
     {
-        $content                = $this->content->contentByUid($this->content_uid, 'active', true);
+        $content    = $this->content->contentByUid($this->content_uid, 'active', true);
+
+        if (empty($content)) {
+            $content    = $this->content->contentByUid($this->content_uid, 'inactive', true);
+        }
 
         $current_uri_uid        = $content['uri_uid'];
         $new_uri_uid            = $this->uri_uid;
@@ -713,11 +717,9 @@ class Submit
             $this->uri_uid,
         ];
 
-        $transaction
+        return $transaction
             ->prepare($sql)
             ->execute($bind);
-
-        return true;
     }
 
 

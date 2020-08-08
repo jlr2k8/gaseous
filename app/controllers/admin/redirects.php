@@ -70,7 +70,7 @@ if (!empty($_POST) && $edit_redirect_uris) {
             if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsContent($uri)) {
                 $uri_obj->insertUri($uri);
 
-                $post['redirect_uri_uid']    = $uri_obj->getUriUid($uri);
+                $post['uri_uid']    = $uri_obj->getUriUid($uri);
             }
         }
 

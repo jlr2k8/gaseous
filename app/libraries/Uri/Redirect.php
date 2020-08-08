@@ -45,6 +45,10 @@ class Redirect
                 uri_redirects
             WHERE
                 uri_uid = ?
+            AND 
+                uri_uid != ''
+            AND 
+                uri_uid IS NOT NULL
             AND
                 archived = '0';
         ";
@@ -138,6 +142,10 @@ class Redirect
                 uri.uid = uri_redirects.uri_uid
             WHERE
                 uri = ?
+            AND 
+                uri_uid != ''
+            AND 
+                uri_uid IS NOT NULL
             AND
                 uri.archived = '0'
             AND 
@@ -150,6 +158,7 @@ class Redirect
 
         $db         = new Query($sql, $bind);
         $uri_uid    = $db->fetch();
+
         $result     = $this->getByUriUid($uri_uid);
 
         return $result;

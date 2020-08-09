@@ -34,6 +34,7 @@ class System
     static $uri_routes = [
         '/register/?'                           => 'controllers/user/register.php',
         '/login/?'                              => 'controllers/user/login.php',
+        '/update/?'                             => 'controllers/admin/update.php',
         '/users(/([\d\w-]+))?(/)?'              => 'controllers/user/authors.php?account_username=$2',
         '/admin/settings/?'                     => 'controllers/admin/settings.php',
         '/sitemap.xml'                          => 'controllers/services/sitemap_output.php',
@@ -376,6 +377,16 @@ class System
             'category_key'  => 'administrative',
             'role_based'    => '1',
             'description'   => 'Allow site-wide management of custom CSS',
+            'value'         => '1',
+            'properties'    => [
+                'boolean',
+            ],
+        ],
+        'perform_updates' => [
+            'display'       => 'Perform Site Updates',
+            'category_key'  => 'administrative',
+            'role_based'    => '1',
+            'description'   => 'Allow users to run an update script, which updates the code and database with the latest stable version of Gaseous',
             'value'         => '1',
             'properties'    => [
                 'boolean',

@@ -15,6 +15,7 @@ namespace User;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
+use Log;
 use Settings;
 
 class Account
@@ -197,7 +198,6 @@ class Account
             // archive/re-add account roles
             if (self::archiveAccountRoles($transaction, $account_data['username']))
                 self::insertAccountRoles($transaction, $account_data['username'], $account_data['account_roles']);
-
         } catch (Exception $e) {
 
             $transaction->rollBack();
@@ -281,13 +281,10 @@ class Account
      */
     private function insertAccountRoles(PdoMySql $transaction, $username, $account_roles = array())
     {
-        self::editUsersCheck();
-        
         $roles      = new Roles();
         $all_roles  = $roles->getAll();
 
         foreach ($all_roles as $role) {
-
             $sql    = null;
             $bind   = [];
 

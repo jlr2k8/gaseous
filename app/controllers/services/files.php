@@ -19,7 +19,7 @@ $filename       = filter_var($upload_root . '/' . $_GET['src'], FILTER_SANITIZE_
 $client_headers = apache_request_headers();
 
 // 404 if file src not provided or doesn't exist locally
-if (empty($filename) || !is_readable($filename)) {
+if (empty($filename) || !is_readable($filename) || !is_file($filename)) {
     Http::error(404);
     exit;
 }

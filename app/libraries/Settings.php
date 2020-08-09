@@ -383,6 +383,8 @@ class Settings
             if (self::archiveSettingsRoles($transaction, $settings_data['key']) && !empty($settings_data['settings_roles']))
                 self::insertSettingsRoles($transaction, $settings_data['key'], $settings_data['settings_roles']);
 
+            unset($_SESSION['settings']);
+
         } catch (Exception $e) {
             $transaction->rollBack();
 

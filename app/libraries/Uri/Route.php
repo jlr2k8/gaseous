@@ -15,14 +15,16 @@ namespace Uri;
 use Db\PdoMySql;
 use Db\Query;
 use Exception;
-use Settings;
+use Expandable;
 
 class Route
 {
-    public $routing_map;
+    public      $routing_map;
+    protected   $expandable;
 
     public function __construct()
     {
+        $this->expandable = new Expandable();
         $this->getUriRoutes();
     }
 
@@ -110,7 +112,7 @@ class Route
 
         $this->setRoutingMap($results);
 
-        return $results;
+        return $this->expandable->return($results);
     }
 
 
@@ -152,7 +154,7 @@ class Route
         $db         = new Query($sql);
         $results    = $db->fetchAllAssoc();
 
-        return $results;
+        return $this->expandable->return($results);
     }
 
 
@@ -185,7 +187,7 @@ class Route
         $db     = new Query($sql, $bind);
         $result = $db->fetchAssoc();
 
-        return $result;
+        return $this->expandable->return($result);
     }
 
 

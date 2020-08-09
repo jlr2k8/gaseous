@@ -290,6 +290,9 @@ class Get
     }
 
 
+    /**
+     * @return Query
+     */
     private function contentBaseQuery()
     {
         $db = new Query();
@@ -814,6 +817,10 @@ class Get
         $uri        = !empty($content['uri']) ? (string)$content['uri'] : null;
         $real_uri   = !empty($content['content_uid']) ? (string)$this->contentUriAncestry($content['content_uid']) : null;
         $real_uri   = '/' . trim($real_uri, '/');
+
+        if (empty($uri)) {
+            Http::error(404);
+        }
 
         if ($uri != $real_uri && $uri != '/home') {
             $transaction    = new PdoMySql();

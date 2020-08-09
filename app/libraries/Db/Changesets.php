@@ -14,6 +14,7 @@
 namespace Db;
 
 use Exception;
+use Log;
 use PDO;
 use PDOException;
 use Settings;

@@ -1,1 +1,0 @@
-{date('F d, Y', $published_date)}

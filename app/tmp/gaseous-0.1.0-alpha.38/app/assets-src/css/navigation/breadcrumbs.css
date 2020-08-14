@@ -1,0 +1,7 @@
+.breadcrumbs ol {
+    padding: 0;
+}
+
+.breadcrumbs ol li {
+    display: inline;
+}

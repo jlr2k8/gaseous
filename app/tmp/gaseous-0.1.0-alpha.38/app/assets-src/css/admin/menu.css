@@ -1,0 +1,31 @@
+form#new_menu_item #custom_uri_input_container {
+    display: none;
+}
+
+ul.menu_group {
+    padding-left: 1em;
+}
+
+#edit_menu_items_wrapper,
+#current_menu,
+#menu_sortable_iframe {
+    min-height: 500px;
+}
+
+#rendered_menu {
+    border: 1px dashed black;
+    min-height: 300px;
+}
+
+#edit_menu_items_wrapper input[type='text'] {
+    width: 125px;
+}
+
+#edit_menu_items_wrapper select {
+    width: 100px;
+}
+
+#menu_sortable_iframe {
+    border: 0;
+    width: 100%;
+}

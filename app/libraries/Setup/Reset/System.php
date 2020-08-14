@@ -235,7 +235,7 @@ class System
             'properties'    => [],
         ],
         'login_cookie_expire_days' => [
-            'display'       => 'Expiration for login cookies',
+            'display'       => 'Expiration for login cookies (days)',
             'category_key'  => 'cookie',
             'role_based'    => '0',
             'description'   => '',

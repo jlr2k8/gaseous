@@ -1,0 +1,1 @@
+<link href="{$href}" rel="{((!empty($rel)) ? $rel : 'stylesheet')}" type="{((!empty($type)) ? $type : 'text/css')}" />

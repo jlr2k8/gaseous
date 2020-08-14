@@ -21,19 +21,17 @@ $client_headers = apache_request_headers();
 // 404 if file src not provided or doesn't exist locally
 if (empty($filename) || !is_readable($filename) || !is_file($filename)) {
     Http::error(404);
-    exit;
 }
 
 // 400 if file src is invalid
 if (!File::validatePath($filename)) {
     Http::error(400);
-    exit;
 }
 
 $headers    = (new Headers($filename))->file();
 
 // compress with gz (if available)
-if (!ob_start('ob_gzhandler') || !stristr($client_headers['Accept-Encoding'], 'gzip'))
+if (!ob_start('ob_gzhandler') || !stristr($client_headers['Accept-Encoding'] ?? null, 'gzip'))
     ob_start();
 
 // echo out file

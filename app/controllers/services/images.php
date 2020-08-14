@@ -25,19 +25,17 @@ $client_headers = apache_request_headers();
 // 404 if img not provided or doesn't exist locally
 if (empty($filename) || !is_readable($filename)) {
     Http::error(404);
-    exit;
 }
 
 // 400 if requested image is not valid
 if (!File::validatePath($filename)) {
     Http::error(400);
-    exit;
 }
 
 $headers    = (new Headers($filename))->images($filetype);
 
 // compress with gz (if available)
-if (!ob_start('ob_gzhandler') || !stristr($client_headers['Accept-Encoding'], 'gzip'))
+if (!ob_start('ob_gzhandler') || !stristr($client_headers['Accept-Encoding'] ?? null, 'gzip'))
     ob_start();
 
 // echo out file

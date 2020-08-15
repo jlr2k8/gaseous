@@ -762,16 +762,12 @@ class System
      */
     public static function runChangesets()
     {
-        ob_start();
+        $changesets                 = new \Db\Changesets();
+        $changeset_starting_point   = $changesets->getLastProcessedChangeset();
+        $need_to_process            = $changesets->collectChangesets($changeset_starting_point);
+        $ran_changesets             = $changesets->runChangesets($need_to_process);
 
-        echo '<h2>Database Update Status</h2>';
-        echo '<textarea readonly="readonly">';
-
-        require_once WEB_ROOT . '/../db/run-changesets.php';
-
-        echo '</textarea>';
-
-        return ob_get_clean();
+        return $ran_changesets;
     }
 
 

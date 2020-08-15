@@ -61,6 +61,8 @@ class AdminView
         $templator->assign('manage_menu', Settings::value('manage_menu'));
         $templator->assign('archive_menu_items', Settings::value('archive_menu_items'));
 
+        $templator->assign('perform_updates', Settings::value('perform_updates'));
+
         $view = $templator->fetch('admin/main.tpl');
 
         return $view;

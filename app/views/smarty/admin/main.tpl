@@ -62,4 +62,11 @@
             </a>
         </li>
     {/if}
+    {if $perform_updates}
+        <li>
+            <a href="{$full_web_url}/admin/update">
+                Perform Updates
+            </a>
+        </li>
+    {/if}
 </ul>

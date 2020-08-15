@@ -558,7 +558,7 @@ class Settings
         } else {
             if (empty($_SESSION['setup_mode'])) {
                 trigger_error('Missing ' . ENVIRONMENT_INI, E_USER_WARNING);
-                exit;
+                $_SESSION['setup_mode'] = date('YmdHis', strtotime('+1 hour'));
             }
 
             return false;

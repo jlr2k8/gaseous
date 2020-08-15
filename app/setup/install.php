@@ -41,9 +41,11 @@ if (!empty($_SESSION['setup_mode']) && date('YmdHis') < $_SESSION['setup_mode'])
         }
 
         echo Install::pdoConnectionForm();
+        exit;
+    }
 
     // Step 2 - Basic Settings
-    } elseif($pdo_connected) {
+    if ($pdo_connected) {
         if (!empty($_POST)) {
             $system         = new System();
             $assets         = new Assets();
@@ -71,7 +73,10 @@ if (!empty($_SESSION['setup_mode']) && date('YmdHis') < $_SESSION['setup_mode'])
                 header('Location: ' . Settings::value('full_web_url') . '/register/');
             }
         } else {
-            echo System::runChangesets();
+            echo System::runChangesets()
+                ? '<p class="green_text bold">Database tables/data successfully installed</p>'
+                : '<p class="red_text bold">There was an issue running database changesets - please check the application logs</p>'
+            ;
         }
 
         echo System::form();

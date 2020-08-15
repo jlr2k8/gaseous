@@ -47,7 +47,7 @@ class Changesets
                     $transaction
                         ->exec($sql);
 
-                    echo 'Running SQL: ' . PHP_EOL . $sql . PHP_EOL;
+                    Log::app('Running SQL: ' . PHP_EOL . $sql . PHP_EOL);
 
                     // We're also going to insert the name of the file processed during the transaction.
                     // If the transaction fails, the file isn't recorded and the SQL from any of the attempted files is not run.
@@ -72,27 +72,23 @@ class Changesets
                         ->prepare($sql)
                         ->execute($bind);
 
-                    echo 'Running SQL: ' . PHP_EOL . $sql . PHP_EOL;
-                    echo 'Bound with... ' . print_r($bind, true);
+                    Log::app('Running SQL: ' . PHP_EOL . $sql . PHP_EOL);
+                    Log::app('Bound with... ' . print_r($bind, true));
                 }
             } else {
-                echo 'Nothing to process!' . PHP_EOL;
+                Log::app('Nothing to process!' . PHP_EOL);
             }
 
             $transaction->commit();
         } catch (PDOException $e) {
-            echo $e->getTraceAsString();
-            echo $e->getMessage();
-
             Log::app($e->getTraceAsString(), $e->getMessage());
 
             $transaction->rollBack();
 
-            echo '
-                    The unprocessed changesets errored out, so the transaction was rolled back.
-                    Please review the stack trace and message above. Visit https://gaseo.us for more information.
-                '
-                . PHP_EOL;
+            Log::app(
+                'The unprocessed changesets errored out, so the transaction was rolled back.
+                    Please review the stack trace and message above. Visit https://gaseo.us for more information.'
+            );
 
             return false;
         }

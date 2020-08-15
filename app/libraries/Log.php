@@ -36,6 +36,10 @@ class Log
         $log                    = ob_get_clean();
         $formatted_log_entry    = self::formatAppLog($file, $line_number, $log);
 
+        if (PHP_SAPI == 'cli') {
+            echo self::outputCli($file, $line_number, $log);
+        }
+
         return self::logEntry($formatted_log_entry);
     }
 
@@ -65,6 +69,28 @@ class Log
 
         return $content;
     }
+
+
+    /**
+     * @param $file
+     * @param $line_number
+     * @param $log
+     * @return string
+     */
+    private static function outputCli($file, $line_number, $log)
+    {
+        $logged_in_user = $_SESSION['account']['username'] ?? null;
+        $content        = date('Y-m-d H:i:s') . (!empty($logged_in_user) ? ' (' . $logged_in_user . ')' : null)
+            . $file
+            . ' on line '
+            . $line_number
+            . $log
+            . PHP_EOL
+        ;
+
+        return $content;
+    }
+
 
 
     /**

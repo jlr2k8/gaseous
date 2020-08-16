@@ -30,11 +30,8 @@ class Settings
      */
     private function getFullWebURL()
     {
-        $protocol           = self::getFromDB('force_https_redirect') ? 'https:' : 'http:';
-        $this->full_web_url = $protocol
-            . '//'
-            . trim($_SERVER['SERVER_NAME'] . '/' . self::getFromDB('web_uri'), '/')
-        ;
+        $https  = ((isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'));
+        $this->full_web_url = ($https ? 'https://' : 'http://') . trim($_SERVER['SERVER_NAME'] . '/' . self::getFromDB('web_uri'), '/');
 
         return true;
     }

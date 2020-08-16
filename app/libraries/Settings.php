@@ -156,7 +156,7 @@ class Settings
      */
     protected static function getFromDB($key, $value = false, $username = null)
     {
-        if (Setup\Utilities::checkCoreData()) {
+        if (Setup\Utilities::checkCoreData() === false) {
             return false;
         }
 

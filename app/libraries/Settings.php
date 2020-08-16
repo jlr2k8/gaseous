@@ -30,8 +30,8 @@ class Settings
      */
     private function getFullWebURL()
     {
-        $https  = ((isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'));
-        $this->full_web_url = ($https ? 'https://' : 'http://') . trim($_SERVER['SERVER_NAME'] . '/' . self::getFromDB('web_uri'), '/');
+        $is_https           = ((isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') || (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'));
+        $this->full_web_url = ($is_https ? 'https://' : 'http://') . trim($_SERVER['SERVER_NAME'] . '/' . self::getFromDB('web_uri'), '/');
 
         return true;
     }

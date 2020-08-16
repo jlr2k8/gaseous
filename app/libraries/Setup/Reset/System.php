@@ -443,6 +443,30 @@ class System
             'properties'    => [
             ],
         ],
+        'error_reporting' => [
+            'display'       => 'PHP Error Reporting',
+            'category_key'  => 'administrative',
+            'role_based'    => '0',
+            'description'   => 'PHP configuration for error_reporting',
+            'value'         => '-1',
+
+        ],
+        'display_errors' => [
+            'display'       => 'PHP Display Errors',
+            'category_key'  => 'administrative',
+            'role_based'    => '0',
+            'description'   => 'PHP configuration for display_errors',
+            'value'         => 'Off',
+
+        ],
+        'log_errors' => [
+            'display'       => 'PHP Log Errors',
+            'category_key'  => 'administrative',
+            'role_based'    => '0',
+            'description'   => 'PHP configuration for log_errors',
+            'value'         => 'On',
+
+        ],
         'robots_txt_value' => [
             'display'       => 'robots.txt value',
             'category_key'  => 'administrative',

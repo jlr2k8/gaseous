@@ -13,6 +13,7 @@
 namespace Setup\Reset;
 
 use Db\PdoMySql;
+use Log;
 use PDOException;
 
 class System

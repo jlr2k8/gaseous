@@ -16,6 +16,11 @@ use User\Login;
 require_once dirname(__DIR__) . '/setup/constants.php';
 require_once GASEOUS_AUTOLOADER;
 
+// PHP Errors
+ini_set('error_reporting', Settings::value('error_reporting') ?: '-1');
+ini_set('display_errors', Settings::value('display_errors') ?: 'Off');
+ini_set('log_errors', Settings::value('log_errors') ?: 'On');
+
 if (PHP_SAPI != 'cli') {
     session_name(SESSION_NAME);
     session_start();

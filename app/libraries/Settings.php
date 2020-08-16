@@ -156,6 +156,10 @@ class Settings
      */
     protected static function getFromDB($key, $value = false, $username = null)
     {
+        if (Setup\Utilities::checkCoreData()) {
+            return false;
+        }
+
         $username = $username ?? $_SESSION['account']['username'] ?? false;
 
         $sql = "

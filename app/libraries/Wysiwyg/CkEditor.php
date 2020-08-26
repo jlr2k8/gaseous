@@ -57,7 +57,7 @@ class CkEditor
     protected function init()
     {
         $this->cdn = '
-            <script src="https://cdn.ckeditor.com/' . $this->version . '/' . $this->dist[self::DIST] . '/ckeditor.js"></script>
+            <script src="https://cdn.ckeditor.com/' . $this->version . '/' . $this->dist[self::DIST] . '/ckeditor.js" charset="utf-8"></script>
         ';
 
 

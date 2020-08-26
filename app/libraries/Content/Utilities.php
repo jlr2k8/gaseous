@@ -89,34 +89,4 @@ class Utilities
 
         return $text . $ellipsis;
     }
-
-
-    /**
-     * This function is designed to handle strange characters found in the database.
-     * e.g. À was littered everywhere there was an extra space in stored CMS content.
-     *
-     * I completely doubt this is the correct approach, but I've looked into CKEditor's encoding,
-     * MySql, the browser, headers, etc. Investigating each of these led me down some long, twisted rabbit hole
-     * and this is the best I could come up with for now. In the distant future when this becomes multilingual,
-     * this function right here will probably become a problem....
-     *
-     * TODO - need to systematically figure out encoding up and down the app. This is a bandaid fix at best.
-     *
-     * @param $string
-     * @return false|string
-     */
-    public static function decodeUtf8($string)
-    {
-        $decoded_string = iconv(
-            'UTF-8',
-            'ISO-8859-1//IGNORE',
-            html_entity_decode(
-                $string,
-                ENT_QUOTES,
-                'UTF-8'
-            )
-        );
-
-        return $decoded_string;
-    }
 }

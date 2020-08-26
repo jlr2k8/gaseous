@@ -98,7 +98,7 @@ class Body
 
             foreach ($body[$content_iteration_uid] as $key => $find_replace) {
                 $find       = $find_replace['template_token'];
-                $replace    = $templator->fetch('string:' . Utilities::decodeUtf8($find_replace['value']));
+                $replace    = $templator->fetch('string:' . html_entity_decode($find_replace['value'],ENT_QUOTES, 'UTF-8'));
 
                 $templator->assign($find, $replace);
             }
@@ -106,7 +106,7 @@ class Body
 
             foreach ($body[$content_iteration_uid] as $key => $find_replace) {
                 $find       = $find_replace['template_token'];
-                $replace    = $templator->fetch('string:' . Utilities::decodeUtf8($find_replace['value']));
+                $replace    = $templator->fetch('string:' . html_entity_decode($find_replace['value'],ENT_QUOTES, 'UTF-8'));
 
                 $field_override_template = 'content/body/fields/' . $find . '.tpl';
 

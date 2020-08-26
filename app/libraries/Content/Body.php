@@ -92,12 +92,13 @@ class Body
             }
         }
 
+        // TODO - examine why these find/replace template assignments are in two different foreach loops
         try{
             $template = $this->getBodyTemplate($content_body_type_id);
 
             foreach ($body[$content_iteration_uid] as $key => $find_replace) {
                 $find       = $find_replace['template_token'];
-                $replace    = $templator->fetch('string:' . htmlspecialchars_decode($find_replace['value'], ENT_QUOTES));
+                $replace    = $templator->fetch('string:' . Utilities::decodeUtf8($find_replace['value']));
 
                 $templator->assign($find, $replace);
             }
@@ -105,7 +106,7 @@ class Body
 
             foreach ($body[$content_iteration_uid] as $key => $find_replace) {
                 $find       = $find_replace['template_token'];
-                $replace    = $templator->fetch('string:' . htmlspecialchars_decode($find_replace['value'], ENT_QUOTES));
+                $replace    = $templator->fetch('string:' . Utilities::decodeUtf8($find_replace['value']));
 
                 $field_override_template = 'content/body/fields/' . $find . '.tpl';
 
@@ -504,7 +505,7 @@ class Body
      * @param PdoMySql|null $transaction
      * @return bool
      */
-    public function insertContentBodyFieldValue(array $data, PdoMySql $transaction = null)
+    public function insertContentBodyFieldValue(array $data, PdoMySql $transaction)
     {
         $sql = "
             INSERT INTO

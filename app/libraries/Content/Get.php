@@ -181,12 +181,15 @@ class Get
 
     /**
      * @param $content_uid
-     * @param $exclude_rendered_content
+     * @param $without_rendered_content
      * @return string
      */
     public static function contentUidCacheKey($content_uid, $without_rendered_content = false)
     {
-        return print_r($content_uid, true) . '_' . hash('md5', print_r(Pager::status(), true) . print_r($content_uid, true) . (int)$without_rendered_content);
+        $content_uid_string     = is_array($content_uid) ? hash('md5', print_r($content_uid, true)) : $content_uid;
+        $pager_status_as_string = hash('md5', print_r(Pager::status(), true));
+
+        return $content_uid_string . '_' . $pager_status_as_string . '_' . (int)$without_rendered_content;
     }
 
 

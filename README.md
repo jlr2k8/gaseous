@@ -4,7 +4,7 @@ Gaseous is a lightweight, PHP/MySQL, SEO-driven content management system.
 ## Minimum Requirements
 * Linux-based OS, preferably with 2 cores/4GB memory and 2GB HDD
 * Apache 2.4 Web Server configured with PHP 7.4
-* MariaDB 10.44 (or MySQL/Percona equivalent) Database
+* MariaDB 10.4.14 InnoDB (or MySQL/Percona equivalent) Database. Collation: `utf8mb4_unicode_ci`
 
 ## Installation
 * If you plan on hosting multiple environments with the same codebase (e.g. your website will be deployed to staging and production environments), make sure that each Apache environment, that hosts your site, has `ENVIRONMENT` set in its conf.

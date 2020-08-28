@@ -538,7 +538,7 @@ class System
                                             {/foreach}
                                         &lt;/ul&gt;
                                     &lt;/div&gt;
-                                    {include file="common/dialog.tpl"}
+                                    {include file=\'common/dialog.tpl\'}
                                 {/if}
                             &lt;/div&gt;
                             &lt;div style=&quot;clear:both;&quot;&gt;

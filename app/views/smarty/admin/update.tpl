@@ -1,4 +1,4 @@
-<div class="gray_border slight_margin slight_padding">
+<div class="slight_padding two-thirds_left">
     {if (int)$status == (int)1}
         <form method="post">
             <h3>
@@ -33,4 +33,15 @@
             Everything is up-to-date!
         </h3>
     {/if}
+</div>
+
+<div class="gray_background one-third_right">
+    <p>
+        <strong>
+            Current Version:
+        </strong>
+        <span>
+            v{$smarty.const.APP_VERSION}
+        </span>
+    </p>
 </div>

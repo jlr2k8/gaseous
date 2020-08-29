@@ -118,6 +118,7 @@ class Install
                 <p>&#160;</p>
                 <div>
                     <input type="hidden" name="setup_mode" value="' . $_SESSION['setup_mode'] . '" />
+                    <input type="hidden" name="setup_step" value="1" />
                     <input type="submit" value="Test Connection &#187;" />
                 </div>
             </form>

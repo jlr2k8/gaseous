@@ -773,6 +773,7 @@ class System
                 </div>
                 <div>
                     <input type="hidden" name="setup_mode" value="' . $_SESSION['setup_mode'] . '" />
+                    <input type="hidden" name="setup_step" value="2" />
                     <input type="submit" value="Submit Basic Settings &#187;" />
                 </div>
             </form>

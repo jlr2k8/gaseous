@@ -34,19 +34,25 @@ if (!empty($_SESSION['setup_mode']) && date('YmdHis') < $_SESSION['setup_mode'])
 
     // Step 1 - Establish PDO connection
     if (!$pdo_connected) {
-        if (!empty($_POST)) {
+        if (!empty($_POST['setup_step']) && $_POST['setup_step'] == '1') {
             $generated_ini_file = $install->processDbConnectionForm($_POST);
 
             echo Install::formResults($generated_ini_file);
         }
 
-        echo Install::pdoConnectionForm();
-        exit;
+        $pdo_connected  = $install->testPdoConnection();
+
+        if (!$pdo_connected) {
+            echo Install::pdoConnectionForm();
+            exit;
+        }
     }
 
     // Step 2 - Basic Settings
+    $pdo_connected  = $install->testPdoConnection();
+
     if ($pdo_connected) {
-        if (!empty($_POST)) {
+        if (!empty($_POST['setup_step']) && $_POST['setup_step'] == '2') {
             $system         = new System();
             $assets         = new Assets();
             $content        = new Content();

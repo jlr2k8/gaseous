@@ -42,19 +42,15 @@ class Update
     {
         $latest             = $this->getLatestBuildInfo();
         $version_compare    = version_compare($latest['app_version'], APP_VERSION);
-        $ran_changesets     = false;
 
         switch ($version_compare) {
             case (int)1:
-                $download   = $this->downloadLatest($latest);
-                $install    = $this->installLatest($latest);
-
-                if ($download && $install) {
-                    $changeset_starting_point   = $this->changesets->getLastProcessedChangeset();
-                    $need_to_process            = $this->changesets->collectChangesets($changeset_starting_point);
-                    $ran_changesets             = $this->changesets->runChangesets($need_to_process);
-
-                    Log::app($changeset_starting_point, $need_to_process, $ran_changesets);
+                try {
+                    $this->downloadLatest($latest);
+                    $this->installLatest($latest);
+                } catch(Exception $e) {
+                    Log::app($e->getTraceAsString(), $e->getMessage());
+                    return false;
                 }
 
                 break;
@@ -71,6 +67,12 @@ class Update
                 break;
         }
 
+        $changeset_starting_point   = $this->changesets->getLastProcessedChangeset();
+        $need_to_process            = $this->changesets->collectChangesets($changeset_starting_point);
+        $ran_changesets             = $this->changesets->runChangesets($need_to_process);
+
+        Log::app($changeset_starting_point, $need_to_process, $ran_changesets);
+
         return $ran_changesets;
     }
 
@@ -81,10 +83,10 @@ class Update
      */
     private function getLatestFilename(array $latest)
     {
-        $version = $latest['app_version'];
+        $version = $latest['app_version'] . '-' . $latest['build_release'];
 
         if ($latest['build_release'] != 'stable') {
-            $version .= '-' . $latest['build_release'] . '.' . $latest['build_number'];
+            $version .= '.' . $latest['build_number'];
         }
 
         $filename = 'gaseous-' . $version . '.tar.bz2';
@@ -109,13 +111,11 @@ class Update
             $recursive_iterator     = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($extracted_directory));
 
             foreach ($recursive_iterator as $file) {
-                $realpath = $file->getRealPath();
+                $realpath       = $file->getRealPath();
+                $destination    = realpath(WEB_ROOT . '/../') . str_replace($extracted_directory, null, $realpath);
 
-                if (!is_dir($realpath)) {
-                    rename (
-                        $realpath,
-                        realpath(WEB_ROOT . '/../') . str_replace($extracted_directory, null, $realpath)
-                    );
+                if (!is_dir($realpath) && is_readable($realpath)) {
+                    rename ($realpath, $destination);
                 }
             }
         }

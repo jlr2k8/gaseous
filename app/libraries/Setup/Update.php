@@ -46,8 +46,9 @@ class Update
         switch ($version_compare) {
             case (int)1:
                 try {
-                    $this->downloadLatest($latest);
-                    $this->installLatest($latest);
+                    if ($this->downloadLatest($latest)) {
+                        $this->installLatest($latest);
+                    }
                 } catch(Exception $e) {
                     Log::app($e->getTraceAsString(), $e->getMessage());
                     return false;
@@ -55,7 +56,7 @@ class Update
 
                 break;
             case (int)0:
-                break;
+                return true;
             case (int)-1:
                 Log::app (
                     'The current version installed ('

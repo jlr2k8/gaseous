@@ -49,7 +49,7 @@ if (!empty($_POST)) {
     if (isset($post['update'])) {
         $submit_user = $account->update($post);
     } elseif (isset($post['archive'])) {
-        $submit_user = $account->archive($post);
+        $submit_user = $account->archiveAccount($post);
     }
 
     if ($submit_user) {

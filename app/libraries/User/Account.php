@@ -17,6 +17,7 @@ use Db\Query;
 use Exception;
 use Log;
 use Settings;
+use stdClass;
 
 class Account
 {
@@ -192,14 +193,169 @@ class Account
         $transaction->beginTransaction();
 
         try {
-
-            self::updateAccountTable($transaction, $account_data);
+            // archive/re-add account
+            if (self::archive($transaction, $account_data)) {
+               $this->createAccount($transaction, (object)$account_data);
+            }
 
             // archive/re-add account roles
             if (self::archiveAccountRoles($transaction, $account_data['username']))
                 self::insertAccountRoles($transaction, $account_data['username'], $account_data['account_roles']);
         } catch (Exception $e) {
 
+            $transaction->rollBack();
+
+            Log::app($e->getTraceAsString(), $e->getMessage());
+
+            return false;
+        }
+
+        $transaction->commit();
+
+        return true;
+    }
+
+
+    /**
+     * @param stdClass $account_data
+     * @param bool $account_update
+     * @return mixed
+     */
+    public function validation(stdClass $account_data, $account_update = false)
+    {
+        $errors = [];
+
+        // validate first name
+        if (empty($account_data->firstname) || !Validation::checkValidName($account_data->firstname)) {
+            $errors[] = 'First Name is invalid or missing';
+        }
+
+        // validate last name
+        if (empty($account_data->lastname) || !Validation::checkValidName($account_data->lastname)) {
+            $errors[] = 'Last Name is invalid or missing';
+        }
+
+        // validate email (formatting and whether or not it exists)
+        $this->validateEmail($account_data->email);
+
+        // validate username
+        if (empty($account_data->username) || Validation::checkValidUsername($account_data->username) == false) {
+            $errors[] = 'This username is not allowed. It must be at least 3 characters, contain only numbers and letters, and may not contain profanity.';
+        }
+
+        // check against existing username
+        if ($account_update !== true) {
+            if (Validation::checkIfUsernameExists($account_data->username)) {
+                $errors[] = 'This username already exists!';
+            }
+
+            // check if passwords matched
+            if ($account_data->password != $account_data->confirm_password) {
+                $errors[] = 'Your passwords did not match';
+            }
+
+            // check valid password
+            if (Validation::checkValidPassword($account_data->password) == false) {
+                $errors[] = 'Your password must contain at least 7 characters, at least one uppercase letter, at least one lowercase letter, and at least one number';
+            }
+        }
+
+        $this->errors = $errors;
+
+        return $errors ?: true;
+    }
+
+    /**
+     * Simply validates email. This is the only validation needed for the simpler CreateGuestAccount()
+     *
+     * @return bool
+     */
+    private function validateEmail($email_address)
+    {
+        // validate email
+        if (!isset($email_address) && !filter_var($email_address, FILTER_VALIDATE_EMAIL)) {
+            $this->errors[] = 'This email is not valid';
+        }
+
+        // validate against existing email
+        if (Validation::checkIfEmailExists($email_address)) {
+            $this->errors[] = 'This email address has already been used for another account.';
+        }
+
+        return true;
+    }
+
+
+    /**
+     * @param array $account_data
+     * @return bool
+     * @throws Exception
+     */
+    public function userUpdate(array $account_data)
+    {
+        $skip_password  = false;
+        $required_fields = [
+            'username',
+            'firstname',
+            'lastname',
+            'email',
+            'password',
+        ];
+
+        if (empty($_SESSION['token_login']) && !empty($account_data['password'])) {
+            $required_fields[] = 'current_password';
+        }
+
+        if (empty($account_data['password']) && empty($account_data['confirm_password'])) {
+            $skip_password  = true;
+
+            unset($required_fields[array_search('password', $required_fields)]);
+        }
+
+        foreach ($required_fields as $required_field) {
+            if (empty($account_data[$required_field]))
+                $errors[] = 'Missing ' . $required_field;
+        }
+
+        if (!empty($errors)) {
+            $this->errors[] = implode(',', $errors);
+
+            return false;
+        }
+
+        $validation     = $this->validation((object)$account_data, true);
+
+        if ($validation !== true) {
+            $this->errors = $validation;
+        }
+
+        $transaction    = new PdoMySql();
+
+        $transaction->beginTransaction();
+
+        try {
+            // archive/re-add account
+            if (self::archive($transaction, $account_data)) {
+                $this->createAccount($transaction, (object)$account_data);
+            }
+
+            // archive/re-add account password
+            if (!$skip_password) {
+                $verify['username'] = $account_data['username'];
+                $verify['password'] = $account_data['current_password'];
+
+                if (Password::verifyPassword($verify)) {
+                    $this->archiveAccountPassword($transaction);
+                    $this->createAccountPassword($transaction, $account_data['password']);
+                } else {
+                    $this->errors[] = 'Your current password is invalid...';
+
+                    Log::app('Password change attempt failed', $account_data['username']);
+
+                    return false;
+                }
+            }
+        } catch (Exception $e) {
             $transaction->rollBack();
 
             Log::app($e->getTraceAsString(), $e->getMessage());
@@ -222,14 +378,16 @@ class Account
     private function updateAccountTable(PdoMySql $transaction, array $account_data)
     {
         self::editUsersCheck();
-        
+
         $sql = "
-            UPDATE account
+            UPDATE
+                account
             SET
               firstname = ?,
               lastname = ?,
               email = ?
-            WHERE username = ?
+            WHERE
+                username = ?
         ";
 
         $bind = [
@@ -237,6 +395,103 @@ class Account
             $account_data['lastname'],
             $account_data['email'],
             $account_data['username'],
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param $account_username
+     * @return bool
+     * @throws Exception
+     */
+    public function archiveAccountPassword(PdoMySql $transaction)
+    {
+        $username   = $_SESSION['account']['username'];
+
+        $sql        = "
+            UPDATE
+                account_password
+            SET
+                archived = '1',
+                archived_datetime = NOW()
+            WHERE
+                account_username = ?
+            AND
+                archived = '0'; 
+        ";
+
+        $bind = [
+            $username,
+        ];
+
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param PdoMySql $transaction
+     * @param stdClass $account_data
+     */
+    public function createAccount(PdoMySql $transaction, stdClass $account_data)
+    {
+        $sql = "
+                INSERT INTO
+                    account (
+                        firstname,
+                        lastname,
+                        username,
+                        email
+                    ) VALUES (
+                        ?,
+                        ?,
+                        ?,
+                        ?
+                    );
+            ";
+
+        $bind = [
+            $account_data->firstname,
+            $account_data->lastname,
+            $account_data->username,
+            $account_data->email
+        ];
+
+        $transaction
+            ->prepare($sql)
+            ->execute($bind);
+    }
+
+
+    /**
+     * @param $account_username
+     * @return bool
+     * @throws Exception
+     */
+    public function createAccountPassword(PdoMySql $transaction, $password)
+    {
+        $username   = $_SESSION['account']['username'];
+        $password   = Password::hashPassword($password);
+
+        $sql        = "
+            INSERT INTO
+                account_password (
+                    account_username,
+                    password
+                ) VALUES (
+                    ?,
+                    ?
+                );
+        ";
+
+        $bind = [
+            $username,
+            $password,
         ];
 
         return $transaction
@@ -320,7 +575,16 @@ class Account
         if (self::getUsername() == $username)
             throw new Exception('The logged in account cannot archive itself...');
 
-        $sql    = "UPDATE account SET archived='1', archived_datetime = NOW() WHERE username = ?;";
+        $sql    = "
+            UPDATE
+                account
+            SET
+                archived='1',
+                archived_datetime = NOW()
+            WHERE
+                username = ?;
+        ";
+
         $db     = new Query($sql, [$username]);
 
         return $db->run();
@@ -436,23 +700,27 @@ class Account
      * @param array $data
      * @return bool
      */
-    public function archive(array $data)
+    private static function archive(PdoMySql $transaction, array $data)
     {
         $sql = "
-            UPDATE account
-            SET archived = '1',
-            archived_datetime = NOW()
-            WHERE username = ?
-            AND archived='0'
+            UPDATE
+                account
+            SET
+                archived = '1',
+                archived_datetime = NOW()
+            WHERE
+                username = ?
+            AND
+                archived='0';
         ";
 
         $bind = [
             $data['username']
         ];
 
-        $db = new Query($sql, $bind);
-
-        return $db->run();
+        return $transaction
+            ->prepare($sql)
+            ->execute($bind);
     }
 
 

@@ -27,7 +27,16 @@ class Validation
      */
     public static function checkIfUsernameExists($username)
     {
-        $sql    = "SELECT COUNT(username) AS count_username FROM account WHERE username= ?";
+        $sql    = "
+            SELECT
+                COUNT(username) AS count_username
+            FROM
+                account
+            WHERE
+                username= ?
+            AND
+                archived = '0'
+        ";
 
         $db     = new Query($sql, [$username]);
         $result = $db->fetchAssoc();

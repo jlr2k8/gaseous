@@ -63,6 +63,8 @@ class AdminView
 
         $templator->assign('perform_updates', Settings::value('perform_updates'));
 
+        $templator->assign('file_uploader', Settings::value('file_uploader'));
+
         $view = $templator->fetch('admin/main.tpl');
 
         return $view;

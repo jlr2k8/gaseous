@@ -36,6 +36,8 @@ class System
         '/register/?'                           => 'controllers/user/register.php',
         '/login/?'                              => 'controllers/user/login.php',
         '/admin/update/?'                       => 'controllers/admin/update.php',
+        '/admin/upload/?'                       => 'controllers/admin/file-uploader.php',
+        '/account/?'                            => 'controllers/user/account.php',
         '/users(/([\d\w-]+))?(/)?'              => 'controllers/user/authors.php?account_username=$2',
         '/admin/settings/?'                     => 'controllers/admin/settings.php',
         '/sitemap.xml'                          => 'controllers/services/sitemap_output.php',
@@ -434,6 +436,16 @@ class System
                 'boolean',
             ],
         ],
+        'file_uploader' => [
+            'display'       => 'File Uploader Admin Panel',
+            'category_key'  => 'administrative',
+            'role_based'    => '1',
+            'description'   => 'Permissions to use general file uploader in admin panel',
+            'value'         => '1',
+            'properties'    => [
+                'boolean',
+            ],
+        ],
         'registration_access_code' => [
             'display'       => 'Registration Access Code',
             'category_key'  => 'administrative',
@@ -613,8 +625,18 @@ class System
             'description'   => '',
             'value'         => '
                 &lt;div&gt;
-                    &lt;div class=&quot;page&quot; id=&quot;footer&quot;&gt;
-                        &amp;copy; {date(\'Y\')}. Powered by &lt;a href=&quot;https://gaseo.us&quot;&gt;Gaseous&lt;/a&gt;. All Rights Reserved.
+                    &lt;div class=&quot;page two-thirds_left&quot; id=&quot;footer&quot;&gt;
+                        &copy; {date(\'Y\')}. Powered by &lt;a href=&quot;https://gaseo.us&quot;&gt;Gaseous&lt;/a&gt;. All Rights Reserved.
+                    &lt;/div&gt;
+                    &lt;div class=&quot;page one-third_right&quot; id=&quot;footer&quot;&gt;
+                        {if !empty($smarty.session.account)}
+                            &lt;p&gt;
+                                Loggged in as {$smarty.session.account.username}.
+                                &lt;a href=&quot;{$full_web_url}/logout/&quot;&gt;&lt;span class=&quot;red_text bold&quot;&gt;Log out&lt;/span&gt;&lt;/a&gt;
+                                or
+                                &lt;a href=&quot;{$full_web_url}/account/&quot;&gt;&lt;span class=&quot;&quot;&gt;update your account settings&lt;/span&gt;&lt;/a&gt;.
+                            &lt;/p&gt;
+                        {/if}
                     &lt;/div&gt;
                 &lt;/div&gt;
             ',
@@ -663,6 +685,14 @@ class System
             'role_based'    => '0',
             'description'   => 'Location of the Smarty template compilation',
             'value'         => '/tmp',
+            'properties'    => [],
+        ],
+        'allowed_file_upload_extensions' => [
+            'display'       => 'Allowed File Upload Extensions',
+            'category_key'  => 'filesystem',
+            'role_based'    => '0',
+            'description'   => 'Comma-separated list of allowed file uploads in CK Editor and the File Uploader admin panel.',
+            'value'         => 'doc,docx,pdf,txt',
             'properties'    => [],
         ],
     ];

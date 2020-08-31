@@ -626,7 +626,7 @@ class System
             'value'         => '
                 &lt;div&gt;
                     &lt;div class=&quot;page two-thirds_left&quot; id=&quot;footer&quot;&gt;
-                        &copy; {date('Y')}. Powered by &lt;a href=&quot;https://gaseo.us&quot;&gt;Gaseous&lt;/a&gt;. All Rights Reserved.
+                        &copy; {date(\'Y\')}. Powered by &lt;a href=&quot;https://gaseo.us&quot;&gt;Gaseous&lt;/a&gt;. All Rights Reserved.
                     &lt;/div&gt;
                     &lt;div class=&quot;page one-third_right&quot; id=&quot;footer&quot;&gt;
                         {if !empty($smarty.session.account)}

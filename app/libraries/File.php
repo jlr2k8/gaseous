@@ -16,6 +16,8 @@ use Utilities\Token;
 
 class File
 {
+    public $error;
+
     public static $allowed_file_extensions = [
         'jpg',
         'jpeg',
@@ -49,13 +51,18 @@ class File
     public function uploadFormFile($file_input_name = 'upload', $allowed_file_extensions = [])
     {
         $allowed_file_extensions    = !empty($allowed_file_extensions) ? $allowed_file_extensions : self::$allowed_file_extensions;
-        $file_input_name            = filter_var($file_input_name, FILTER_SANITIZE_STRING);
-        $file_upload                = !empty($_FILES[$file_input_name]['tmp_name']) ? $_FILES[$file_input_name]['tmp_name'] : false;
-        $file_reference             = !empty($_FILES[$file_input_name]['name']) ? $_FILES[$file_input_name]['name'] : false;
-        $pathinfo                   = pathinfo($file_reference);
-        $uploaded                   = false;
 
-        if ($file_upload && $file_reference && in_array($pathinfo['extension'], $allowed_file_extensions)) {
+        foreach ($allowed_file_extensions as $key => $val) {
+            $allowed_file_extensions[$key] = trim(strtolower($val));
+        }
+
+        $file_input_name    = filter_var($file_input_name, FILTER_SANITIZE_STRING);
+        $file_upload        = !empty($_FILES[$file_input_name]['tmp_name']) ? $_FILES[$file_input_name]['tmp_name'] : false;
+        $file_reference     = !empty($_FILES[$file_input_name]['name']) ? $_FILES[$file_input_name]['name'] : false;
+        $pathinfo           = pathinfo($file_reference);
+        $uploaded           = false;
+
+        if ($file_upload && $file_reference && in_array(strtolower($pathinfo['extension']), $allowed_file_extensions)) {
             $token                  = Token::generate();
             $upload_root            = rtrim(Settings::value('upload_root'), '/');
             $new_file_name          = Url::convert($pathinfo['filename']) . '-' . $token . '.' . $pathinfo['extension'];
@@ -68,10 +75,14 @@ class File
 
                 $uploaded   = $new_file_relative_url;
             } catch (Exception $e) {
+                $this->error = 'File upload failed... ' . ' ' . $e->getTraceAsString();
+
                 Log::app('File upload failed!', $new_file_destination, $new_file_relative_url, $e->getTraceAsString(), $e->getMessage());
 
                 throw $e;
             }
+        } elseif (!in_array(strtolower($pathinfo['extension']), $allowed_file_extensions)) {
+            $this->error = 'Invalid file extension...';
         } else {
             Log::app('File upload is missing/invalid, or the file type is not allowed. Allowed file extensions are: ' . implode(' ', $allowed_file_extensions));
         }

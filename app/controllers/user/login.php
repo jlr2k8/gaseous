@@ -59,7 +59,7 @@ if (!empty($_POST) && !isset($_GET['forgot_password'])) {
     $valid_token = $login->checkTokenLogin();
 
     if ($valid_token) {
-        header('Location: ' . Settings::value('full_web_url'));
+        header('Location: ' . Settings::value('full_web_url') . '/account/');
     }
 } elseif (!empty($_GET['forgot_password'])) {
     $email          = filter_var($_POST['registered_email'], FILTER_SANITIZE_EMAIL);

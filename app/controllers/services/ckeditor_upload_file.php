@@ -18,8 +18,13 @@ if (!Settings::value('file_uploader')) {
     Http::error(403);
 }
 
-$url                = $file->uploadFormFile('upload');
-$ckeditor_func_num  = $_GET['CKEditorFuncNum'];
+$default_file_extensions            = File::$allowed_file_extensions;
+$settings_allowed_file_extensions   = Settings::value('allowed_file_upload_extensions');
+$allowed_file_extensions_exploded   = explode(',', $settings_allowed_file_extensions);
+$allowed_file_extensions            = array_merge($default_file_extensions, $allowed_file_extensions_exploded);
+
+$url                                = $file->uploadFormFile('upload', $allowed_file_extensions);
+$ckeditor_func_num                  = $_GET['CKEditorFuncNum'];
 
 if (!empty($url)) {
     // message (dont need this for now)

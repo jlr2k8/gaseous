@@ -69,4 +69,11 @@
             </a>
         </li>
     {/if}
+    {if $file_uploader}
+        <li>
+            <a href="{$full_web_url}/admin/upload">
+                File Uploader
+            </a>
+        </li>
+    {/if}
 </ul>

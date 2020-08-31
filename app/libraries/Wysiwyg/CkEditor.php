@@ -78,7 +78,8 @@ class CkEditor
                     customConfig: \'' . $custom_config . '\',
                     extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
                     skin: \'' . $this->skin[self::SKIN] . '\',
-                    filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
+                    filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_file.php\',
+                    filebrowserImageUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
                     filebrowserUploadMethod: \'form\'
                 });
             </script>
@@ -101,7 +102,8 @@ class CkEditor
                     customConfig: \'' . $custom_config . '\',
                     extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
                     skin: \'' . $this->skin[self::SKIN] . '\',
-                    filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
+                    filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_file.php\',
+                    filebrowserImageUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
                     filebrowserUploadMethod: \'form\'
                 });
             </script>

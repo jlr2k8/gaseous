@@ -20,9 +20,11 @@ use User\Roles;
 $templator          = new Templator();
 $access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['access_code'], FILTER_SANITIZE_STRING) : null;
 $has_valid_access   = ($access_code == Settings::value('registration_access_code'));
+$title              = 'User Registration';
 
 $page_find_replace = [
-    'page_title_seo'    => 'User Registration',
+    'page_title_seo'    => $title,
+    'page_title_h1'     => $title,
     'breadcrumbs'       => (new Breadcrumbs())->crumb('Register'),
 ];
 
@@ -68,8 +70,5 @@ if (!empty($_POST) && $has_valid_access) {
 }
 
 $page_find_replace['body'] = $body;
-
-$account = new Account();
-$account->getAll();
 
 echo $templator::page($page_find_replace);

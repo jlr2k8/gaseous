@@ -74,13 +74,20 @@ class Login
     public function validateToken($token)
     {
         $sql    = "
-            SELECT account.username 
-            FROM account
-			INNER JOIN token_email ON token_email.email=account.email
-			WHERE token= ?
-			AND token_email.created_datetime >= NOW() - INTERVAL 12 HOUR
-			AND account.archived = '0'
-			AND token_email.archived = '0';
+            SELECT
+                account.username 
+            FROM
+                account
+			INNER JOIN
+			    token_email ON token_email.email=account.email
+			WHERE
+			    token= ?
+			AND
+			    token_email.created_datetime >= NOW() - INTERVAL 12 HOUR
+			AND
+			    account.archived = '0'
+			AND
+			    token_email.archived = '0';
         ";
 
         $db     = new Query($sql, [$token]);
@@ -152,7 +159,8 @@ class Login
         if ($username) {
             $this->archiveToken($token);
 
-            $logged_in = $this->createSession($username);
+            $logged_in                  = $this->createSession($username);
+            $_SESSION['token_login']    = true;
         }
 
         return $logged_in;

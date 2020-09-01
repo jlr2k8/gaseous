@@ -13,6 +13,8 @@
 namespace Seo;
 
 use Db\Query;
+use DOMDocument;
+use Settings;
 
 class SiteMap
 {
@@ -20,7 +22,7 @@ class SiteMap
 
     public function __construct()
     {
-        $this->xml  = new \DOMDocument('1.0', 'UTF-8');
+        $this->xml  = new DOMDocument('1.0', 'UTF-8');
 
         $this->xml->preserveWhiteSpace  = false;
         $this->xml->formatOutput        = true;
@@ -72,21 +74,32 @@ class SiteMap
     private function getAllActiveCmsUris()
     {
         $sql = "
-          SELECT uri.uid, uri.uri
-          FROM uri
-          INNER JOIN content AS c ON c.uri_uid = uri.uid
-          INNER JOIN current_content_iteration AS cci ON c.uid = cci.content_uid
-          INNER JOIN content_iteration AS ci ON cci.content_iteration_uid = ci.uid
-          WHERE uri.archived = '0'
-          AND c.archived = '0'
-          AND cci.archived = '0'
-          AND ci.archived = '0'
-          AND ci.status = 'active' 
-          AND ci.include_in_sitemap = '1'
+          SELECT
+                uri.uid, uri.uri
+          FROM
+                uri
+          INNER JOIN
+                content AS c ON c.uri_uid = uri.uid
+          INNER JOIN
+                current_content_iteration AS cci ON c.uid = cci.content_uid
+          INNER JOIN
+                content_iteration AS ci ON cci.content_iteration_uid = ci.uid
+          WHERE
+                uri.archived = '0'
+          AND
+                c.archived = '0'
+          AND
+                cci.archived = '0'
+          AND
+                ci.archived = '0'
+          AND
+                ci.status = 'active' 
+          AND
+                ci.include_in_sitemap = '1'
           ORDER BY
-            CASE WHEN uri.uri = 'home'
-              THEN 0
-              ELSE 1
+                CASE WHEN uri.uri = '/home'
+                    THEN 0
+                    ELSE 1
             END,
             uri.uri
         ";
@@ -104,12 +117,13 @@ class SiteMap
     private static function buildFullUrl($uri)
     {
         // Exception
-        if ($uri == '/home')
-            $uri = '';
-        else
+        if ($uri == '/home') {
+            $uri = '/';
+        } else {
             $uri .= '/';
+        }
 
-        return \Settings::value('full_web_url') . $uri;
+        return Settings::value('full_web_url') . $uri;
     }
 
 

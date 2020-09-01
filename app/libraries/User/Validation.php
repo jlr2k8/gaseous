@@ -47,17 +47,38 @@ class Validation
 
     /**
      * @param $email
-     * @param bool $ignore_guest
      * @return bool
      */
     public static function checkIfEmailExists($email)
     {
-        $sql        = "SELECT COUNT(email) AS count_email FROM account WHERE email = ? AND archived = '0'";
-        $bind       = [$email];
-        $db         = new Query($sql, $bind);
-        $result     = $db->fetchAssoc();
+        $username   = $_SESSION['account']['username'] ?? null;
+        $sql        = "
+            SELECT
+                COUNT(email) AS count_email
+            FROM
+                account
+            WHERE
+                email = ?
+            AND
+                archived = '0'
+        ";
 
-        return ($result['count_email'] > 0);
+        $bind[] = $email;
+
+        if (!empty($username)) {
+            $sql .= "
+                AND
+                    username != ?
+            ";
+
+            $bind[] = $username;
+        }
+
+        $db     = new Query($sql, $bind);
+        $result = $db->fetchAssoc();
+        $exists = (int)($result['count_email'] > 0);
+
+        return $exists;
     }
 
 

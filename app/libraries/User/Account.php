@@ -35,13 +35,18 @@ class Account
     public function get($username)
     {
         $sql = "
-          SELECT account.*
-          FROM account
-          INNER JOIN account_password ON account.username = account_password.account_username
-          LEFT JOIN account_roles ON account.username = account_roles.account_username
-          WHERE account.username = ?
-          AND account.archived = '0'
-          AND account_roles.archived = '0'
+          SELECT
+                account.*
+          FROM
+                account
+          INNER JOIN
+                account_password ON account.username = account_password.account_username
+          LEFT JOIN
+                account_roles ON account.username = account_roles.account_username
+          WHERE
+                account.username = ?
+          AND
+                account.archived = '0'
         ";
 
         $db     = new Query($sql, [$username]);
@@ -127,14 +132,21 @@ class Account
     private function getAccountFromLoginSession($value)
     {
         $sql    = "
-            SELECT DISTINCT login_session.account_username AS login_session_account_username, login_session.uid, expiration
-            FROM login_session
-            INNER JOIN account ON login_session.account_username=account.username
-            LEFT JOIN account_roles ON account.username = account_roles.account_username
-            WHERE login_session.archived = '0'
-            AND account.archived = '0'
-            AND account_roles.archived = '0'
-            ORDER BY expiration DESC
+            SELECT
+                DISTINCT login_session.account_username AS login_session_account_username,
+                login_session.uid, expiration
+            FROM
+                login_session
+            INNER JOIN
+                account ON login_session.account_username=account.username
+            LEFT JOIN
+                account_roles ON account.username = account_roles.account_username
+            WHERE
+                login_session.archived = '0'
+            AND
+                account.archived = '0'
+            ORDER BY
+                expiration DESC;
         ";
 
         $db     = new Query($sql);
@@ -262,7 +274,7 @@ class Account
     }
 
     /**
-     * Simply validates email. This is the only validation needed for the simpler CreateGuestAccount()
+     * Simply validates email.
      *
      * @return bool
      */
@@ -289,8 +301,8 @@ class Account
      */
     public function userUpdate(array $account_data)
     {
-        $skip_password  = false;
-        $required_fields = [
+        $skip_password      = false;
+        $required_fields    = [
             'username',
             'firstname',
             'lastname',
@@ -323,6 +335,7 @@ class Account
 
         if ($validation !== true) {
             $this->errors = $validation;
+            return false;
         }
 
         $transaction    = new PdoMySql();

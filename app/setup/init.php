@@ -21,7 +21,7 @@ ini_set('error_reporting', '-1');
 ini_set('display_errors', 'Off');
 ini_set('log_errors', 'On');
 
-if (\Setup\Utilities::checkCoreData() === true) {
+if (Utilities::checkCoreData() === true) {
     ini_set('error_reporting', Settings::value('error_reporting'));
     ini_set('display_errors', Settings::value('error_reporting'));
     ini_set('log_errors', Settings::value('error_reporting'));

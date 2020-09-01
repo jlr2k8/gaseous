@@ -366,40 +366,6 @@ class Account
 
 
     /**
-     * @param PdoMySql $transaction
-     * @param array $account_data
-     * @return bool
-     * @throws Exception
-     */
-    private function updateAccountTable(PdoMySql $transaction, array $account_data)
-    {
-        self::editUsersCheck();
-
-        $sql = "
-            UPDATE
-                account
-            SET
-              firstname = ?,
-              lastname = ?,
-              email = ?
-            WHERE
-                username = ?
-        ";
-
-        $bind = [
-            $account_data['firstname'],
-            $account_data['lastname'],
-            $account_data['email'],
-            $account_data['username'],
-        ];
-
-        return $transaction
-            ->prepare($sql)
-            ->execute($bind);
-    }
-
-
-    /**
      * @param $account_username
      * @return bool
      * @throws Exception

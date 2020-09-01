@@ -631,7 +631,7 @@ class System
                     &lt;div class=&quot;page one-third_right&quot; id=&quot;footer&quot;&gt;
                         {if !empty($smarty.session.account)}
                             &lt;p&gt;
-                                Loggged in as {$smarty.session.account.username}.
+                                Logged in as {$smarty.session.account.username}.
                                 &lt;a href=&quot;{$full_web_url}/logout/&quot;&gt;&lt;span class=&quot;red_text bold&quot;&gt;Log out&lt;/span&gt;&lt;/a&gt;
                                 or
                                 &lt;a href=&quot;{$full_web_url}/account/&quot;&gt;&lt;span class=&quot;&quot;&gt;update your account settings&lt;/span&gt;&lt;/a&gt;.

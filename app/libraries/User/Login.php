@@ -323,13 +323,27 @@ class Login
         $uuid   = Query::getUuid();
 
         $sql    = "
-            INSERT INTO login_session (account_username, uid, expiration)
-            VALUES(?, ?, ?);
+            INSERT INTO
+                login_session (
+                    account_username, uid, expiration
+                ) VALUES (
+                    ?,
+                    ?,
+                    ?
+                );
         ";
 
-        $db = new Query($sql, [$username, $uuid, $expire]);
+        $bind = [
+            $username,
+            $uuid,
+            $expire
+        ];
 
-        return $db->run() ? ($this->storeAccountInSession($username) && $this->setLoginCookie($username, $uuid)) : false;
+        $db = new Query($sql, $bind);
+
+        return $db->run()
+            ? ($this->storeAccountInSession($username) && $this->setLoginCookie($username, $uuid))
+            : false;
     }
 
 
@@ -340,7 +354,7 @@ class Login
     private function storeAccountInSession($username)
     {
         $account                = $this->account->get($username);
-        $_SESSION['account']    = !empty($account) ? $account : false;
+        $_SESSION['account']    = !empty($account) ? $account : [];
 
         return true;
     }

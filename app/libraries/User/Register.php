@@ -73,7 +73,7 @@ class Register
             $transaction->beginTransaction();
 
             $this->account->createAccount($transaction, $account_data);
-            $this->account->createAccountPassword($transaction, $this->post->password);
+            $this->account->createAccountPassword($transaction, $account_data->password, $account_data->username);
 
             if (!$accounts_exist) {
                 $primary_role_data = [

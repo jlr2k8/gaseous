@@ -12,7 +12,7 @@
 
 define('PAGE_LOAD_START', microtime(true));
 
-define('APP_VERSION', '0.2.0');
+define('APP_VERSION', '0.2.1');
 
 define('WEB_ROOT', dirname(__DIR__));
 define('DB_ROOT', realpath(WEB_ROOT . '/../db'));

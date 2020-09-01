@@ -223,16 +223,14 @@ class Account
      */
     public function validation(stdClass $account_data, $account_update = false)
     {
-        $errors = [];
-
         // validate first name
         if (empty($account_data->firstname) || !Validation::checkValidName($account_data->firstname)) {
-            $errors[] = 'First Name is invalid or missing';
+            $this->errors[] = 'First Name is invalid or missing';
         }
 
         // validate last name
         if (empty($account_data->lastname) || !Validation::checkValidName($account_data->lastname)) {
-            $errors[] = 'Last Name is invalid or missing';
+            $this->errors[] = 'Last Name is invalid or missing';
         }
 
         // validate email (formatting and whether or not it exists)
@@ -240,29 +238,27 @@ class Account
 
         // validate username
         if (empty($account_data->username) || Validation::checkValidUsername($account_data->username) == false) {
-            $errors[] = 'This username is not allowed. It must be at least 3 characters, contain only numbers and letters, and may not contain profanity.';
+            $this->errors[] = 'This username is not allowed. It must be at least 3 characters, contain only numbers and letters, and may not contain profanity.';
         }
 
         // check against existing username
         if ($account_update !== true) {
             if (Validation::checkIfUsernameExists($account_data->username)) {
-                $errors[] = 'This username already exists!';
+                $this->errors[] = 'This username already exists!';
             }
 
             // check if passwords matched
             if ($account_data->password != $account_data->confirm_password) {
-                $errors[] = 'Your passwords did not match';
+                $this->errors[] = 'Your passwords did not match';
             }
 
             // check valid password
             if (Validation::checkValidPassword($account_data->password) == false) {
-                $errors[] = 'Your password must contain at least 7 characters, at least one uppercase letter, at least one lowercase letter, and at least one number';
+                $this->errors[] = 'Your password must contain at least 7 characters, at least one uppercase letter, at least one lowercase letter, and at least one number';
             }
         }
 
-        $this->errors = $errors;
-
-        return $errors ?: true;
+        return $this->errors ?: true;
     }
 
     /**
@@ -469,13 +465,16 @@ class Account
 
 
     /**
+     * @param PdoMySql $transaction
+     * @param $password
+     * @param null $username
      * @param $account_username
      * @return bool
      * @throws Exception
      */
-    public function createAccountPassword(PdoMySql $transaction, $password)
+    public function createAccountPassword(PdoMySql $transaction, $password, $username = null)
     {
-        $username   = $_SESSION['account']['username'];
+        $username   = $_SESSION['account']['username'] ?? $username;
         $password   = Password::hashPassword($password);
 
         $sql        = "

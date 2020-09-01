@@ -50,9 +50,9 @@ class Validation
      * @param bool $ignore_guest
      * @return bool
      */
-    public static function checkIfEmailExists($email, $ignore_guest = false)
+    public static function checkIfEmailExists($email)
     {
-        $sql        = "SELECT COUNT(email) AS count_email FROM account WHERE email = ? ";
+        $sql        = "SELECT COUNT(email) AS count_email FROM account WHERE email = ? AND archived = '0'";
         $bind       = [$email];
         $db         = new Query($sql, $bind);
         $result     = $db->fetchAssoc();

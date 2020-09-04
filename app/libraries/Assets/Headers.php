@@ -191,4 +191,20 @@ class Headers
 
         return true;
     }
+
+
+    /**
+     * @param $path
+     */
+    public function setContentType($path)
+    {
+        // TODO - make this function more inclusive for other content types
+        $pathinfo = pathinfo($path);
+
+        if ($pathinfo['extension'] == 'js') {
+            header('Content-Type: application/javascript');
+        } elseif ($pathinfo['extension'] == 'css') {
+            header('Content-Type: text/css');
+        }
+    }
 }

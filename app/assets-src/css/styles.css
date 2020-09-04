@@ -226,6 +226,14 @@ button.revert {
     text-align: center
 }
 
+.text_align_right {
+    text-align: right
+}
+
+.text_decoration_none {
+    text-decoration: none;
+}
+
 .margin_auto {
     margin: auto;
 }

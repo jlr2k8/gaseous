@@ -13,35 +13,47 @@
     </div>
 {/if}
 
-<table>
-    {if count($active_pages)}
+<div>
+    <div>
+        <span class="link alphabet_filter_letter home" data-alphabet-letter="home">
+            <i class="fas fa-home" data-alphabet-letter="home"></i>
+        </span>
+        {foreach range('A', 'Z') as $letter}
+            <span class="link alphabet_filter_letter" data-alphabet-letter="{$letter}">
+                {$letter}
+            </span>
+        {/foreach}
+    </div>
+    <p class="caption link alphabet_filter_letter reset" data-alphabet-letter="reset">
+        <i class="fas fa-times"></i> Clear Filter
+    </p>
+</div>
+
+<table id="admin_content" class="sortable">
+    {if count($all_pages)}
         <thead>
-            <tr>
-                <th colspan="4">
-                    Active Content
-                </th>
-            </tr>
             {include file="admin/content/row_header.tpl"}
         </thead>
         <tbody>
-            {foreach from=$active_pages item=page}
+            {foreach from=$all_pages item=page}
                 {include file="admin/content/row.tpl"}
             {/foreach}
         </tbody>
     {/if}
-    {if count($inactive_pages)}
-        <thead>
-            <tr>
-                <th colspan="4">
-                    Inactive Content
-                </th>
-            </tr>
-            {include file="admin/content/row_header.tpl"}
-        </thead>
-        <tbody>
-            {foreach from=$inactive_pages item=page}
-                 {include file="admin/content/row.tpl"}
-            {/foreach}
-        </tbody>
-    {/if}
 </table>
+
+<script src="{$full_web_url}/assets-src/js/jquery-2.2.4.min.js">&#160;</script>
+<script src="{$full_web_url}/assets/js/sorttable.js"></script>
+<script src="{$full_web_url}/assets/js/alphabet-filter.js"></script>
+
+{literal}
+    <script>
+        $(".sortable thead tr th").on('click', function() {
+            $(".default_sort_indicator").hide();
+        });
+
+        var sortable_table = $(".sortable");
+
+        sorttable.makeSortable(sortable_table);
+    </script>
+{/literal}

@@ -38,6 +38,7 @@ $codemirror         = new Codemirror();
 
 $all_active_pages       = $pages->all();
 $all_inactive_pages     = $pages->all('inactive');
+$all_pages              = array_merge($all_active_pages, $all_inactive_pages);
 $my_account             = $account->getAccountFromSessionValidation();
 $full_web_url           = Settings::value('full_web_url');
 $all_uris               = Uri::all();
@@ -51,6 +52,10 @@ $all_roles              = $roles->getAll();
 $title                  = 'Content Management';
 $error                  = null;
 $new_page               = false;
+
+$sort_by = array_column($all_pages, 'page_title_h1');
+
+array_multisort($sort_by, $all_pages, SORT_ASC, $all_pages);
 
 if (!empty($content_body_type_id)) {
     $new_page = true;
@@ -84,8 +89,7 @@ $templator->assign('ck_editor', $ck_editor);
 $templator->assign('codemirror', $codemirror);
 $templator->assign('statuses', $statuses);
 $templator->assign('error', $error);
-$templator->assign('active_pages', $all_active_pages);
-$templator->assign('inactive_pages', $all_inactive_pages);
+$templator->assign('all_pages', $all_pages);
 $templator->assign('add_content', Settings::value('add_content'));
 $templator->assign('edit_content', Settings::value('edit_content'));
 $templator->assign('archive_content', Settings::value('archive_content'));

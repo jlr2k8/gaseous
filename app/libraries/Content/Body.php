@@ -84,34 +84,28 @@ class Body
             '\Cms' => [],
         ];
 
-        $templator->enableSecurity(null, $trusted_static_methods);
-
         if (!empty($additional_fields_find_replace)) {
             foreach ($additional_fields_find_replace as $find => $replace) {
                 $templator->assign($find, $replace);
             }
         }
 
-        // TODO - examine why these find/replace template assignments are in two different foreach loops
-        try{
+        try {
             $template = $this->getBodyTemplate($content_body_type_id);
 
             foreach ($body[$content_iteration_uid] as $key => $find_replace) {
+                $templator->enableSecurity(null, $trusted_static_methods);
+
                 $find       = $find_replace['template_token'];
                 $replace    = $templator->fetch('string:' . html_entity_decode($find_replace['value'],ENT_QUOTES, 'UTF-8'));
 
-                $templator->assign($find, $replace);
-            }
-
-
-            foreach ($body[$content_iteration_uid] as $key => $find_replace) {
-                $find       = $find_replace['template_token'];
-                $replace    = $templator->fetch('string:' . html_entity_decode($find_replace['value'],ENT_QUOTES, 'UTF-8'));
+                $templator->disableSecurity();
 
                 $field_override_template = 'content/body/fields/' . $find . '.tpl';
 
                 if ($templator->templateExists($field_override_template)) {
                     $templator->assign($find, $replace);
+
                     $replace = $templator->fetch($field_override_template);
                 }
 
@@ -119,14 +113,11 @@ class Body
             }
 
             $return = $templator->fetch('string:' . $template);
-
         } catch (Exception $e) {
             Log::app($e->getTraceAsString(), $e->getMessage());
 
             throw $e;
         }
-
-        $templator->disableSecurity();
 
         return $return;
     }

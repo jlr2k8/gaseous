@@ -13,12 +13,14 @@
 
 require_once dirname(__FILE__) . '/setup/init.php';
 
+use Assets\Headers;
 use \Content\Http;
 use \Uri\Route;
 use \Uri\Redirect;
 
 $relative_uri   = Settings::value('relative_uri') ?: '/';
 $uri_redir      = new Redirect();
+$headers        = new Headers();
 
 // first, check to see if this URI is actively being redirected
 $redirect   = $uri_redir->getByUri($relative_uri);
@@ -40,6 +42,8 @@ $_GET               = array_merge($_GET, $uri_data['query']);
 $is_disallowed_path = Route::isDisallowedPath($path);
 
 if (!empty($path) && !$is_disallowed_path && File::validatePath($path)) {
+    $headers->setContentType($path);
+
     require_once $path;
 } else {
     Http::error(404);

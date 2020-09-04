@@ -89,6 +89,16 @@ class Get
     }
 
 
+    private function setEditLink(array &$page_content)
+    {
+        if (Settings::value('edit_content')) {
+            $page_content['body'] .= '<div class="text_align_right"><a href="' . Settings::value('full_web_url') . '/admin/content/?page_uri_urlencoded=' . urlencode($page_content['uri']) . '" >Edit this page</a></div>';
+        }
+
+        return true;
+    }
+
+
     /**
      * @param $page_uri
      * @param array $find_replace
@@ -100,6 +110,7 @@ class Get
         $page_content   = $this->contentByUri($uri, 'active', false, true);
 
         $this->validateUri($page_content);
+        $this->setEditLink($page_content);
 
         $find_replace   = array_merge($page_content, $find_replace);
         $page           = null;

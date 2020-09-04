@@ -1,6 +1,11 @@
 {$body}
 
 {if !empty($content_body_type_id) && $content_body_type_id == 'blog_article'}
+    {* Depending on the order these override templates are published, we may need to strtotime() the published date *}
+    {if strtotime($published_date)}
+        {assign var=published_date value=strtotime($published_date)}
+    {/if}
+
     <script type="application/ld+json">
         {
             "@context": "http://schema.org",

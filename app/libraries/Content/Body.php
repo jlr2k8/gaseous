@@ -93,13 +93,20 @@ class Body
         try {
             $template = $this->getBodyTemplate($content_body_type_id);
 
-            foreach ($body[$content_iteration_uid] as $key => $find_replace) {
-                $templator->enableSecurity(null, $trusted_static_methods);
+            $templator->enableSecurity(null, $trusted_static_methods);
 
+            foreach ($body[$content_iteration_uid] as $key => $find_replace) {
                 $find       = $find_replace['template_token'];
                 $replace    = $templator->fetch('string:' . html_entity_decode($find_replace['value'],ENT_QUOTES, 'UTF-8'));
 
-                $templator->disableSecurity();
+                $templator->assign($find, $replace);
+            }
+
+            $templator->disableSecurity();
+
+            foreach ($body[$content_iteration_uid] as $key => $find_replace) {
+                $find       = $find_replace['template_token'];
+                $replace    = $templator->fetch('string:' . html_entity_decode($find_replace['value'],ENT_QUOTES, 'UTF-8'));
 
                 $field_override_template = 'content/body/fields/' . $find . '.tpl';
 

@@ -17,4 +17,5 @@ CKEDITOR.editorConfig = function( config ) {
     /* HTML integrity */
     config.allowedContent = true;
     config.extraAllowedContent = '*(*)';
+    config.protectedSource.push(/\{foreach.+\}[\s\S]+\{\/foreach\}/g);
 };

@@ -146,7 +146,7 @@ class Cms
         $page               = $pager_status['p'] ?? $page;
         $items_per_page     = $pager_status['per_page'] ?? $items_per_page;
         $sort_by            = $pager_status['sort_by'] ?? $sort_by;
-        $sort_ascending    = $pager_status['sort_ascending'] ?? $sort_ascending;
+        $sort_ascending     = $pager_status['sort_ascending'] ?? $sort_ascending;
 
         $sort_by_col        = array_column($content, $sort_by);
 

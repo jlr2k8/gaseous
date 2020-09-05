@@ -18,7 +18,7 @@ use Utilities\Pager;
 $pages          = new Get();
 $templator      = new Templator();
 
-$user           = !empty($_GET['account_id']) ? filter_var($_GET['account_id'], FILTER_SANITIZE_STRING) : false;
+$user           = !empty($_GET['account_username']) ? filter_var($_GET['account_username'], FILTER_SANITIZE_STRING) : false;
 $default_title  = 'Browse Content by All Authors';
 $breadcrumbs    = (new Breadcrumbs())->crumb('Users', '/users/');
 

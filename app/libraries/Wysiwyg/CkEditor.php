@@ -56,10 +56,13 @@ class CkEditor
      */
     protected function init()
     {
-        $this->cdn = '
-            <script src="https://cdn.ckeditor.com/' . $this->version . '/' . $this->dist[self::DIST] . '/ckeditor.js" charset="utf-8"></script>
-        ';
+//        $this->cdn = '
+//            <script src="https://cdn.ckeditor.com/' . $this->version . '/' . $this->dist[self::DIST] . '/ckeditor.js" charset="utf-8"></script>
+//        ';
 
+        $this->cdn = '
+            <script src="' . \Settings::value('full_web_url') . '/assets/js/ckeditor/ckeditor.js" charset="utf-8"></script>
+        ';
 
         return true;
     }
@@ -75,9 +78,6 @@ class CkEditor
         $item = '
             <script>
                 var ckeditor = CKEDITOR.replace(\'' . $textarea_id . '\', {
-                    customConfig: \'' . $custom_config . '\',
-                    extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
-                    skin: \'' . $this->skin[self::SKIN] . '\',
                     filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_file.php\',
                     filebrowserImageUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
                     filebrowserUploadMethod: \'form\'
@@ -99,9 +99,6 @@ class CkEditor
         $item = '
             <script>
                 var ckeditor = CKEDITOR.inline(\'' . $textarea_id . '\', {
-                    customConfig: \'' . $custom_config . '\',
-                    extraPlugins: \'' . implode(',', $this->plugin_list) . '\',
-                    skin: \'' . $this->skin[self::SKIN] . '\',
                     filebrowserUploadUrl: \'/controllers/services/ckeditor_upload_file.php\',
                     filebrowserImageUploadUrl: \'/controllers/services/ckeditor_upload_image.php\',
                     filebrowserUploadMethod: \'form\'

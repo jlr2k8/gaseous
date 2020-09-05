@@ -1,12 +1,12 @@
-/**
- * @license Copyright (c) 2003-2016, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.md or http://ckeditor.com/license
- *
- * Implemented/configured by Josh Rogers
- * July 16, 2016
+﻿/**
+ * @license Copyright (c) 2003-2020, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see https://ckeditor.com/legal/ckeditor-oss-license
  */
 
-CKEDITOR.editorConfig = function (config) {
+CKEDITOR.editorConfig = function( config ) {
+    config.plugins = 'dialogui,dialog,about,a11yhelp,dialogadvtab,basicstyles,bidi,blockquote,notification,button,toolbar,clipboard,panelbutton,panel,floatpanel,colorbutton,colordialog,templates,menu,contextmenu,copyformatting,div,resize,elementspath,enterkey,entities,popup,filetools,filebrowser,find,fakeobjects,flash,floatingspace,listblock,richcombo,font,forms,format,horizontalrule,htmlwriter,iframe,wysiwygarea,image,indent,indentblock,indentlist,smiley,justify,menubutton,language,link,list,liststyle,magicline,maximize,newpage,pagebreak,pastetext,pastetools,pastefromgdocs,pastefromword,preview,print,removeformat,save,selectall,showblocks,showborders,sourcearea,specialchar,scayt,stylescombo,tab,table,tabletools,tableselection,undo,lineutils,widgetselection,widget,notificationaggregator,uploadwidget,uploadimage,wsc,showprotected,sourcedialog,codesnippet,stylesheetparser';
+    config.skin = 'moono-lisa';
+
     /* Encoding */
     config.entities                     = false;
     config.entities_latin               = false;
@@ -17,7 +17,4 @@ CKEDITOR.editorConfig = function (config) {
     /* HTML integrity */
     config.allowedContent = true;
     config.extraAllowedContent = '*(*)';
-
-    /* Styles */
-    //config.contentsCss = ['/assets/css/styles.css', '/assets/css/navigation/top-nav.css'];
 };

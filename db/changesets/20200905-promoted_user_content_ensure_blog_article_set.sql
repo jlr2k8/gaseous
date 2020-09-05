@@ -1,0 +1,1 @@
+UPDATE content_body_types SET promoted_user_content = '1' WHERE type_id = 'blog_article';

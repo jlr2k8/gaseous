@@ -80,6 +80,7 @@ class Utilities
     {
         $text       = (string)strip_tags($text, '<br>');
         $text       = preg_replace("~\s+~", ' ', $text);
+
         $ellipsis   = null;
 
         if (strlen($text) > $strlen) {
@@ -88,5 +89,21 @@ class Utilities
         }
 
         return $text . $ellipsis;
+    }
+
+
+    /**
+     * This method attempts to decode htmlentites() encoded strings,
+     * while preserving entities that were purposely encoded, such as samples of code snippets
+     *
+     * @param $string
+     * @return string
+     */
+    public static function decodeString($string)
+    {
+        $string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
+        $string = htmlspecialchars($string, ENT_QUOTES, 'UTF-8', true);
+
+        return $string;
     }
 }

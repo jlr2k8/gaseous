@@ -157,7 +157,7 @@ class Submit
                         $insert[$key] = [
                             'content_iteration_uid'     => $this->new_uid,
                             'content_body_field_uid'    => $items['uid'],
-                            'value'                     => htmlentities($value, ENT_QUOTES, 'UTF-8', false),
+                            'value'                     => htmlentities($value, ENT_COMPAT, 'UTF-8', false),
                         ];
 
                         $this->content->body->insertContentBodyFieldValue($insert[$key], $transaction);

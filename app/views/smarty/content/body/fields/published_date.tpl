@@ -1,4 +1,4 @@
-{if strtotime($published_date)}
+{if strtotime($published_date) && abs(strtotime($published_date)) == strtotime($published_date)}
     {assign var=published_date value=strtotime($published_date)}
 {/if}
 

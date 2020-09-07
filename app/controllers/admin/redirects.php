@@ -14,6 +14,7 @@
 use \Content\Breadcrumbs;
 use \Content\Http;
 use \Content\Templator;
+use Db\PdoMySql;
 use \Uri\Redirect;
 use Uri\Uri;
 
@@ -35,6 +36,7 @@ $all_uris           = Uri::all();
 $add_uri_redirects      = Settings::value('add_redirects');
 $edit_redirect_uris     = Settings::value('edit_redirects');
 $archive_redirect_uris  = Settings::value('archive_redirects');
+$transaction            = new PdoMySql();
 
 if (!empty($_POST) && $edit_redirect_uris) {
     foreach ($_POST as $key => $val) {
@@ -61,10 +63,10 @@ if (!empty($_POST) && $edit_redirect_uris) {
 
         $transaction->commit();
 
-        $submit_redir = $uri_redirect->update($post);
+        $submit_redir = $uri_redirect->update($post, $transaction);
     } elseif (isset($post['new'])) {
         if (!empty($post['custom_uri'])) {
-            $uri_obj    = new Uri();
+            $uri_obj    = new Uri($transaction);
             $uri        = '/' . filter_var($post['custom_uri'], FILTER_SANITIZE_URL);
 
             if (!Uri::uriExistsAsRedirect($uri) && !Uri::uriExistsAsContent($uri)) {

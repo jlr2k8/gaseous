@@ -65,6 +65,10 @@ class System
             'category'          => 'Email',
             'description'       => 'Email and webmaster configuration',
         ],
+        'recaptcha' => [
+            'category'          => 'ReCaptcha',
+            'description'       => 'ReCaptcha v3 site and secret key',
+        ],
         'administrative' => [
             'category'          => 'Administrative',
             'description'       => 'Core site functionality and configuration settings',

@@ -174,7 +174,7 @@ class Redirect
     {
         $uri_uid            = filter_var($data['uri_uid'], FILTER_SANITIZE_STRING);
         $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
-        $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING);
+        $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING) ?? 302;
         $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);
 
         $sql = "

@@ -23,20 +23,20 @@ class Minify
      * @param $input
      * @return null|string|string[]
      */
-    public static function html($input)
-    {
-        $find_replace = [
-            '~\s+~'    => ' ',
-            '~\s{2,}~'      => ' ',
-            '~>\s<~'        => '><',
-            '~<!--.*?-->~'  => null,
-        ];
+public static function html($input)
+{
+    $find_replace = [
+        '~\s+~'         => ' ',
+        '~\s{2,}~'      => ' ',
+        '~>\s<~'        => '><',
+        '~<!--.*?-->~'  => null,
+    ];
 
-        $find       = array_keys($find_replace);
-        $replace    = $find_replace;
+    $find       = array_keys($find_replace);
+    $replace    = $find_replace;
 
-        return preg_replace($find, $replace, $input);
-    }
+    return preg_replace($find, $replace, $input);
+}
 
 
     /**

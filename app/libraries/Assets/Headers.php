@@ -201,9 +201,9 @@ class Headers
         // TODO - make this function more inclusive for other content types
         $pathinfo = pathinfo($path);
 
-        if ($pathinfo['extension'] == 'js') {
+        if (isset($pathinfo['extension']) && $pathinfo['extension'] == 'js') {
             header('Content-Type: application/javascript');
-        } elseif ($pathinfo['extension'] == 'css') {
+        } elseif ($pathinfo['extension'] && $pathinfo['extension'] == 'css') {
             header('Content-Type: text/css');
         }
     }

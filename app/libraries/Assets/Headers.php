@@ -203,7 +203,7 @@ class Headers
 
         if (isset($pathinfo['extension']) && $pathinfo['extension'] == 'js') {
             header('Content-Type: application/javascript');
-        } elseif ($pathinfo['extension'] && $pathinfo['extension'] == 'css') {
+        } elseif (isset($pathinfo['extension']) && $pathinfo['extension'] == 'css') {
             header('Content-Type: text/css');
         }
     }

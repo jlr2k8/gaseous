@@ -84,6 +84,7 @@ class Log
             . $file
             . ' on line '
             . $line_number
+            . PHP_EOL
             . $log
             . PHP_EOL
         ;

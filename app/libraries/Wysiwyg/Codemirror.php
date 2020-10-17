@@ -59,7 +59,6 @@ class Codemirror
         $item = '
             <script>
                 $(document).ready(function() {
-                
                     var textarea = document.getElementById("' . $textarea_id . '");
                     
                     var editor = CodeMirror.fromTextArea(textarea, {
@@ -71,7 +70,6 @@ class Codemirror
                        editor.save();
                     });
                 });
-                
             </script>
         ';
 

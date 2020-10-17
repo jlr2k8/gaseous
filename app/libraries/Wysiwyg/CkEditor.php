@@ -16,8 +16,9 @@ use Settings;
 
 class CkEditor
 {
-    const DIST = 4;
-    const SKIN = 0;
+    const DIST              = 4;
+    const SKIN              = 0;
+    const PLUGIN_JS_DEFAULT = 'plugin.js';
 
     public $cdn;
 
@@ -148,7 +149,11 @@ class CkEditor
     protected function init()
     {
         $this->cdn = '
-            <script src="https://cdn.ckeditor.com/' . $this->version . '/' . $this->dist[self::DIST] . '/ckeditor.js" charset="utf-8"></script>
+            <script src="https://cdn.ckeditor.com/'
+            . $this->version
+            . '/'
+            . $this->dist[self::DIST]
+            . '/ckeditor.js" charset="utf-8"></script>
         ';
 
         return true;
@@ -215,9 +220,23 @@ class CkEditor
         if (!empty($this->external_plugins)) {
             $item .= '<script>';
 
-            foreach ($this->external_plugins as $external_plugin) {
+            foreach ($this->external_plugins as $key => $val) {
+                if (is_int($key)) {
+                    $external_plugin    = $val;
+                    $plugin_js          = self::PLUGIN_JS_DEFAULT;
+                } else {
+                    $external_plugin    = $key;
+                    $plugin_js          = $val;
+                }
+
                 $item .= '
-                    CKEDITOR.plugins.addExternal("' . $external_plugin . '", "' . Settings::value('full_web_url') . '/assets/js/ckeditor/plugins/' . $external_plugin . '/plugin.js", "");
+                    CKEDITOR.plugins.addExternal("'
+                    . $external_plugin
+                    . '", "'
+                    . Settings::value('full_web_url') . '/assets/js/ckeditor/plugins/'
+                    . $external_plugin . '/", "'
+                    . $plugin_js
+                    . '");
                 ';
             }
 

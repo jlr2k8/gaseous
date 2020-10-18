@@ -296,7 +296,10 @@ class Get
             }
 
             if ($cache === true && empty($username)) {
-                $this->cache->set($cache_key, $return);
+                $settings_expiration    = Settings::value('cache_content_seconds');
+                $expiration             = is_numeric($settings_expiration) ? (int)$settings_expiration : (int)3600;
+
+                $this->cache->set($cache_key, $return, $expiration);
             }
         }
 

@@ -169,6 +169,9 @@ class System
             'value'         => '',
             'properties'    => [],
         ],
+
+
+
         'site_title' =>    [
             'display'       => 'Site Title',
             'category_key'  => 'administrative',
@@ -496,7 +499,20 @@ class System
                 'codemirror',
             ],
         ],
-
+        'cache_content_seconds' => [
+            'display'       => 'Content Cache Time (sec)',
+            'category_key'  => 'administrative',
+            'role_based'    => '0',
+            'description'   => 'The amount of time for CMS content to be cached for anonymous users (in seconds).',
+            'value'         => '3600',
+        ],
+        'delete_archived_records_days' => [
+            'display'       => 'Delete Archived Records after x Days',
+            'category_key'  => 'administrative',
+            'role_based'    => '0',
+            'description'   => 'The amount of days old an archived record is until it is deleted systematically.',
+            'value'         => '180',
+        ],
 
 
         'show_debug' => [

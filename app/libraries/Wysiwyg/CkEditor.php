@@ -170,7 +170,7 @@ class CkEditor
         $item = $this->addExternalPlugins();
         $item .= '
             <script>
-                CKEDITOR.replace("' . $textarea_id . '", {
+                var ckeditor = CKEDITOR.replace("' . $textarea_id . '", {
                     filebrowserUploadUrl: "/controllers/services/ckeditor_upload_file.php",
                     filebrowserImageUploadUrl: "/controllers/services/ckeditor_upload_image.php",
                     filebrowserUploadMethod: "form",
@@ -195,7 +195,7 @@ class CkEditor
         $item = $this->addExternalPlugins();
         $item .= '
             <script>
-                CKEDITOR.inline("' . $textarea_id . '", {
+                var ckeditor = CKEDITOR.inline("' . $textarea_id . '", {
                     filebrowserUploadUrl: "/controllers/services/ckeditor_upload_file.php",
                     filebrowserImageUploadUrl: "/controllers/services/ckeditor_upload_image.php",
                     filebrowserUploadMethod: "form",

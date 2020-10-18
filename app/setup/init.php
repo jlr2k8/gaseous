@@ -23,8 +23,8 @@ ini_set('log_errors', 'On');
 
 if (Utilities::checkCoreData() === true) {
     ini_set('error_reporting', Settings::value('error_reporting'));
-    ini_set('display_errors', Settings::value('error_reporting'));
-    ini_set('log_errors', Settings::value('error_reporting'));
+    ini_set('display_errors', Settings::value('display_errors'));
+    ini_set('log_errors', Settings::value('log_errors'));
 }
 
 if (PHP_SAPI != 'cli') {

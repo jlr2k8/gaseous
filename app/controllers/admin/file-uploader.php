@@ -11,6 +11,7 @@
  **/
 
 use Content\Breadcrumbs;
+use Content\Http;
 use Content\Templator;
 
 // check setting/role privileges

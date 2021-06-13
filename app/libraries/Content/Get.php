@@ -113,13 +113,12 @@ class Get
         $this->setEditLink($page_content);
 
         $find_replace   = array_merge($page_content, $find_replace);
-        $page           = null;
 
         if (!empty($page_content)) {
-            $page = $this->templatedPage($find_replace);
+            $page = $this->templatedPage($find_replace, true);
 
             if ($page_content['minify_html_output'] == '1') {
-                $page = Minify::html($page);
+                $page = Minify::html($page) . $this->templator->fetch('page-load.tpl');
             }
         } else {
             $page = Http::error(404);
@@ -201,6 +200,18 @@ class Get
         $pager_status_as_string = hash('md5', print_r(Pager::status(), true));
 
         return $content_uid_string . '_' . $pager_status_as_string . '_' . (int)$without_rendered_content;
+    }
+
+
+    /**
+     * @param array $find_replace
+     * @return false|string
+     */
+    public static function templatedPageCacheKey(array $find_replace)
+    {
+        $find_replace_string    = hash('md5', print_r($find_replace, true));
+
+        return $find_replace_string;
     }
 
 
@@ -609,38 +620,57 @@ class Get
 
     /**
      * @param array $find_replace
-     * @return mixed
+     * @param bool $cache
+     * @return string
      * @throws SmartyException
      */
-    public function templatedPage($find_replace = array())
+    public function templatedPage($find_replace = array(), $cache = false)
     {
-        $templator              = $this->templator;
-        $breadcrumbs            = new Breadcrumbs();
-        $official_canonical_url = filter_var(Settings::value('official_canonical_url'), FILTER_SANITIZE_URL);
+        $username       = $_SESSION['account']['username'] ?? false;
+        $cache_key      = self::templatedPageCacheKey($find_replace);
+        $cached_content = $this->cache->get($cache_key);
 
-        // core template items
-        $find_replace = [
-            'page_title_seo'            => $find_replace['page_title_seo'] ?? null,
-            'site_announcements'        => $_SESSION['site_announcements'] ?? [],
-            'page_title_h1'             => $find_replace['page_title_h1'] ?? null,
-            'meta_description'          => $find_replace['meta_desc'] ?? null,
-            'meta_robots'               => $find_replace['meta_robots'] ?? null,
-            'css_output'                => Output::css($templator),
-            'css_iterator_output'       => Output::latestCss($templator),
-            'js_output'                 => Output::js($templator),
-            'js_iterator_output'        => Output::latestJs($templator),
-            'official_canonical_url'    => !empty($official_canonical_url) ? rtrim($official_canonical_url, '/') . $_SERVER['REQUEST_URI'] : 'boogers',
-            'breadcrumbs'               => $find_replace['breadcrumbs'] ?? $breadcrumbs->cms(Settings::value('relative_uri'), $this) ?? null,
-            'nav'                       => self::nav($templator, $find_replace),
-            'body'                      => $find_replace['body'] ?? null,
-            'footer'                    => self::footer($templator, $find_replace),
-            'administration'            => AdminView::renderAdminList(),
-            'debug_footer'              => Debug::footer(),
-        ];
+        // Only anonymous users should be getting/setting cache
+        if (!empty($cached_content) && empty($username)) {
+            $return = $cached_content;
+        } else {
+            $templator              = $this->templator;
+            $breadcrumbs            = new Breadcrumbs();
+            $official_canonical_url = filter_var(Settings::value('official_canonical_url'), FILTER_SANITIZE_URL);
 
-        $templated_page = self::main($templator, $find_replace);
+            // core template items
+            $find_replace = [
+                'page_title_seo'            => $find_replace['page_title_seo'] ?? null,
+                'site_announcements'        => $_SESSION['site_announcements'] ?? [],
+                'page_title_h1'             => $find_replace['page_title_h1'] ?? null,
+                'meta_description'          => $find_replace['meta_desc'] ?? null,
+                'meta_robots'               => $find_replace['meta_robots'] ?? null,
+                'css_output'                => Output::css($templator),
+                'css_iterator_output'       => Output::latestCss($templator),
+                'js_output'                 => Output::js($templator),
+                'js_iterator_output'        => Output::latestJs($templator),
+                'official_canonical_url'    => !empty($official_canonical_url) ? rtrim($official_canonical_url, '/') . $_SERVER['REQUEST_URI'] : 'boogers',
+                'breadcrumbs'               => $find_replace['breadcrumbs'] ?? $breadcrumbs->cms(Settings::value('relative_uri'), $this) ?? null,
+                'nav'                       => self::nav($templator, $find_replace),
+                'body'                      => $find_replace['body'] ?? null,
+                'footer'                    => self::footer($templator, $find_replace),
+                'administration'            => AdminView::renderAdminList(),
+                'debug_footer'              => Debug::footer(),
+            ];
 
-        return $templated_page;
+            $templated_page = self::main($templator, $find_replace);
+
+            $return = $templated_page;
+
+            if (empty($username)) {
+                $settings_expiration    = Settings::value('cache_content_seconds');
+                $expiration             = is_numeric($settings_expiration) ? (int)$settings_expiration : 3600;
+
+                $this->cache->set($cache_key, $return, $expiration);
+            }
+        }
+
+        return $return;
     }
 
 

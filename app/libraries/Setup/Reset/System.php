@@ -544,7 +544,7 @@ class System
                     &lt;meta name=&quot;robots&quot; content=&quot;{$meta_robots}&quot; /&gt;
                     &lt;title itemprop=&quot;name&quot;&gt;{$page_title_seo}&lt;/title&gt;
                     &lt;link rel=&quot;shortcut icon&quot; href=&quot;/assets/img/favicon.ico&quot;&gt;
-                    {if !empty($official_canonical_url)}&lt;link rel=&quot;canonical&quot; href=&quot;{$official_canonical_url}&quot;&gt;{/if}
+                    {if !empty($official_canonical_url)}&lt;link rel=&quot;canonical&quot; href=&quot;{$official_canonical_url}&quot; /&gt;{/if}
                 &lt;/head&gt;
                 &lt;body&gt;
                 &lt;nav&gt;
@@ -629,7 +629,7 @@ class System
                     &lt;/div&gt;
                     &lt;div id=&quot;logo&quot;&gt;
                         &lt;a href=&quot;{$full_web_url}&quot;&gt;
-                            &lt;img src=&quot;{$full_web_url}/assets/img/gaseous.png&quot; alt=&quot;Gaseous logo&quot; /&gt;
+                            &lt;img src=&quot;{$full_web_url}/assets/img/gaseous.png&quot; alt=&quot;Gaseous&quot; /&gt;
                         &lt;/a&gt;
                     &lt;/div&gt;
                 &lt;/div&gt;
@@ -687,7 +687,7 @@ class System
             'display'       => 'Upload file URL Relative Path',
             'category_key'  => 'filesystem',
             'role_based'    => '0',
-            'description'   => 'Relative path (client-facing/browser) for uploaded file attachments. Should match the route to files…',
+            'description'   => 'Relative path (client-facing/browser) for uploaded file attachments. Should match the route to files...',
             'value'         => '/files',
             'properties'    => [],
         ],

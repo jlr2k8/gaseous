@@ -5,7 +5,6 @@
     "license": "MIT",
     "homepage": "https://www.gaseous.org",
     "support": {},
-    "version": "0.1.0",
     "require": {
         "smarty/smarty": "~3.1",
         "swiftmailer/swiftmailer": "^6.2"

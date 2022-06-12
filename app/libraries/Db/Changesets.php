@@ -33,15 +33,14 @@ class Changesets
      */
     public function runChangesets(array $need_to_process)
     {
-        $sql            = null;
-        $transaction    = new PdoMySql();
+        if (!empty($need_to_process)) {
+            foreach ($need_to_process as $processed) {
+                $transaction    = new PdoMySql();
 
-        $transaction->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $transaction->beginTransaction();
+                $transaction->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $transaction->beginTransaction();
 
-        try {
-            if (!empty($need_to_process)) {
-                foreach ($need_to_process as $processed) {
+                try {
                     $sql = $processed['sql'];
 
                     $transaction
@@ -72,25 +71,26 @@ class Changesets
                         ->prepare($sql)
                         ->execute($bind);
 
-                    Log::app('Running SQL: ' . PHP_EOL . $sql . PHP_EOL);
-                    Log::app('Bound with... ' . print_r($bind, true));
+                    Log::app('Running SQL: ' . $sql, $bind);
+                } catch (PDOException $e) {
+                    $error = '
+                        The unprocessed changesets errored out, so the transaction was rolled back.
+                        Please review the stack trace and message above. Visit https://gaseo.us for more information.
+                    ';
+
+                    $transaction->rollBack();
+
+                    Log::app($e->getTraceAsString(), $e->getMessage(), $error);
+
+                    throw new Exception($error);
                 }
-            } else {
-                Log::app('Nothing to process!' . PHP_EOL);
+
+                $transaction->commit();
+
+                $transaction = null;
             }
-
-            $transaction->commit();
-        } catch (PDOException $e) {
-            Log::app($e->getTraceAsString(), $e->getMessage());
-
-            $transaction->rollBack();
-
-            Log::app(
-                'The unprocessed changesets errored out, so the transaction was rolled back.
-                    Please review the stack trace and message above. Visit https://gaseo.us for more information.'
-            );
-
-            return false;
+        } else {
+            Log::app('Nothing to process!' . PHP_EOL);
         }
 
         return true;

@@ -206,7 +206,8 @@ class Body
                 type_id,
                 parent_type_id,
                 label,
-                description
+                description,
+                promoted_user_content
             FROM
                 content_body_types
             WHERE
@@ -284,11 +285,42 @@ class Body
 
 
     /**
-     * @param $content_body_type
+     * @param $content_body_type_id
+     * @return array
+     */
+    public function getBodyTemplateDetail($content_body_type_id)
+    {
+        $sql = "
+            SELECT
+                content_body_type_id,
+                label,
+                template,
+                uri_scheme
+            FROM
+                content_body_templates
+            WHERE
+                content_body_type_id = ?
+            AND 
+                archived = '0';
+        ";
+
+        $bind = [
+            $content_body_type_id,
+        ];
+
+        $db     = new Query($sql, $bind);
+        $result = $db->fetchAssoc();
+
+        return $result;
+    }
+
+
+    /**
+     * @param null $content_body_type
      * @param null $content_iteration_uid
      * @return array
      */
-    public function getCmsFields($content_body_type, $content_iteration_uid = null)
+    public function getCmsFields($content_body_type = null, $content_iteration_uid = null)
     {
         $sql = "
             SELECT
@@ -297,20 +329,31 @@ class Body
                 content_body_field_type_id,
                 template_token,
                 description AS content_body_field_description,
-                label AS content_body_field_label
+                label AS content_body_field_label,
+                sort_order
             FROM
                 content_body_fields AS cbf
             WHERE
-                content_body_type_id = ?
-            AND 
                 archived = '0'
+        ";
+
+        $bind = [];
+
+        if (!empty($content_body_type)) {
+            $sql .= "
+                AND 
+                    content_body_type_id = ?
+            ";
+
+            $bind = [
+                $content_body_type,
+            ];
+        }
+
+        $sql .= "
             ORDER BY
                 sort_order;
         ";
-
-        $bind = [
-            $content_body_type,
-        ];
 
         $db         = new Query($sql, $bind);
         $results    = $db->fetchAllAssoc();
@@ -342,7 +385,8 @@ class Body
                 content_body_field_type_id,
                 template_token,
                 description AS content_body_field_description,
-                label AS content_body_field_label
+                label AS content_body_field_label,
+                sort_order
             FROM
                 content_body_fields AS cbf
             WHERE

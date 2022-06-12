@@ -14,9 +14,9 @@
 require_once dirname(__FILE__) . '/setup/init.php';
 
 use Assets\Headers;
-use \Content\Http;
-use \Uri\Route;
-use \Uri\Redirect;
+use Content\Http;
+use Uri\Route;
+use Uri\Redirect;
 
 $relative_uri   = Settings::value('relative_uri') ?: '/';
 $uri_redir      = new Redirect();

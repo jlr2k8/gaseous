@@ -1,3 +1,6 @@
+app/assets-src/css/ckeditor* linguist-vendored
+app/assets-src/css/magnific-popup.css linguist-vendored
+app/assets-src/css/sorttable.css linguist-vendored
 app/assets/js/* linguist-vendored
 app/assets-src/js/jquery* linguist-vendored
 *.php linguist-detectable=true

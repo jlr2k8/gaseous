@@ -1,7 +1,7 @@
-app/assets-src/css/ckeditor* linguist-vendored=true
+app/assets-src/css/ckeditor/** linguist-vendored=true
 app/assets-src/css/magnific-popup.css linguist-vendored=true
 app/assets-src/css/sorttable.css linguist-vendored=true
-app/assets/js/* linguist-vendored=true
+app/assets/js/** linguist-vendored=true
 app/assets-src/js/jquery* linguist-vendored=true
 *.php linguist-detectable=true
 *.php linguist-language=php

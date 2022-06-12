@@ -89,6 +89,10 @@ class Get
     }
 
 
+    /**
+     * @param array $page_content
+     * @return bool
+     */
     private function setEditLink(array &$page_content)
     {
         if (Settings::value('edit_content')) {
@@ -100,10 +104,10 @@ class Get
 
 
     /**
-     * @param $page_uri
+     * @param $uri
      * @param array $find_replace
      * @return string
-     * @throws Exception
+     * @throws SmartyException
      */
     public function page($uri, $find_replace = [])
     {
@@ -649,7 +653,7 @@ class Get
                 'css_iterator_output'       => Output::latestCss($templator),
                 'js_output'                 => Output::js($templator),
                 'js_iterator_output'        => Output::latestJs($templator),
-                'official_canonical_url'    => !empty($official_canonical_url) ? rtrim($official_canonical_url, '/') . $_SERVER['REQUEST_URI'] : 'boogers',
+                'official_canonical_url'    => !empty($official_canonical_url) ? rtrim($official_canonical_url, '/') . $_SERVER['REQUEST_URI'] : null,
                 'breadcrumbs'               => $find_replace['breadcrumbs'] ?? $breadcrumbs->cms(Settings::value('relative_uri'), $this) ?? null,
                 'nav'                       => self::nav($templator, $find_replace),
                 'body'                      => $find_replace['body'] ?? null,
@@ -659,8 +663,7 @@ class Get
             ];
 
             $templated_page = self::main($templator, $find_replace);
-
-            $return = $templated_page;
+            $return         = $templated_page;
 
             if (empty($username)) {
                 $settings_expiration    = Settings::value('cache_content_seconds');

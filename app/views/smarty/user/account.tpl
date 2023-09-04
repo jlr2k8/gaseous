@@ -1,11 +1,14 @@
 <div class="one-third_left">
-    <div>
-        <ul>
-            {foreach $errors as $error}
-                <li class="red_text display_block margin_on_bottom">{$error}</li>
-            {/foreach}
-        </ul>
-    </div>
+    {if !empty($errors)}
+        <div class="red_border solid_border slight_padding">
+            <h3 class="red_text">Errors:</h3>
+            <ol>
+                {foreach $errors as $error}
+                    <li class="red_text margin_on_bottom">{$error}</li>
+                {/foreach}
+            </ol>
+        </div>
+    {/if}
     <form action="/account/" id="account" class="slight_margin slight_padding registration" method="post">
         <div>
             <label for="firstname">First name</label>

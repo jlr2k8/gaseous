@@ -38,6 +38,7 @@ class SiteMap
 
     /**
      * @return string
+     * @throws \DOMException
      */
     public function getUpdatedMap()
     {
@@ -55,12 +56,10 @@ class SiteMap
             $changefreq = $this->xml->createElement('changefreq');
             $changefreq = $xml->appendChild($changefreq);
 
-            $val = $this->xml->createTextNode($url);
-
+            $val            = $this->xml->createTextNode($url);
             $changefreq_val = $this->xml->createTextNode('always');
 
             $loc->appendChild($val);
-
             $changefreq->appendChild($changefreq_val);
         }
 
@@ -69,7 +68,7 @@ class SiteMap
 
 
     /**
-     * @return array|bool
+     * @return array
      */
     private function getAllActiveCmsUris()
     {
@@ -123,7 +122,11 @@ class SiteMap
             $uri .= '/';
         }
 
-        return Settings::value('full_web_url') . $uri;
+        $url = !empty(Settings::value('official_canonical_url'))
+            ? filter_var(Settings::value('official_canonical_url'), FILTER_SANITIZE_URL)
+            : Settings::value('full_web_url');
+
+        return $url . $uri;
     }
 
 

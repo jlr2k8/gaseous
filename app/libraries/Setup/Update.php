@@ -105,7 +105,6 @@ class Update
         $filename   = $this->getLatestFilename($latest);
         $phar       = new PharData(WEB_ROOT . '/../' . $filename);
         $extracted  = $phar->extractTo(WEB_ROOT . '/../', null, true);
-        $renamed    = false;
 
         if ($extracted) {
             $extracted_directory    = realpath(WEB_ROOT . '/../' . str_replace('.tar.bz2', null, $filename));
@@ -121,7 +120,7 @@ class Update
             }
         }
 
-        return $renamed;
+        return true;
     }
 
 

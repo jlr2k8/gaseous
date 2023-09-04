@@ -86,7 +86,7 @@ class Account
 
     /**
      * @param $username
-     * @return array|bool
+     * @return array
      */
     private function getAccountRoles($username)
     {
@@ -253,20 +253,20 @@ class Account
             $this->errors[] = 'This username is not allowed. It must be at least 3 characters, contain only numbers and letters, and may not contain profanity.';
         }
 
+        // check if passwords matched
+        if ($account_data->password != $account_data->confirm_password) {
+            $this->errors[] = 'Your passwords did not match';
+        }
+
+        // check valid password
+        if (Validation::checkValidPassword($account_data->password) == false) {
+            $this->errors[] = 'Your password must contain at least 7 characters, at least one uppercase letter, at least one lowercase letter, and at least one number';
+        }
+
         // check against existing username
         if ($account_update !== true) {
             if (Validation::checkIfUsernameExists($account_data->username)) {
                 $this->errors[] = 'This username already exists!';
-            }
-
-            // check if passwords matched
-            if ($account_data->password != $account_data->confirm_password) {
-                $this->errors[] = 'Your passwords did not match';
-            }
-
-            // check valid password
-            if (Validation::checkValidPassword($account_data->password) == false) {
-                $this->errors[] = 'Your password must contain at least 7 characters, at least one uppercase letter, at least one lowercase letter, and at least one number';
             }
         }
 
@@ -312,11 +312,11 @@ class Account
 
         if (empty($_SESSION['token_login']) && !empty($account_data['password'])) {
             $required_fields[] = 'current_password';
+        } elseif (empty($account_data['password'])) {
+            $skip_password  = true;
         }
 
         if (empty($account_data['password']) && empty($account_data['confirm_password'])) {
-            $skip_password  = true;
-
             unset($required_fields[array_search('password', $required_fields)]);
         }
 
@@ -348,8 +348,8 @@ class Account
                 $this->createAccount($transaction, (object)$account_data);
             }
 
-            // archive/re-add account password
-            if (!$skip_password) {
+            // archive/re-add account password (user logged in with password)
+            if (!$skip_password && empty($_SESSION['token_login'])) {
                 $verify['username'] = $account_data['username'];
                 $verify['password'] = $account_data['current_password'];
 
@@ -363,6 +363,11 @@ class Account
 
                     return false;
                 }
+            } elseif (!$skip_password && !empty($_SESSION['token_login'])) {
+                $this->archiveAccountPassword($transaction);
+                $this->createAccountPassword($transaction, $account_data['password']);
+            } else {
+
             }
         } catch (Exception $e) {
             $transaction->rollBack();
@@ -379,9 +384,8 @@ class Account
 
 
     /**
-     * @param $account_username
+     * @param PdoMySql $transaction
      * @return bool
-     * @throws Exception
      */
     public function archiveAccountPassword(PdoMySql $transaction)
     {
@@ -447,9 +451,7 @@ class Account
      * @param PdoMySql $transaction
      * @param $password
      * @param null $username
-     * @param $account_username
      * @return bool
-     * @throws Exception
      */
     public function createAccountPassword(PdoMySql $transaction, $password, $username = null)
     {
@@ -543,7 +545,7 @@ class Account
 
     /**
      * @param $username
-     * @return array|bool
+     * @return bool
      * @throws Exception
      */
     public function archiveAccount($username)
@@ -666,15 +668,16 @@ class Account
 
 
     /**
-     * @return string
+     * @return array
      */
     public function getErrors()
     {
-        return implode('; ', $this->errors);
+        return (array)$this->errors;
     }
 
 
     /**
+     * @param PdoMySql $transaction
      * @param array $data
      * @return bool
      */

@@ -28,7 +28,7 @@ class Roles
 
 
     /**
-     * @return array|bool
+     * @return array
      */
     public function getAll()
     {
@@ -41,7 +41,7 @@ class Roles
 
     /**
      * @param $role_name
-     * @return array|bool
+     * @return array
      */
     public function get($role_name)
     {
@@ -393,7 +393,7 @@ class Roles
     /**
      * @param array $setting_role_data
      * @param PdoMySql|null $transaction
-     * @return bool|void
+     * @return bool
      */
     private static function insertSettingRole(array $setting_role_data, PdoMySql $transaction = null)
     {

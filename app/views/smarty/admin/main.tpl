@@ -76,4 +76,11 @@
             </a>
         </li>
     {/if}
+    {if $add_edit_templates || $archive_templates}
+        <li>
+            <a href="{$full_web_url}/admin/template">
+                Template Management
+            </a>
+        </li>
+    {/if}
 </ul>

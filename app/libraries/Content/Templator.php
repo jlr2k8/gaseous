@@ -44,7 +44,6 @@ class Templator extends Smarty
     private function compile()
     {
         $template_compile_dir   = Settings::value('template_compile_dir');
-
         $this->compile_dir      = is_writable($template_compile_dir) ? $template_compile_dir : '/tmp/' . date('Ymdhms');
 
         $this->setCompileDir($this->compile_dir);
@@ -76,9 +75,14 @@ class Templator extends Smarty
     public static function page($find_replace = [], $is_cms_editor = false)
     {
         $get                = new Get();
+        $cache              = false;
         $get->is_cms_editor = $is_cms_editor;
 
-        return $get->templatedPage($find_replace);
+        if ($is_cms_editor === false) {
+            $cache = true;
+        }
+
+        return $get->templatedPage($find_replace, $cache);
     }
 
 

@@ -110,6 +110,7 @@ class Register
         $username           = $account_data->username;
         $email              = $account_data->email;
 
+        // TODO - move subject and email body to settings (templates)
         $email_to_user      = $email_obj->sendEmail(
             $webmaster_email,
             (array)$email,
@@ -131,6 +132,7 @@ class Register
             "
         );
 
+        // TODO - move subject and email body to settings (templates)
         $email_to_webmaster = $email_obj->sendEmail(
             $webmaster_email,
             (array)$webmaster_email,

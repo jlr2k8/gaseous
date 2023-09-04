@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Created by Josh L. Rogers.
  * Copyright (c) 2020 All Rights Reserved.
@@ -27,6 +26,10 @@ class Cache
      */
     public function get($key)
     {
+        if (Settings::value('cache_content_seconds') == -1) {
+            return false;
+        }
+
         $sql = "
             SELECT
                 `value`
@@ -57,6 +60,10 @@ class Cache
      */
     public function set($key, $value, $expiration = 3600)
     {
+        if (Settings::value('cache_content_seconds') == -1) {
+            return false;
+        }
+
         $value  = serialize($value);
         $sql    = "
             INSERT INTO
@@ -117,6 +124,8 @@ class Cache
 
     /**
      * @param $key
+     * @param bool $left_wildcard
+     * @param bool $right_wildcard
      * @return bool
      */
     public function archiveLike($key, $left_wildcard = true, $right_wildcard = true)

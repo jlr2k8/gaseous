@@ -13,6 +13,7 @@
 namespace Db;
 
 use Error;
+use Exception;
 use Log;
 use PDO;
 use PDOException;
@@ -1219,7 +1220,8 @@ class Query extends PdoMySql
 
     /**
      * @param PDOException $e
-     * @return bool
+     * @return false
+     * @throws Exception
      */
     private static function handlePdoException(PDOException $e)
     {
@@ -1238,6 +1240,7 @@ class Query extends PdoMySql
     /**
      * @param Error $e
      * @return bool
+     * @throws Exception
      */
     private static function handleErrorAsWarning(Error $e)
     {

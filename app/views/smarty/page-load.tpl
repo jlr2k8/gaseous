@@ -1,0 +1,1 @@
+<!-- {(float)(microtime(true) - PAGE_LOAD_START)} seconds... -->

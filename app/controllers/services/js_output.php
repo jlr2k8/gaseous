@@ -17,7 +17,7 @@ use Seo\Minify;
 
 
 $headers    = new Headers();
-$js_output = null;
+$js_output  = null;
 $iteration  = !empty($_GET['iteration']) ? filter_var($_GET['iteration'], FILTER_SANITIZE_STRING) : false;
 
 if (empty($iteration)) {

@@ -32,4 +32,4 @@ SetEnv ENVIRONMENT prod
 * On the initial form, provide credentials to your database. If permissions are set correctly, an environments.ini file will be generated in `gaseous/app/setup` upon testing the connection. This will lead you to the next step, which immediately installs the database and tables.
 * The next page will take you through some basic settings. Other settings will automatically be applied. Once complete, submit this.
 * Now it's time to register. By default, the first registrant will be assigned to the administrator role, which has the most enabled settings. When registration is complete, you will automatically be logged in.
-* That's it! To further configure your site, visit `/admin/settings`. Various admin settings are available at `/admin`, where you can configure additional roles, customize the design, and more.
+* That's it! To further configure your site, visit `http(s)://<your-site>/admin/settings`. Various admin settings are available at `http(s)://<your-site>/admin`, where you can configure additional roles, customize the design, and more.

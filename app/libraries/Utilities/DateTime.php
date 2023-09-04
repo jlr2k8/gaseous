@@ -25,7 +25,7 @@ class DateTime
     /**
      * @param $date_time
      * @param bool $custom_format
-     * @return false|string
+     * @return string
      */
     public static function formatDateTime($date_time, $custom_format = false)
     {

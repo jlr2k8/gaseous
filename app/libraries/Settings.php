@@ -42,8 +42,8 @@ class Settings
      */
     private function getRelativeUri()
     {
-        $web_uri                = (string)trim(self::getFromDB('web_uri'), '/');
-        $uri                    = $_SERVER['REQUEST_URI'];
+        $web_uri    = trim(self::getFromDB('web_uri'), '/');
+        $uri        = $_SERVER['REQUEST_URI'];
 
         if (!empty($web_uri)) {
             $web_uri_in_request_uri = (strpos($_SERVER['REQUEST_URI'], $web_uri) !== false);
@@ -124,7 +124,6 @@ class Settings
 
     /**
      * @return array
-     * @throws ReflectionException
      */
     private static function getAllSelfProperties()
     {
@@ -151,8 +150,9 @@ class Settings
      *
      * @param $key
      * @param bool $value
-     * @param string $username
+     * @param null $username
      * @return bool|mixed
+     * @throws Exception
      */
     protected static function getFromDB($key, $value = false, $username = null)
     {
@@ -293,7 +293,7 @@ class Settings
     /**
      * @param array $results
      * @param bool $values_only
-     * @return bool|mixed
+     * @return array
      */
     protected static function processDbResults(array $results, $values_only = false)
     {
@@ -339,7 +339,7 @@ class Settings
 
 
     /**
-     * @return array|bool
+     * @return array
      */
     public function getSettingCategories()
     {
@@ -506,7 +506,7 @@ class Settings
     /**
      * @param PdoMySql $transaction
      * @param string $key
-     * @param array $settings_roles
+     * @param $value
      * @return bool
      * @throws Exception
      */

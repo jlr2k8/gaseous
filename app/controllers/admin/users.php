@@ -26,7 +26,7 @@ $account        = new Account();
 $roles          = new Roles();
 $all_roles      = $roles->getAll();
 $all_accounts   = $account->getAll();
-$error          = null;
+$errors          = [];
 
 $my_username    = Account::getUsername();
 
@@ -55,13 +55,13 @@ if (!empty($_POST)) {
     if ($submit_user) {
         header('Location: ' . Settings::value('full_web_url') . '/admin/users/');
     } else {
-        $error = $account->getErrors();
+        $errors = $account->getErrors();
     }
 }
 
 $templator->assign('accounts', $all_accounts);
 $templator->assign('roles', $all_roles);
-$templator->assign('error', $error);
+$templator->assign('errors', $errors);
 $templator->assign('my_username', $my_username);
 $templator->assign('full_web_url', Settings::value('full_web_url'));
 $templator->assign('access_code', Settings::value('registration_access_code'));

@@ -29,7 +29,6 @@ $account            = new Account();
 
 $all_roles          = $roles->getAll();
 $all_settings       = Settings::getAllFromDB();
-$all_accounts       = $account->getAll();
 $setting_categories = $settings->getSettingCategories();
 
 $codemirror         = new Codemirror();
@@ -38,7 +37,6 @@ $my_username        = Account::getUsername();
 
 $role_name_value    = null;
 $description_value  = null;
-$error              = null;
 
 if (!empty($_POST)) {
     foreach($_POST as $key => $val) {
@@ -60,14 +58,10 @@ if (!empty($_POST)) {
 
     if ($submit_setting) {
         header('Location: ' . Settings::value('full_web_url') . '/admin/settings/');
-    } else {
-        $error = $account->getErrors();
     }
 }
 
-$templator->assign('accounts', $all_accounts);
 $templator->assign('roles', $all_roles);
-$templator->assign('error', $error);
 $templator->assign('settings', $all_settings);
 $templator->assign('my_username', $my_username);
 $templator->assign('full_web_url', Settings::value('full_web_url'));

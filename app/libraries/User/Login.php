@@ -52,7 +52,7 @@ class Login
     /**
      * @param $username
      * @param $password
-     * @return bool|int
+     * @return bool
      */
     public function validateLogin($username, $password)
     {
@@ -69,7 +69,7 @@ class Login
 
     /**
      * @param $token
-     * @return bool
+     * @return string|null
      */
     public function validateToken($token)
     {
@@ -98,7 +98,7 @@ class Login
 
 
     /**
-     * @return array|bool
+     * @return bool
      */
     public function checkLogin()
     {
@@ -143,7 +143,6 @@ class Login
 
 
     /**
-     * @param $token
      * @return bool
      */
     public function checkTokenLogin()
@@ -168,9 +167,9 @@ class Login
 
 
     /**
-     * @param $token
      * @param $email
      * @return bool
+     * @throws \Exception
      */
     public function processTokenEmail($email)
     {
@@ -253,6 +252,7 @@ class Login
         $webmaster_name     = Settings::value('webmaster_name');
         $webmaster_email    = Settings::value('webmaster_email');
 
+        // TODO - move subject and email body to settings (templates)
         $email_to_user      = $email_obj->sendEmail(
             $webmaster_email,
             (array)$email,
@@ -278,6 +278,7 @@ class Login
             "
         );
 
+        // TODO - move subject and email body to settings (templates)
         $email_to_webmaster = $email_obj->sendEmail(
             $webmaster_email,
             (array)$webmaster_email,
@@ -375,7 +376,7 @@ class Login
      */
     public function clearLoginCookie()
     {
-        return (setcookie(LOGIN_COOKIE, null, time() - 3600, '/', $this->cookie_domain));
+        return (setcookie(LOGIN_COOKIE, '', time() - 3600, '/', $this->cookie_domain));
     }
 
 
@@ -391,7 +392,8 @@ class Login
 
 
     /**
-     * @param $account_id
+     * @param $username
+     * @param $uid
      * @return bool
      */
     private function setLoginCookie($username, $uid)
@@ -420,13 +422,14 @@ class Login
 
 
     /**
-     * @param $account_id
+     * @param $username
+     * @param $uid
      * @param bool $YYYY_MM_DD_expiration_date
      * @return string
      */
     public static function hashCookie($username, $uid, $YYYY_MM_DD_expiration_date = false)
     {
-        if (!$YYYY_MM_DD_expiration_date || empty($YYYY_MM_DD_expiration_date)) {
+        if (empty($YYYY_MM_DD_expiration_date)) {
             $YYYY_MM_DD_expiration_date = date('Y-m-d', time());
         }
 

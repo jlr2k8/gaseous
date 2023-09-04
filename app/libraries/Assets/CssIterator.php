@@ -149,6 +149,7 @@ class CssIterator
     /**
      * @param array $data
      * @return bool
+     * @throws Exception
      */
     public function saveCssIteration(array $data)
     {

@@ -51,7 +51,7 @@ class PdoMySql extends PDO
                 }
             }
 
-            $this->traceExpansionQueries();
+            //$this->traceExpansionQueries();
 
             if ($this->debug === true) { // TODO - create binary setting (true or false) for debug mode
                 $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);

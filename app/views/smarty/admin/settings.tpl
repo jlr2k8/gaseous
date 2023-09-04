@@ -1,7 +1,5 @@
 {include file="font-awesome-cdn-link-href.tpl"}
 
-<p class="red_text">{$error}</p>
-
 <div class="clear_both">&#160;</div>
 
 <div id="settings_categories" class="one-third_right">

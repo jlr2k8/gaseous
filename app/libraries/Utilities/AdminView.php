@@ -65,6 +65,9 @@ class AdminView
 
         $templator->assign('file_uploader', Settings::value('file_uploader'));
 
+        $templator->assign('add_edit_templates', Settings::value('add_edit_templates'));
+        $templator->assign('archive_templates', Settings::value('archive_templates'));
+
         $view = $templator->fetch('admin/main.tpl');
 
         return $view;

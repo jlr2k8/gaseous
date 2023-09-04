@@ -12,6 +12,7 @@
 
 namespace Setup\Reset;
 
+use DateTimeZone;
 use Db\PdoMySql;
 use Log;
 use PDOException;
@@ -392,16 +393,6 @@ class System
                 'boolean',
             ],
         ],
-        'perform_updates' => [
-            'display'       => 'Perform Site Updates',
-            'category_key'  => 'administrative',
-            'role_based'    => '1',
-            'description'   => 'Allow users to run an update script, which updates the code and database with the latest stable version of Gaseous',
-            'value'         => '1',
-            'properties'    => [
-                'boolean',
-            ],
-        ],
         'manage_js' => [
             'display'       => 'Manage JS',
             'category_key'  => 'administrative',
@@ -422,7 +413,6 @@ class System
                 'boolean',
             ],
         ],
-
         'edit_content' => [
             'display'       => 'Edit Content',
             'category_key'  => 'administrative',
@@ -438,6 +428,16 @@ class System
             'category_key'  => 'administrative',
             'role_based'    => '1',
             'description'   => 'Ability to archive CMS content',
+            'value'         => '1',
+            'properties'    => [
+                'boolean',
+            ],
+        ],
+        'perform_updates' => [
+            'display'       => 'Perform Site Updates',
+            'category_key'  => 'administrative',
+            'role_based'    => '1',
+            'description'   => 'Allow users to run an update script, which updates the code and database with the latest stable version of Gaseous',
             'value'         => '1',
             'properties'    => [
                 'boolean',
@@ -503,7 +503,7 @@ class System
             'display'       => 'Content Cache Time (sec)',
             'category_key'  => 'administrative',
             'role_based'    => '0',
-            'description'   => 'The amount of time for CMS content to be cached for anonymous users (in seconds).',
+            'description'   => 'The amount of time for CMS content to be cached for anonymous users (in seconds). To disable caching, set this value to -1.',
             'value'         => '3600',
         ],
         'delete_archived_records_days' => [
@@ -544,7 +544,7 @@ class System
                     &lt;meta name=&quot;robots&quot; content=&quot;{$meta_robots}&quot; /&gt;
                     &lt;title itemprop=&quot;name&quot;&gt;{$page_title_seo}&lt;/title&gt;
                     &lt;link rel=&quot;shortcut icon&quot; href=&quot;/assets/img/favicon.ico&quot;&gt;
-                    {if !empty($official_canonical_url)}&lt;link rel=&quot;canonical&quot; href=&quot;{$official_canonical_url}&quot;&gt;{/if}
+                    {if !empty($official_canonical_url)}&lt;link rel=&quot;canonical&quot; href=&quot;{$official_canonical_url}&quot; /&gt;{/if}
                 &lt;/head&gt;
                 &lt;body&gt;
                 &lt;nav&gt;
@@ -629,7 +629,7 @@ class System
                     &lt;/div&gt;
                     &lt;div id=&quot;logo&quot;&gt;
                         &lt;a href=&quot;{$full_web_url}&quot;&gt;
-                            &lt;img src=&quot;{$full_web_url}/assets/img/gaseous.png&quot; alt=&quot;Gaseous logo&quot; /&gt;
+                            &lt;img src=&quot;{$full_web_url}/assets/img/gaseous.png&quot; alt=&quot;Gaseous&quot; /&gt;
                         &lt;/a&gt;
                     &lt;/div&gt;
                 &lt;/div&gt;
@@ -687,7 +687,7 @@ class System
             'display'       => 'Upload file URL Relative Path',
             'category_key'  => 'filesystem',
             'role_based'    => '0',
-            'description'   => 'Relative path (client-facing/browser) for uploaded file attachments. Should match the route to files…',
+            'description'   => 'Relative path (client-facing/browser) for uploaded file attachments. Should match the route to files...',
             'value'         => '/files',
             'properties'    => [],
         ],
@@ -718,12 +718,30 @@ class System
     ];
 
 
+    private static function timezoneOptions()
+    {
+        $all_timezones      = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
+        $select_options     = [];
+
+        asort($all_timezones);
+
+        foreach ($all_timezones as $tz) {
+            $select_options[] = '
+                <option value="' . $tz . '">' . $tz . '</option>
+            ';
+        }
+
+        return implode($select_options);
+    }
+
+
     /**
      * @return string
      */
     public static function form()
     {
-        $form = '
+        $timezone_options   = self::timezoneOptions();
+        $form               = '
             <form method="post" action="?system">
                 <h1>Basic Settings</h1>
                 <p>
@@ -738,6 +756,15 @@ class System
                             Site Title:
                         </label><br />
                         <input type="text" name="site_title" id="site_title" placeholder="Name of this site, such as organization name" value="' . ($_POST['site_title'] ?? null) . '" />
+                    </div>
+                    <p>&#160;</p>
+                    <div>
+                        <label>
+                            Timezone:
+                        </label><br />
+                        <select name="timezone">
+                            ' . $timezone_options . '
+                        </select>
                     </div>
                     <p>&#160;</p>
                     <div>
@@ -854,6 +881,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setProperties(PdoMySql $transaction)
     {
@@ -896,6 +924,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setUriRoutes(PdoMySql $transaction)
     {
@@ -947,6 +976,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setSettingCategories(PdoMySql $transaction)
     {
@@ -998,6 +1028,7 @@ class System
      * @param PdoMySql $transaction
      * @param array $key_val
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setSettings(PdoMySql $transaction, array $key_val)
     {
@@ -1134,6 +1165,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setSettingsRoles(PdoMySql $transaction)
     {

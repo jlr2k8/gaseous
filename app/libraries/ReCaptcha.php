@@ -26,6 +26,7 @@ class ReCaptcha
     /**
      * @param array $post
      * @return bool
+     * @throws Exception
      */
     public function validate($post = [])
     {

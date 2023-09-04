@@ -41,9 +41,10 @@ class Http
 
     /**
      * @param $status_code
+     * @param null $message
      * @param bool $redirect
      * @return bool
-     * @throws Exception
+     * @throws SmartyException
      */
     public static function error($status_code, $message = null, $redirect = false)
     {
@@ -90,6 +91,7 @@ class Http
     /**
      * @param $status_code
      * @return bool
+     * @throws Exception
      */
     public static function header($status_code)
     {

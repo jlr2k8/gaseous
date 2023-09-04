@@ -47,7 +47,7 @@ class Validation
 
     /**
      * @param $email
-     * @return bool
+     * @return int
      */
     public static function checkIfEmailExists($email)
     {
@@ -153,7 +153,7 @@ class Validation
 
 
     /**
-     * TODO - put in table! so much codified profanity!
+     * TODO - put in table or use API! so much codified profanity!
      *
      * @param $word
      * @return bool
@@ -251,7 +251,7 @@ class Validation
 
 
     /**
-     * TODO - put in table
+     * TODO - put in table or use API
      *
      * @param $word
      * @return bool

@@ -275,7 +275,7 @@ class Redirect
 
 
     /**
-     * @param array $parsed_uri
+     * @param $uri
      * @return bool
      * @throws Exception
      */
@@ -286,7 +286,7 @@ class Redirect
         $querystring    = !empty($parsed_uri['query']) ? '?' . $parsed_uri['query'] : null;
 
         if (empty($current_uri) || in_array($current_uri, Get::$home_pages)) {
-            Http::redirect(Settings::value('web_uri') . '/' . $querystring, 301);
+            Http::redirect(Settings::value('full_web_url') . '/' . $querystring, 301);
             exit;
         }
 

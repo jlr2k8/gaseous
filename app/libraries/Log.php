@@ -45,7 +45,6 @@ class Log
 
 
     /**
-     * @param Exception $e
      * @param $file
      * @param $line_number
      * @param $log
@@ -95,7 +94,6 @@ class Log
 
 
     /**
-     * @return mixed|string
      * @throws Exception
      */
     private static function getLogFileName()

@@ -28,15 +28,15 @@ class Token
     public static function generate($len = self::TOKEN_LEN)
     {
         // sanity check
-        $len = (int)$len <= 0 ? (int)self::TOKEN_LEN : (int)$len;
+        $len    = (int)$len <= 0 ? (int)self::TOKEN_LEN : (int)$len;
 
-        $bits = array_merge(
+        $bits   = array_merge(
             range(0, 9),
             range('a', 'z'),
             range('A', 'Z')
         );
 
-        $token = null;
+        $token  = null;
 
         for ($i = 0; $i < (int)$len; $i++)
             $token .= $bits[array_rand($bits)];

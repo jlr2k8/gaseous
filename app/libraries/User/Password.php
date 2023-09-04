@@ -32,7 +32,7 @@ class Password
 
 
     /**
-     * @param $raw_password
+     * @param array $login_form
      * @return string
      */
     public static function verifyPassword(array $login_form)

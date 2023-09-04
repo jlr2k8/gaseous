@@ -503,7 +503,7 @@ class System
             'display'       => 'Content Cache Time (sec)',
             'category_key'  => 'administrative',
             'role_based'    => '0',
-            'description'   => 'The amount of time for CMS content to be cached for anonymous users (in seconds).',
+            'description'   => 'The amount of time for CMS content to be cached for anonymous users (in seconds). To disable caching, set this value to -1.',
             'value'         => '3600',
         ],
         'delete_archived_records_days' => [
@@ -881,6 +881,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setProperties(PdoMySql $transaction)
     {
@@ -923,6 +924,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setUriRoutes(PdoMySql $transaction)
     {
@@ -974,6 +976,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setSettingCategories(PdoMySql $transaction)
     {
@@ -1025,6 +1028,7 @@ class System
      * @param PdoMySql $transaction
      * @param array $key_val
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setSettings(PdoMySql $transaction, array $key_val)
     {
@@ -1161,6 +1165,7 @@ class System
     /**
      * @param PdoMySql $transaction
      * @return PdoMySql
+     * @throws \Exception
      */
     public function setSettingsRoles(PdoMySql $transaction)
     {

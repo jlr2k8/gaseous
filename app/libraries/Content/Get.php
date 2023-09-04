@@ -820,6 +820,7 @@ class Get
      * @param $content_uid
      * @param array $uri
      * @return string
+     * @throws SmartyException
      */
     public function contentUriAncestry($content_uid, $uri = [])
     {
@@ -859,8 +860,9 @@ class Get
 
 
     /**
-     * @param bool $uri
+     * @param array $content
      * @return null
+     * @throws SmartyException
      */
     public function validateUri(array $content)
     {

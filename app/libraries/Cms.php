@@ -74,10 +74,8 @@ class Cms
 
     /**
      * @param $content_uid
-     * @param int $page
-     * @param int $items_per_page
-     * @param string $sortby
-     * @param string $order
+     * @param string $sort_by
+     * @param bool $sort_ascending
      * @return array
      * @throws SmartyException
      */

@@ -189,7 +189,7 @@ class Uri
 
 
     /**
-     * @return array|bool
+     * @return array
      */
     public static function all()
     {

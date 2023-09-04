@@ -29,33 +29,35 @@ class Email extends Swift_Mailer
 
 
     /**
+     * @param $sender_email
+     * @param array $recipient_emails
      * @param string $subject
      * @param string $sender_name
-     * @param $sender_email
      * @param array $recipient_names
-     * @param array $recipient_emails
      * @param array $recipient_cc_names
      * @param array $recipient_cc_emails
      * @param string $body
+     * @param string $content_type
+     * @return false|int
      * @throws Exception
      */
     public function sendEmail(
         $sender_email,
         array $recipient_emails,
-        $subject = '(No Subject)',
-        $sender_name = 'Unnamed',
-        $recipient_names = array(),
-        $recipient_cc_names = array(),
-        $recipient_cc_emails = array(),
-        $body = '(No Content)'
+        $subject                = '(No Subject)',
+        $sender_name            = 'Unnamed',
+        $recipient_names        = array(),
+        $recipient_cc_names     = array(),
+        $recipient_cc_emails    = array(),
+        $body                   = '(No Content)',
+        $content_type           = 'text/html'
     )
     {
         $from   = [
             $sender_email => $sender_name
         ];
 
-        $to = false;
-        $cc = false;
+        $to     = $cc = false;
 
         if (!empty($recipient_names) && !empty($recipient_emails) && count($recipient_names) == count($recipient_emails)) {
             $to = array_combine($recipient_emails, $recipient_names);
@@ -77,7 +79,7 @@ class Email extends Swift_Mailer
         if ($cc)
             $message->setCc($cc);
         
-        $message->setBody($body, 'text/html');
+        $message->setBody($body, $content_type);
 
         $return = false;
 

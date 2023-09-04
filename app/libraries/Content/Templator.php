@@ -44,7 +44,6 @@ class Templator extends Smarty
     private function compile()
     {
         $template_compile_dir   = Settings::value('template_compile_dir');
-
         $this->compile_dir      = is_writable($template_compile_dir) ? $template_compile_dir : '/tmp/' . date('Ymdhms');
 
         $this->setCompileDir($this->compile_dir);

@@ -14,6 +14,7 @@ namespace Content;
 use Seo\Url;
 use Seo\Breadcrumbs as SeoBreadcrumbs;
 use Settings;
+use SmartyException;
 
 class Breadcrumbs
 {

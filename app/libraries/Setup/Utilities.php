@@ -58,7 +58,7 @@ class Utilities
 
     /**
      * @return bool
-     * @throws Exception
+     * @throws \Exception
      */
     public static function checkCoreData()
     {

@@ -1,4 +1,13 @@
-<p class="red_text">{$error}</p>
+{if !empty($errors)}
+    <div class="red_border solid_border slight_padding">
+        <h3 class="red_text">Errors:</h3>
+        <ol>
+            {foreach $errors as $error}
+                <li class="red_text margin_on_bottom">{$error}</li>
+            {/foreach}
+        </ol>
+    </div>
+{/if}
 
 {if empty($my_username)}
     <div class="red_border thick_border solid_border margin_on_bottom">

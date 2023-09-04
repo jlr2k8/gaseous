@@ -42,10 +42,10 @@
                     {if $add_edit_templates || $archive_templates}
                         <td {if $add_edit_templates}class="cursor_move"{/if}>
                             {if $add_edit_templates}
-                                <button class="field_update" data-field-key="{$field.uid}" name="update" type="button">Update</button>
+                                <button class="field_update update" data-field-key="{$field.uid}" name="field_update" type="button">Update</button>
                             {/if}
                             {if $archive_templates}
-                                <button class="field_archive archive" data-field-key="{$field.uid}" name="archive" type="button">Archive</button>
+                                <button class="field_archive archive" data-field-key="{$field.uid}" name="field_archive" type="button">Archive</button>
                             {/if}
                         </td>
                         </form>
@@ -139,7 +139,6 @@
                     Parent Content Body Type
                 </label>
                 <select {if !$add_edit_templates}disabled="disabled" title="You do not have permission to edit this field"{/if} name="parent_type_id">
-                    <option {if !empty($content_body_type_detail.parent_type_id) && $content_body_type_detail.parent_type_id == $content_body_type_detail.type_id}selected="selected"{/if} value="">(Top Level or Self)</option>
                     {foreach from=$content_body_types item=content_body_type}
                         {if !empty($content_body_type_detail.type_id) && $content_body_type.type_id == $content_body_type_detail.type_id}
                             {continue}

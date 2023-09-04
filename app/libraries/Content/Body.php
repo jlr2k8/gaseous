@@ -544,7 +544,7 @@ class Body
 
     /**
      * @param array $data
-     * @param PdoMySql|null $transaction
+     * @param PdoMySql $transaction
      * @return bool
      */
     public function insertContentBodyFieldValue(array $data, PdoMySql $transaction)

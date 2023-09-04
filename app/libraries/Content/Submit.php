@@ -47,6 +47,28 @@ class Submit
 
 
     /**
+     * @return array
+     */
+    private function getTokenFieldMap()
+    {
+        $cms_fields         = $this->content->body->getCmsFields($this->content_body_type_id);
+        $field_token_map    = [];
+
+        if (!empty($cms_fields)) {
+            foreach ($cms_fields as $row => $items) {
+                foreach ($this->post_data as $key => $value) {
+                    if ($items['template_token'] == $key) {
+                        $field_token_map[$key] = $items['content_body_field_type_id'];
+                    }
+                }
+            }
+        }
+
+        return $field_token_map;
+    }
+
+
+    /**
      * @return bool
      * @throws Exception
      */
@@ -399,8 +421,8 @@ class Submit
 
     /**
      * @param PdoMySql $transaction
-     * @param $uid|null
-     * @param $content_uid|null
+     * @param null $iteration_uid
+     * @param null $content_uid |null
      * @return bool
      */
     private function insertCurrentIteration(PdoMySql $transaction, $iteration_uid = null, $content_uid = null)
@@ -789,23 +811,26 @@ class Submit
      */
     private function validatePostData()
     {
+        $token_field_map    = $this->getTokenFieldMap();
+
         // Exceptions for date fields
-        if (isset($this->post_data['published_date']) && $this->process_type == 'new') {
-            $this->post_data['published_date'] = time();
-        }
+        foreach ($token_field_map as $token => $field_type) {
+            if ($field_type == 'published_date' && $this->process_type == 'new') {
+                $this->post_data[$token] = time();
+            }
 
-        if (isset($this->post_data['published_date']) && $this->process_type == 'update') { // (edge case)
-            $strtotime = strtotime($this->post_data['published_date']);
+            if ($field_type == 'published_date' && $this->process_type == 'update') { // (edge case)
+                $strtotime = strtotime($this->post_data[$token]);
+                $this->post_data[$token] = $strtotime !== false ? $strtotime : $this->post_data[$token];
+            }
 
-            $this->post_data['published_date'] = $strtotime !== false ? $strtotime : $this->post_data['published_date'];
-        }
+            if ($field_type == 'revised_date' && $this->process_type == 'update') {
+                $this->post_data[$token] = time();
+            }
 
-        if (isset($this->post_data['revised_date']) && $this->process_type == 'update') {
-            $this->post_data['revised_date'] = time();
-        }
-
-        if (isset($this->post_data['revised_date']) && $this->process_type == 'new') {
-            $this->post_data['revised_date'] = null;
+            if ($field_type == 'revised_date' && $this->process_type == 'new') {
+                $this->post_data[$token] = null;
+            }
         }
 
         return true;

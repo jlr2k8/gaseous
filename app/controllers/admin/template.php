@@ -44,15 +44,15 @@ $new_template           = (isset($_GET['new']));
 
 // field edit form(s)
 $sort                   = (isset($_GET['sort']));
-$update_field           = (isset($_POST['update']));
+$update_field           = (!empty($_GET['update']) && $_GET['update'] == 'true');
 $add_field              = (isset($_POST['add']));
 $archive_field          = (!empty($_GET['archive']));
 
 // submit edit template form
-$submit_update_template        = (isset($_POST['update_template']) && $_POST['update_template'] == 'true');
+$submit_update_template = (isset($_POST['update_template']) && $_POST['update_template'] == 'true');
 
 // submit new template form
-$submit_new_template           = (isset($_POST['update_template']) && $_POST['update_template'] == 'false');
+$submit_new_template    = (isset($_POST['update_template']) && $_POST['update_template'] == 'false');
 /*** ***/
 
 
@@ -136,6 +136,8 @@ if (!empty($content_body_type_id) && !$new_template && !$sort && !$update_field 
     $transaction->commit();
 
     exit;
+
+// add field
 } elseif ($add_field) {
     $transaction = new PdoMySql();
 
@@ -157,6 +159,7 @@ if (!empty($content_body_type_id) && !$new_template && !$sort && !$update_field 
 
     header('Location: ' . Settings::value('full_web_url') . '/admin/template/?content_body_type_id=' . $content_body_type_id);
     exit;
+
 // archive field
 } elseif ($archive_field) {
     $transaction = new PdoMySql();

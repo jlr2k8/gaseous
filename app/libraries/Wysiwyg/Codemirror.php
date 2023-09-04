@@ -18,6 +18,7 @@ class Codemirror
     public $cdn_root    = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror';
     public $jquery_url  = '//code.jquery.com/jquery-2.2.4.min.js';
     public $mode        = 'css';
+    public $cdn;
     private $version    = '5.39.0';
 
     /**

@@ -1,12 +1,15 @@
 $(document).ready( function() {
     $('#submit_content_iteration').on('click', function() {
-        var new_cms_content         = ckeditor.getData();
+        if (typeof ckeditor !== 'undefined') {
+            var new_cms_content         = ckeditor.getData();
+        }
+
         var this_submit_button      = $('#submit_content_iteration');
         var this_submit_button_html = this_submit_button.html();
         var data                    = $('#form *').serializeArray(), data_obj = {};
         var wyswyg_name             = $('textarea[data-is-wyswyg="true"]').attr('name');
 
-        if (typeof wyswyg_name !== "undefined" && typeof wyswyg_name !== false) {
+        if (typeof wyswyg_name !== 'undefined' && typeof wyswyg_name !== false && typeof ckeditor !== 'undefined') {
             data.push({
                 name: wyswyg_name,
                 value: new_cms_content

@@ -1,5 +1,5 @@
 $(document).ready( function() {
-    $('button[name="update"].field_update').on('click', function(e) {
+    $('button[name="field_update"].field_update').on('click', function(e) {
         e.preventDefault();
 
         var this_update_button      = $(this);
@@ -10,7 +10,7 @@ $(document).ready( function() {
 
         var data = $('#field_' + field_key).serialize();
 
-        $.post('/admin/template/', data, function() {
+        $.post('/admin/template/?update=true', data, function() {
             this_update_button
                 .html('Updated&#160;<i class="fas fa-check"></i>')
                 .delay(1000)
@@ -22,7 +22,7 @@ $(document).ready( function() {
         });
     });
 
-    $('button[name="archive"].field_archive').on('click', function(e) {
+    $('button[name="field_archive"].field_archive').on('click', function(e) {
         e.preventDefault();
 
         var status = confirm('Are you sure? This will remove the field and all data stored for this field');

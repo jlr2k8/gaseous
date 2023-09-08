@@ -24,15 +24,22 @@ class Update
     const REPOSITORY_BASE_URL   = 'https://www.gaseous.org';
     const REPOSITORY_DOWNLOAD   = self::REPOSITORY_BASE_URL . '/files/releases';
 
+    public $latest;
+    private $changesets;
 
     /**
      * Update constructor.
      */
     public function __construct()
     {
-        $this->changesets = new Changesets();
+        $this->changesets   = new Changesets();
+        $this->latest       = $this->getLatestBuildInfo();
     }
 
+    public function versionCompare()
+    {
+        return version_compare($this->latest['app_version'], APP_VERSION);
+    }
 
     /**
      * @return bool
@@ -40,14 +47,13 @@ class Update
      */
     public function update()
     {
-        $latest             = $this->getLatestBuildInfo();
-        $version_compare    = version_compare($latest['app_version'], APP_VERSION);
+        $version_compare    = $this->versionCompare();
 
         switch ($version_compare) {
-            case (int)1:
+            case 1:
                 try {
-                    if ($this->downloadLatest($latest)) {
-                        $this->installLatest($latest);
+                    if ($this->downloadLatest()) {
+                        $this->installLatest();
                     }
                 } catch(Exception $e) {
                     Log::app($e->getTraceAsString(), $e->getMessage());
@@ -55,17 +61,18 @@ class Update
                 }
 
                 break;
-            case (int)0:
+            case 0:
                 return true;
-            case (int)-1:
+            case -1:
                 Log::app (
                     'The current version installed ('
                     . APP_VERSION
                     . ') succeeds the latest version available ('
-                    . $latest['app_version']
-                    . '). It could be witchcraft... but in any case, pulling this latest version would be a downgrade - so... pass!'
+                    . $this->latest['app_version']
+                    . '). Skipping update.'
                 );
-                break;
+
+                return true;
         }
 
         $changeset_starting_point   = $this->changesets->getLastProcessedChangeset();
@@ -79,15 +86,14 @@ class Update
 
 
     /**
-     * @param array $latest
      * @return string
      */
-    private function getLatestFilename(array $latest)
+    private function getLatestFilename()
     {
-        $version = $latest['app_version'] . '-' . $latest['build_release'];
+        $version = $this->latest['app_version'] . '-' . $this->latest['build_release'];
 
-        if ($latest['build_release'] != 'stable') {
-            $version .= '.' . $latest['build_number'];
+        if ($this->latest['build_release'] != 'stable') {
+            $version .= '.' . $this->latest['build_number'];
         }
 
         $filename = 'gaseous-' . $version . '.tar.bz2';
@@ -97,12 +103,11 @@ class Update
 
 
     /**
-     * @param array $latest
      * @return bool
      */
-    private function installLatest(array $latest)
+    private function installLatest()
     {
-        $filename   = $this->getLatestFilename($latest);
+        $filename   = $this->getLatestFilename();
         $phar       = new PharData(WEB_ROOT . '/../' . $filename);
         $extracted  = $phar->extractTo(WEB_ROOT . '/../', null, true);
 
@@ -125,14 +130,12 @@ class Update
 
 
     /**
-     * @param array $latest
      * @return false|int
      */
-    private function downloadLatest(array $latest)
+    private function downloadLatest()
     {
-        $filename = $this->getLatestFilename($latest);
-
-        $fpc = file_put_contents(
+        $filename   = $this->getLatestFilename();
+        $fpc        = file_put_contents(
             WEB_ROOT . '/../' . $filename,
             file_get_contents(self::REPOSITORY_DOWNLOAD . '/' . $filename)
         );
@@ -154,10 +157,6 @@ class Update
             CURLOPT_SSL_VERIFYPEER  => false,
             CURLOPT_HTTP_VERSION    => CURL_HTTP_VERSION_1_1,
         ];
-
-        if (!empty($additional_curl_opts) && is_array($additional_curl_opts)) {
-            $curl_opt_array += $additional_curl_opts;
-        }
 
         curl_setopt_array(
             $curl,

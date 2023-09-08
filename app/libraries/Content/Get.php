@@ -867,7 +867,7 @@ class Get
     public function validateUri(array $content)
     {
         $uri        = !empty($content['uri']) ? (string)$content['uri'] : null;
-        $real_uri   = !empty($content['content_uid']) ? (string)$this->contentUriAncestry($content['content_uid']) : null;
+        $real_uri   = !empty($content['content_uid']) ? (string)$this->contentUriAncestry($content['content_uid']) : '';
         $real_uri   = '/' . trim($real_uri, '/');
 
         if (empty($uri)) {

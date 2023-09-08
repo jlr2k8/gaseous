@@ -26,7 +26,7 @@ $update         = new Update();
 $status         = null;
 
 $title  = 'Site Updates';
-$latest = $update->getLatestBuildInfo();
+$latest = $update->latest;
 $status = version_compare($latest['app_version'], APP_VERSION);
 
 if (!empty($_POST['perform_updates']) && $_POST['perform_updates'] == 'true') {

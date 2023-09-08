@@ -19,7 +19,7 @@ SetEnv ENVIRONMENT prod
 ```
 
 ### From Github:
-* Clone the latest **master** branch and extract the files to your web directory. Note: The **app** subfolder should be configured as the site's webroot.
+* Clone the latest **stable** branch and extract the files to your web directory. Note: The **app** subfolder should be configured as the site's webroot.
 * Set the permission for the entire site to be owned by the Web server's user and group, and set permissions to be open for the user and group.
   * e.g. in terminal, run:
 

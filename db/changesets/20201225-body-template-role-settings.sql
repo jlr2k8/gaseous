@@ -20,7 +20,7 @@ VALUES ('archive_templates', '0');
 
 
 INSERT INTO `settings` (`key`, `display`, `category_key`, `role_based`, `description`)
-VALUES ('custom_template_root', 'Root folder for custom field type, field, and content body override templates', 'filesystem', 'false', 'Specified root directory that contains potential template override directories and files.');
+VALUES ('custom_template_root', 'Template Root', 'filesystem', 'false', 'Specified root directory that contains potential template override directories and files.');
 
 INSERT INTO `settings_values` (`settings_key`, `value`)
 VALUES ('custom_template_root', '');

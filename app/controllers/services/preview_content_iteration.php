@@ -12,9 +12,10 @@
 
 use Content\Get;
 use Content\Http;
+use Utilities\Sanitize;
 
-$get_uid                = !empty($_GET['uid']) ? (string)filter_var($_GET['uid'], FILTER_SANITIZE_STRING) : false;
-$get_content_uid        = !empty($_GET['content_uid']) ? (string)filter_var($_GET['content_uid'], FILTER_SANITIZE_STRING) : false;
+$get_uid                = !empty($_GET['uid']) ? Sanitize::string($_GET['uid']) : false;
+$get_content_uid        = !empty($_GET['content_uid']) ? Sanitize::string($_GET['content_uid']) : false;
 $content_only           = !empty($_GET['content_only']) && $_GET['content_only'] == 'true';
 
 if (empty($get_uid))

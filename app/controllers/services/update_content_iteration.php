@@ -14,13 +14,14 @@ use Content\Get;
 use Content\Http;
 use Content\Submit;
 use Db\PdoMySql;
+use Utilities\Sanitize;
 
-$get_pages          = new Get();
-$submit_pages       = new Submit($_POST);
-$transaction        = new PdoMySql();
-$content_iteration_uid = !empty($_POST['content_iteration_uid']) ? (string)filter_var($_POST['content_iteration_uid'], FILTER_SANITIZE_STRING) : false;
-$content_uid        = !empty($_POST['content_uid']) ? (string)filter_var($_POST['content_uid'], FILTER_SANITIZE_STRING) : false;
-$return_url         = !empty($_POST['return_url_encoded']) ? urldecode(filter_var($_POST['return_url_encoded'], FILTER_SANITIZE_URL)) : Settings::value('full_web_url');
+$get_pages              = new Get();
+$submit_pages           = new Submit($_POST);
+$transaction            = new PdoMySql();
+$content_iteration_uid  = !empty($_POST['content_iteration_uid']) ? Sanitize::string($_POST['content_iteration_uid']) : false;
+$content_uid            = !empty($_POST['content_uid']) ? Sanitize::string($_POST['content_uid']) : false;
+$return_url             = !empty($_POST['return_url_encoded']) ? urldecode(filter_var($_POST['return_url_encoded'], FILTER_SANITIZE_URL)) : Settings::value('full_web_url');
 
 $get_pages::editPageCheck();
 

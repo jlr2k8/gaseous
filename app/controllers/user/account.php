@@ -16,6 +16,7 @@ use User\Account;
 use User\Login;
 use User\Register;
 use User\Roles;
+use Utilities\Sanitize;
 
 $templator  = new Templator();
 $account    = new Account();
@@ -42,7 +43,7 @@ if (!empty($_POST)) {
         if ($key == 'email') {
             $post[$key] = (string)filter_var($val, FILTER_SANITIZE_EMAIL);
         } else {
-            $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+            $post[$key] = Sanitize::string($val);
         }
     }
 
@@ -57,10 +58,10 @@ if (!empty($_POST)) {
 
 $templator->assign('errors', $account->getErrors());
 $templator->assign('token_login', $_SESSION['token_login'] ?? false);
-$templator->assign('username', (string)filter_var(($_POST['username'] ?? $account_data['username'] ?? null), FILTER_SANITIZE_STRING));
-$templator->assign('firstname', (string)filter_var(($_POST['firstname'] ?? $account_data['firstname'] ?? null), FILTER_SANITIZE_STRING));
-$templator->assign('lastname', (string)filter_var(($_POST['lastname'] ?? $account_data['lastname'] ?? null), FILTER_SANITIZE_STRING));
-$templator->assign('email', (string)filter_var(($_POST['email'] ?? $account_data['email'] ?? null), FILTER_SANITIZE_STRING));
+$templator->assign('username', Sanitize::string($_POST['username'] ?? $account_data['username'] ?? null));
+$templator->assign('firstname', Sanitize::string($_POST['firstname'] ?? $account_data['firstname'] ?? null));
+$templator->assign('lastname', Sanitize::string($_POST['lastname'] ?? $account_data['lastname'] ?? null));
+$templator->assign('email', Sanitize::string($_POST['email'] ?? $account_data['email'] ?? null));
 $templator->assign('password', $_POST['password'] ?? null);
 $templator->assign('confirm_password', $_POST['confirm_password'] ?? null);
 

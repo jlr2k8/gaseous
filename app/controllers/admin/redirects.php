@@ -17,6 +17,7 @@ use \Content\Templator;
 use Db\PdoMySql;
 use \Uri\Redirect;
 use Uri\Uri;
+use Utilities\Sanitize;
 
 // check setting/role privileges
 if (!Settings::value('add_redirects') && !Settings::value('edit_redirects') && !Settings::value('archive_redirects')) {
@@ -40,7 +41,7 @@ $transaction            = new PdoMySql();
 
 if (!empty($_POST) && $edit_redirect_uris) {
     foreach ($_POST as $key => $val) {
-        $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+        $post[$key] = Sanitize::string($val);
     }
 
     $submit_redir = false;
@@ -87,7 +88,7 @@ if (!empty($_POST) && $edit_redirect_uris) {
 }
 
 if (!empty($_GET['archive']) && $archive_redirect_uris) {
-    $uri_uid        = filter_var($_GET['archive'], FILTER_SANITIZE_STRING);
+    $uri_uid        = Sanitize::string($_GET['archive']);
     $uri_redirect->archive($uri_uid);
     exit;
 }

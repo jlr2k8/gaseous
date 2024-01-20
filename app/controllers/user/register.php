@@ -16,9 +16,10 @@ use User\Account;
 use User\Login;
 use User\Register;
 use User\Roles;
+use Utilities\Sanitize;
 
 $templator          = new Templator();
-$access_code        = !empty($_GET['access_code']) ? (string)filter_var($_GET['access_code'], FILTER_SANITIZE_STRING) : null;
+$access_code        = !empty($_GET['access_code']) ? Sanitize::string($_GET['access_code']) : null;
 $has_valid_access   = ($access_code == Settings::value('registration_access_code'));
 $title              = 'User Registration';
 
@@ -43,10 +44,10 @@ if (!empty($_POST) && $has_valid_access) {
     } else {
         $templator->assign('errors', $registration->errors);
         $templator->assign('access_code', $access_code);
-        $templator->assign('username', (string)filter_var($_POST['username'], FILTER_SANITIZE_STRING));
-        $templator->assign('firstname', (string)filter_var($_POST['firstname'], FILTER_SANITIZE_STRING));
-        $templator->assign('lastname', (string)filter_var($_POST['lastname'], FILTER_SANITIZE_STRING));
-        $templator->assign('email', (string)filter_var($_POST['email'], FILTER_SANITIZE_STRING));
+        $templator->assign('username', Sanitize::string($_POST['username']));
+        $templator->assign('firstname', Sanitize::string($_POST['firstname']));
+        $templator->assign('lastname', Sanitize::string($_POST['lastname']));
+        $templator->assign('email', Sanitize::string($_POST['email']));
         $templator->assign('password', $_POST['password']);
         $templator->assign('confirm_password', $_POST['confirm_password']);
 

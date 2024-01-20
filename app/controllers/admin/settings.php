@@ -15,6 +15,7 @@ use \Content\Http;
 use \Content\Templator;
 use \User\Roles;
 use \User\Account;
+use Utilities\Sanitize;
 use \Wysiwyg\Codemirror;
 
 // check setting/role privileges
@@ -42,11 +43,11 @@ if (!empty($_POST)) {
     foreach($_POST as $key => $val) {
         if ($key == 'settings_roles') {
             foreach($val as $account_role)
-                $post[$key][] = (string)filter_var($account_role, FILTER_SANITIZE_STRING);
+                $post[$key][] = Sanitize::string($account_role);
         } elseif (!empty($_POST['codemirror']) && $_POST['codemirror'] == 'true' && $key == 'value') {
             $post[$key] = htmlspecialchars($val);
         } else {
-            $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+            $post[$key] = Sanitize::string($val);
         }
     }
 

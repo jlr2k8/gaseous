@@ -15,6 +15,7 @@ use Content\Http;
 use Content\TemplateAdmin;
 use Content\Templator;
 use Db\PdoMySql;
+use Utilities\Sanitize;
 use Wysiwyg\Codemirror;
 
 $add_edit_templates = Settings::value('add_edit_templates');
@@ -37,7 +38,7 @@ $templator->assign('new_template', false);
 /*** page type ***/
 
 // edit template
-$content_body_type_id   = filter_var(($_GET['content_body_type_id'] ?? null), FILTER_SANITIZE_STRING, FILTER_NULL_ON_FAILURE);
+$content_body_type_id   = Sanitize::string($_GET['content_body_type_id'] );
 
 // new template
 $new_template           = (isset($_GET['new']));
@@ -109,7 +110,7 @@ if (!empty($content_body_type_id) && !$new_template && !$sort && !$update_field 
 
     foreach($_POST['sorted'] as $key => $val) {
         $key                        = filter_var($key, FILTER_SANITIZE_NUMBER_INT);
-        $sort_orders_to_uuids[$key] = filter_var($val, FILTER_SANITIZE_STRING);
+        $sort_orders_to_uuids[$key] = Sanitize::string($val);
     }
 
     $template_admin->sortOrderBulk($sort_orders_to_uuids);

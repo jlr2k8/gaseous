@@ -17,6 +17,7 @@ use Db\Query;
 use Email;
 use ReCaptcha;
 use Settings;
+use Utilities\Sanitize;
 use Utilities\Token;
 
 class Login
@@ -125,13 +126,8 @@ class Login
         $logged_in = false;
 
         if (!empty($_POST['username']) && !empty($_POST['password'])) {
-            $username   = !empty($_POST['username'])
-                ? (string)filter_var($_POST['username'], FILTER_SANITIZE_STRING)
-                : false;
-
-            $password   = !empty($_POST['password'])
-                ? (string)filter_var($_POST['password'], FILTER_SANITIZE_STRING)
-                : false;
+            $username   = Sanitize::string($_POST['username']);
+            $password   = $_POST['password'];
 
             if ($this->validateLogin($username, $password)) {
                 $logged_in = $this->createSession($username);
@@ -150,7 +146,7 @@ class Login
         $logged_in = false;
 
         $token = !empty($_GET['token'])
-            ? (string)filter_var($_GET['token'], FILTER_SANITIZE_STRING)
+            ? Sanitize::string($_GET['token'])
             : false;
 
         $username = $this->validateToken($token);

@@ -18,6 +18,7 @@ use Db\Query;
 use Exception;
 use Log;
 use Settings;
+use Utilities\Sanitize;
 
 class Menu
 {
@@ -80,16 +81,16 @@ class Menu
                 $menu_item[$i]  = $this->getMenuItem($uid);
 
                 if ($this->archiveMenuItem($uid, $transaction)) {
-                    $label      = filter_var($menu_item[$i]['label'], FILTER_SANITIZE_STRING);
-                    $uri_uid    = filter_var($menu_item[$i]['uri_uid'], FILTER_SANITIZE_STRING);
-                    $nofollow   = filter_var($menu_item[$i]['nofollow'], FILTER_SANITIZE_STRING);
-                    $target     = filter_var($menu_item[$i]['target'], FILTER_SANITIZE_STRING);
+                    $label      = Sanitize::string($menu_item[$i]['label']);
+                    $uri_uid    = Sanitize::string($menu_item[$i]['uri_uid']);
+                    $nofollow   = Sanitize::string($menu_item[$i]['nofollow']);
+                    $target     = Sanitize::string($menu_item[$i]['target']);
                     $sort_order = filter_var($i, FILTER_SANITIZE_NUMBER_INT);
-                    $class      = filter_var($menu_item[$i]['class'], FILTER_SANITIZE_STRING);
-                    $uid        = filter_var($uid, FILTER_SANITIZE_STRING);
+                    $class      = Sanitize::string($menu_item[$i]['class']);
+                    $uid        = Sanitize::string($uid);
                     $parent_uid = ($parent_uid == 'null')
                         ? null
-                        : filter_var($parent_uid, FILTER_SANITIZE_STRING);
+                        : Sanitize::string($parent_uid);
 
                     $this->insertMenuItem($label, $uri_uid, $nofollow, $target, $class, $sort_order, $uid, $parent_uid, $transaction);
                 }
@@ -252,11 +253,11 @@ class Menu
     {
         self::editMenuCheck();
 
-        $label      = filter_var($form_data['label'], FILTER_SANITIZE_STRING);
-        $uri_uid    = filter_var($form_data['menu_uri_uid'], FILTER_SANITIZE_STRING);
-        $nofollow   = filter_var($form_data['nofollow'], FILTER_SANITIZE_STRING);
-        $target     = filter_var($form_data['target'], FILTER_SANITIZE_STRING);
-        $class      = !empty($form_data['class']) ? filter_var($form_data['class'], FILTER_SANITIZE_STRING) : null;
+        $label      = Sanitize::string($form_data['label']);
+        $uri_uid    = Sanitize::string($form_data['menu_uri_uid']);
+        $nofollow   = Sanitize::string($form_data['nofollow']);
+        $target     = Sanitize::string($form_data['target']);
+        $class      = !empty($form_data['class']) ? Sanitize::string($form_data['class']) : null;
 
         $inserted   = $this->insertMenuItem($label, $uri_uid, $nofollow, $target, $class);
         
@@ -273,14 +274,14 @@ class Menu
     {
         self::editMenuCheck();
 
-        $uid        = filter_var($form_data['uid'], FILTER_SANITIZE_STRING);
-        $parent_uid = !empty($form_data['parent_uid']) ? filter_var($form_data['parent_uid'], FILTER_SANITIZE_STRING) : null;
+        $uid        = Sanitize::string($form_data['uid']);
+        $parent_uid = !empty($form_data['parent_uid']) ? Sanitize::string($form_data['parent_uid']) : null;
         $sort_order = filter_var($form_data['sort_order'], FILTER_SANITIZE_NUMBER_INT);
-        $label      = filter_var($form_data['label'], FILTER_SANITIZE_STRING);
-        $uri_uid    = filter_var($form_data['menu_uri_uid'], FILTER_SANITIZE_STRING);
-        $nofollow   = filter_var($form_data['nofollow'], FILTER_SANITIZE_STRING);
-        $target     = filter_var($form_data['target'], FILTER_SANITIZE_STRING);
-        $class      = !empty($form_data['class']) ? filter_var($form_data['class'], FILTER_SANITIZE_STRING) : null;
+        $label      = Sanitize::string($form_data['label']);
+        $uri_uid    = Sanitize::string($form_data['menu_uri_uid']);
+        $nofollow   = Sanitize::string($form_data['nofollow']);
+        $target     = Sanitize::string($form_data['target']);
+        $class      = !empty($form_data['class']) ? Sanitize::string($form_data['class']) : null;
 
         $transaction = new PdoMySql();
 

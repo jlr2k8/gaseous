@@ -18,6 +18,7 @@ use Exception;
 use Log;
 use Settings;
 use stdClass;
+use Utilities\Sanitize;
 
 class Account
 {
@@ -601,7 +602,7 @@ class Account
      */
     public static function getFirstname($username = null)
     {
-        $username = (string)filter_var($username, FILTER_SANITIZE_STRING) ?? $_SESSION['account']['username'] ?? false;
+        $username = Sanitize::string($username) ?? $_SESSION['account']['username'] ?? false;
 
         if(empty($username))
             return false;
@@ -625,7 +626,7 @@ class Account
      */
     public static function getLastname($username = null)
     {
-        $username = (string)filter_var($username, FILTER_SANITIZE_STRING) ?? $_SESSION['account']['username'] ?? false;
+        $username = Sanitize::string($username) ?? $_SESSION['account']['username'] ?? false;
 
         if(empty($username))
             return false;
@@ -649,7 +650,7 @@ class Account
      */
     public static function getEmail($username = null)
     {
-        $username = (string)filter_var($username, FILTER_SANITIZE_STRING) ?? $_SESSION['account']['username'] ?? false;
+        $username = Sanitize::string($username) ?? $_SESSION['account']['username'] ?? false;
 
         if(empty($username))
             return false;

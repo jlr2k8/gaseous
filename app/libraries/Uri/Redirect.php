@@ -18,6 +18,7 @@ use Db\PdoMySql;
 use Db\Query;
 use Exception;
 use Settings;
+use Utilities\Sanitize;
 
 class Redirect
 {
@@ -172,10 +173,10 @@ class Redirect
      */
     public function insert(array $data, PdoMySql $transaction = null)
     {
-        $uri_uid            = filter_var($data['uri_uid'], FILTER_SANITIZE_STRING);
-        $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
-        $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING) ?? 302;
-        $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);
+        $uri_uid            = Sanitize::string($data['uri_uid']);
+        $destination_url    = Sanitize::string($data['destination_url']);
+        $http_status_code   = Sanitize::string($data['http_status_code']) ?? 302;
+        $description        = Sanitize::string($data['description']);
 
         $sql = "
             INSERT INTO
@@ -220,10 +221,10 @@ class Redirect
      */
     public function update(array $data, PdoMySql $transaction)
     {
-        $uri_uid            = filter_var($data['redirect_uri_uid'] ?? $data['uri_uid'], FILTER_SANITIZE_STRING);
-        $destination_url    = filter_var($data['destination_url'], FILTER_SANITIZE_STRING);
-        $http_status_code   = filter_var($data['http_status_code'], FILTER_SANITIZE_STRING);
-        $description        = filter_var($data['description'], FILTER_SANITIZE_STRING);
+        $uri_uid            = Sanitize::string($data['redirect_uri_uid'] ?? $data['uri_uid']);
+        $destination_url    = Sanitize::string($data['destination_url']);
+        $http_status_code   = Sanitize::string($data['http_status_code']);
+        $description        = Sanitize::string($data['description']);
 
         $this->archive($uri_uid, $transaction);
 

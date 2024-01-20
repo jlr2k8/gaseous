@@ -16,6 +16,7 @@ use Db\PdoMySql;
 use Db\Query;
 use Exception;
 use Expandable;
+use Utilities\Sanitize;
 
 class Route
 {
@@ -198,10 +199,10 @@ class Route
      */
     public function insert(array $data, PdoMySql $transaction = null)
     {
-        $uid                    = !empty($data['uid']) ? filter_var($data['uid'], FILTER_SANITIZE_STRING) : Query::getUuid();
-        $regex_pattern          = filter_var($data['regex_pattern'], FILTER_SANITIZE_STRING);
-        $destination_controller = filter_var($data['destination_controller'], FILTER_SANITIZE_STRING);
-        $description            = filter_var($data['description'], FILTER_SANITIZE_STRING);
+        $uid                    = !empty($data['uid']) ? Sanitize::string($data['uid']) : Query::getUuid();
+        $regex_pattern          = Sanitize::string($data['regex_pattern']);
+        $destination_controller = Sanitize::string($data['destination_controller']);
+        $description            = Sanitize::string($data['description']);
         $priority_order         = isset($data['priority_order']) ? (int)filter_var($data['priority_order'], FILTER_SANITIZE_NUMBER_INT) : self::getNextAvailablePriority();
 
         $sql = "
@@ -249,10 +250,10 @@ class Route
      */
     public function update(array $data)
     {
-        $uid                    = filter_var($data['uid'], FILTER_SANITIZE_STRING);
-        $regex_pattern          = filter_var($data['regex_pattern'], FILTER_SANITIZE_STRING);
-        $destination_controller = filter_var($data['destination_controller'], FILTER_SANITIZE_STRING);
-        $description            = filter_var($data['description'], FILTER_SANITIZE_STRING);
+        $uid                    = Sanitize::string($data['uid']);
+        $regex_pattern          = Sanitize::string($data['regex_pattern']);
+        $destination_controller = Sanitize::string($data['destination_controller']);
+        $description            = Sanitize::string($data['description']);
         $priority_order         = !empty($data['priority_order'])
             ? filter_var($data['priority_order'], FILTER_SANITIZE_NUMBER_INT)
             : self::getNextAvailablePriority();
@@ -380,7 +381,7 @@ class Route
 
         foreach ($priority_to_uuids as $key => $uid) {
             $key                = filter_var($key, FILTER_SANITIZE_NUMBER_INT);
-            $uid                = filter_var($uid, FILTER_SANITIZE_STRING);
+            $uid                = Sanitize::string($uid);
             $current_route_data = $this->getRoute($uid);
 
             $data['uid']                    = $uid;

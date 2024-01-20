@@ -88,7 +88,7 @@ class Sanitize
      * @param $flag
      * @return mixed
      */
-    public static function specialChars($string, $flag = null)
+    public static function specialChars($string, $flag = FILTER_FLAG_STRIP_HIGH)
     {
         return filter_var($string, FILTER_SANITIZE_SPECIAL_CHARS, $flag);
     }
@@ -99,7 +99,7 @@ class Sanitize
      * @param $flag
      * @return mixed
      */
-    public static function fullSpecialChars($string, $flag = null)
+    public static function fullSpecialChars($string, $flag = FILTER_FLAG_STRIP_HIGH)
     {
         return filter_var($string, FILTER_SANITIZE_SPECIAL_CHARS, $flag);
     }
@@ -111,14 +111,14 @@ class Sanitize
      */
     public static function string($string)
     {
-        // Deprecated (PHP 8.1). Due to its deprecation, bitwise flag options will not be supported. Leaving this here for reference:
-        // return filter_var($string, FILTER_SANITIZE_STRING, $flag);
+        /* NOTE (PHP 8.1 deprecation) - https://www.php.net/manual/en/filter.filters.sanitize.php
+         * --------------------------------------------------------------------------------------
+         * Strip tags and HTML-encode double and single quotes, optionally strip or encode special characters.
+         * Encoding quotes can be disabled by setting FILTER_FLAG_NO_ENCODE_QUOTES.
+         * (Deprecated as of PHP 8.1.0, use htmlspecialchars() instead.)
+         */
 
-        return str_replace(
-            ["'", '"'],
-            ['&#39;', '&#34;'],
-            preg_replace('/\x00|<[^>]*>?/', '', $string)
-        );
+        return htmlspecialchars(strip_tags($string));
     }
 
 

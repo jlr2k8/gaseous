@@ -14,10 +14,11 @@ use Assets\Css;
 use Assets\CssIterator;
 use Assets\Headers;
 use Seo\Minify;
+use Utilities\Sanitize;
 
 $headers    = new Headers();
 $css_output = null;
-$iteration  = !empty($_GET['iteration']) ? filter_var($_GET['iteration'], FILTER_SANITIZE_STRING) : false;
+$iteration  = !empty($_GET['iteration']) ? Sanitize::string($_GET['iteration']) : false;
 
 if (empty($iteration)) {
     $css_obj                = new Css();

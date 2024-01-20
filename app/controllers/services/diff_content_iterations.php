@@ -13,13 +13,14 @@
 use Content\Diff;
 use Content\Get;
 use Content\Templator;
+use Utilities\Sanitize;
 
 $diff       = new Diff();
 $get        = new Get();
 $templator  = new Templator();
 
-$old_uid    = !empty($_GET['old_uid']) ? (string)filter_var($_GET['old_uid'], FILTER_SANITIZE_STRING) : false;
-$new_uid    = !empty($_GET['new_uid']) ? (string)filter_var($_GET['new_uid'], FILTER_SANITIZE_STRING) : false;
+$old_uid    = !empty($_GET['old_uid']) ? Sanitize::string($_GET['old_uid']) : false;
+$new_uid    = !empty($_GET['new_uid']) ? Sanitize::string($_GET['new_uid']) : false;
 
 $old_page_content   = $get->contentForPreview($old_uid);
 $new_page_content   = $get->contentForPreview($new_uid);

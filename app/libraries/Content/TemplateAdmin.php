@@ -17,6 +17,7 @@ use Db\Query;
 use Exception;
 use Log;
 use Seo\Url;
+use Utilities\Sanitize;
 
 class TemplateAdmin
 {
@@ -41,7 +42,7 @@ class TemplateAdmin
 
         foreach ($sort_order_to_uuids as $key => $uid) {
             $key                = filter_var($key, FILTER_SANITIZE_NUMBER_INT);
-            $uid                = filter_var($uid, FILTER_SANITIZE_STRING);
+            $uid                = Sanitize::string($uid);
             $current_field_data = $this->content_get->body->getCmsField($uid);
 
             $data['uid']                        = $uid;
@@ -125,13 +126,13 @@ class TemplateAdmin
     public function insertContentBodyField(array $data, PdoMySql $transaction)
     {
         $bind = [
-            'uid'                           => !empty($data['uid']) ? filter_var($data['uid'], FILTER_SANITIZE_STRING) : Query::getUuid(),
-            'content_body_type_id'          => filter_var($data['content_body_type_id'], FILTER_SANITIZE_STRING),
-            'content_body_field_type_id'    => filter_var($data['content_body_field_type_id'], FILTER_SANITIZE_STRING),
-            'label'                         => filter_var($data['label'], FILTER_SANITIZE_STRING),
-            'description'                   => filter_var($data['description'], FILTER_SANITIZE_STRING),
-            'template_token'                => filter_var($data['template_token'], FILTER_SANITIZE_STRING),
-            'sort_order'                    => !empty($data['sort_order']) ? filter_var($data['sort_order'], FILTER_SANITIZE_NUMBER_INT) : (int)0,
+            'uid'                           => !empty($data['uid']) ? Sanitize::string($data['uid']) : Query::getUuid(),
+            'content_body_type_id'          => Sanitize::string($data['content_body_type_id']),
+            'content_body_field_type_id'    => Sanitize::string($data['content_body_field_type_id']),
+            'label'                         => Sanitize::string($data['label']),
+            'description'                   => Sanitize::string($data['description']),
+            'template_token'                => Sanitize::string($data['template_token']),
+            'sort_order'                    => !empty($data['sort_order']) ? Sanitize::string($data['sort_order']) : (int)0,
         ];
 
         $sql = "
@@ -257,10 +258,10 @@ class TemplateAdmin
         }
 
         $bind = [
-            'type_id'               => filter_var($data['type_id'], FILTER_SANITIZE_STRING) ?? self::generateTypeId(filter_var($data['label'], FILTER_SANITIZE_STRING)),
-            'parent_type_id'        => !empty($data['parent_type_id']) ? filter_var($data['parent_type_id'], FILTER_SANITIZE_STRING) : $data['type_id'],
-            'label'                 => filter_var($data['label'], FILTER_SANITIZE_STRING),
-            'description'           => filter_var($data['description'], FILTER_SANITIZE_STRING),
+            'type_id'               => Sanitize::string($data['type_id']) ?? self::generateTypeId(Sanitize::string($data['label'])),
+            'parent_type_id'        => !empty($data['parent_type_id']) ? Sanitize::string($data['parent_type_id']) : $data['type_id'],
+            'label'                 => Sanitize::string($data['label']),
+            'description'           => Sanitize::string($data['description']),
             'promoted_user_content' => !empty($data['promoted_user_content']) ? '1' : '0',
         ];
 
@@ -312,8 +313,8 @@ class TemplateAdmin
         }
 
         $bind = [
-            'content_body_type_id'  => filter_var($data['type_id'], FILTER_SANITIZE_STRING),
-            'label'                 => filter_var($data['label'], FILTER_SANITIZE_STRING) . ' Layout',
+            'content_body_type_id'  => Sanitize::string($data['type_id']),
+            'label'                 => Sanitize::string($data['label']) . ' Layout',
             'template'              => htmlentities($data['template'], ENT_COMPAT, 'UTF-8', false),
             'uri_scheme'            => (string)$data['uri_scheme'],
         ];

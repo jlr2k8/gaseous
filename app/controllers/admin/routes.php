@@ -15,6 +15,7 @@ use \Content\Breadcrumbs;
 use \Content\Http;
 use \Content\Templator;
 use \Uri\Route;
+use Utilities\Sanitize;
 
 // check setting/role privileges
 if (!Settings::value('add_routes') && !Settings::value('edit_routes') && !Settings::value('archive_routes')) {
@@ -34,7 +35,7 @@ $archive_routes = Settings::value('archive_routes');
 
 if (!empty($_POST) && $edit_routes && !isset($_GET['sort'])) {
     foreach ($_POST as $key => $val) {
-        $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+        $post[$key] = Sanitize::string($val);
     }
 
     $submit_route = false;
@@ -56,7 +57,7 @@ if (!empty($_POST) && $edit_routes && !isset($_GET['sort'])) {
 
     foreach($_POST['sorted'] as $key => $val) {
         $key                        = filter_var($key, FILTER_SANITIZE_NUMBER_INT);
-        $priority_to_uuids[$key]    = filter_var($val, FILTER_SANITIZE_STRING);
+        $priority_to_uuids[$key]    = Sanitize::string($val);
     }
 
     $route->sortPriorityBulk($priority_to_uuids);
@@ -64,7 +65,7 @@ if (!empty($_POST) && $edit_routes && !isset($_GET['sort'])) {
 }
 
 if (!empty($_GET['archive']) && $archive_routes) {
-    $uid    = filter_var($_GET['archive'], FILTER_SANITIZE_STRING);
+    $uid    = Sanitize::string($_GET['archive']);
     $route->archive($uid);
 
     exit;

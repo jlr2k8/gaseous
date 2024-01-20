@@ -16,6 +16,7 @@ use Content\Breadcrumbs;
 use Content\Http;
 use Content\Templator;
 use Uri\Uri;
+use Utilities\Sanitize;
 
 $templator  = new Templator();
 $menu       = new Menu();
@@ -36,7 +37,7 @@ if (!$manage_menu) {
 
 if (!empty($_POST)) {
     foreach ($_POST as $key => $val) {
-        $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+        $post[$key] = Sanitize::string($val);
     }
 }
 
@@ -52,7 +53,7 @@ if (!empty($_POST['update']) && $_POST['update'] == 'true') {
 
     exit;
 } elseif (!empty($_GET['archive'])) {
-    $uid    = filter_var($_GET['archive'], FILTER_SANITIZE_STRING);
+    $uid    = Sanitize::string($_GET['archive']);
 
     $menu->archiveMenuItem($uid);
     $menu->archiveOrphans();

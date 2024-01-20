@@ -19,6 +19,7 @@ use Exception;
 use Settings;
 use Setup\Reset\System;
 use stdClass;
+use Utilities\Sanitize;
 
 class Register
 {
@@ -37,12 +38,12 @@ class Register
             $this->post = new stdClass();
 
             foreach ($post_data as $key => $val) {
-                // only set it if its not empty
+                // only set it if it's not empty
                 if (!empty($val)) {
                     if ($key == 'email') {
                         $this->post->$key = (string)filter_var($val, FILTER_SANITIZE_EMAIL);
-                    } else {
-                        $this->post->$key = (string)filter_var($val, FILTER_SANITIZE_STRING);
+                    } elseif ($key !== 'password') {
+                        $this->post->$key = Sanitize::string($val);
                     }
                 }
             }

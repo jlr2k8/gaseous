@@ -14,6 +14,7 @@ use Content\Breadcrumbs;
 use Content\Http;
 use Content\Templator;
 use User\Roles;
+use Utilities\Sanitize;
 
 // check setting/role privileges
 
@@ -31,7 +32,7 @@ $description_value  = null;
 
 if (!empty($_POST)) {
     foreach($_POST as $key => $val)
-        $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+        $post[$key] = Sanitize::string($val);
 
     if (isset($post['insert'])) {
         $submit_role = $roles->insert($post);

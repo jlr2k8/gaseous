@@ -16,12 +16,13 @@ use Content\Get;
 use Content\Http;
 use Content\Templator;
 use Uri\Uri;
+use Utilities\Sanitize;
 
 if (!Settings::value('edit_content')) {
     Http::error(403);
 }
 
-$content_uid = !empty($_GET['content_uid']) ? (string)filter_var($_GET['content_uid'], FILTER_SANITIZE_STRING) : false;
+$content_uid = !empty($_GET['content_uid']) ? Sanitize::string($_GET['content_uid']) : false;
 
 if ($content_uid) {
     $templator  = new Templator();

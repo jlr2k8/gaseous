@@ -12,13 +12,14 @@
 use Assets\Output;
 use Content\Http;
 use Content\Templator;
+use Utilities\Sanitize;
 
 if (!Settings::value('edit_content') || !Settings::value('add_content')) {
     Http::error(403);
 }
 
-$content_field_uid      = !empty($_GET['content_field_uid']) ? filter_var($_GET['content_field_uid'], FILTER_SANITIZE_STRING) : null;
-$content_iteration_uid  = !empty($_GET['content_iteration_uid']) ? filter_var($_GET['content_iteration_uid'], FILTER_SANITIZE_STRING) : null;
+$content_field_uid      = !empty($_GET['content_field_uid']) ? Sanitize::string($_GET['content_field_uid']) : null;
+$content_iteration_uid  = !empty($_GET['content_iteration_uid']) ? Sanitize::string($_GET['content_iteration_uid']) : null;
 
 $templator  = new Templator();
 $body       = new Content\Body();

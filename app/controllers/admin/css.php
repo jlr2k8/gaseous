@@ -16,6 +16,7 @@ use Assets\Headers;
 use Content\Breadcrumbs;
 use Content\Http;
 use Content\Templator;
+use Utilities\Sanitize;
 use Wysiwyg\Codemirror;
 
 // check setting/role privileges
@@ -52,7 +53,7 @@ if (!empty($_POST)) {
         if ($key == 'css_iteration') {
             $post[$key] = htmlspecialchars($val);
         } else {
-            $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+            $post[$key] = Sanitize::string($val);
         }
     }
 

@@ -16,6 +16,7 @@ use Content\Http;
 use Content\Templator;
 use User\Account;
 use User\Roles;
+use Utilities\Sanitize;
 
 if (!Settings::value('edit_users') && !Settings::value('archive_users')) {
     Http::error(403);
@@ -38,9 +39,9 @@ if (!empty($_POST)) {
     foreach($_POST as $key => $val) {
         if ($key == 'account_roles') {
             foreach($val as $account_role)
-                $post[$key][] = (string)filter_var($account_role, FILTER_SANITIZE_STRING);
+                $post[$key][] = Sanitize::string($account_role);
         } else {
-            $post[$key] = (string)filter_var($val, FILTER_SANITIZE_STRING);
+            $post[$key] = Sanitize::string($val);
         }
     }
 

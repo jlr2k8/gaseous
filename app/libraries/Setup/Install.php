@@ -14,6 +14,7 @@ namespace Setup;
 
 use PDO;
 use PDOException;
+use Utilities\Sanitize;
 
 class Install
 {
@@ -153,12 +154,12 @@ class Install
      */
     public function processDbConnectionForm(array $data)
     {
-        $this->environment    = filter_var($data['environment'], FILTER_SANITIZE_STRING);
-        $this->mysql_server   = filter_var($data['mysql_server'], FILTER_SANITIZE_STRING);
-        $this->mysql_database = filter_var($data['mysql_database'], FILTER_SANITIZE_STRING);
+        $this->environment    = Sanitize::string($data['environment']);
+        $this->mysql_server   = Sanitize::string($data['mysql_server']);
+        $this->mysql_database = Sanitize::string($data['mysql_database']);
         $this->mysql_port     = filter_var($data['mysql_port'], FILTER_SANITIZE_NUMBER_INT);
-        $this->mysql_user     = filter_var($data['mysql_user'], FILTER_SANITIZE_STRING);
-        $this->mysql_password = filter_var($data['mysql_password'], FILTER_SANITIZE_STRING);
+        $this->mysql_user     = Sanitize::string($data['mysql_user']);
+        $this->mysql_password = $data['mysql_password'];
 
         $result                 = false;
         $is_valid_connection    = $this->testPdoConnection();

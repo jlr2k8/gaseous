@@ -2,7 +2,7 @@
 node_modules*
 vendor*
 **templates_c
-app/controllers/test.php
+app/controllers/test.*
 app/views/smarty/test.tpl
 app/setup/environments.ini
 .buildinfo.ini

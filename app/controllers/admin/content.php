@@ -19,6 +19,7 @@ use \Content\Breadcrumbs;
 use Uri\Uri;
 use \User\Roles;
 use \User\Account;
+use Utilities\Sanitize;
 use \Wysiwyg\CkEditor;
 use \Wysiwyg\Codemirror;
 
@@ -43,10 +44,10 @@ $my_account             = $account->getAccountFromSessionValidation();
 $full_web_url           = Settings::value('full_web_url');
 $all_uris               = Uri::all();
 $statuses               = Get::statuses();
-$page_uri               = !empty($_GET['page_uri_urlencoded']) ? (string)filter_var($_GET['page_uri_urlencoded'], FILTER_SANITIZE_STRING) : false;
+$page_uri               = !empty($_GET['page_uri_urlencoded']) ? Sanitize::string($_GET['page_uri_urlencoded']) : false;
 $this_page              = $pages->contentByUri($page_uri, 'active', true) ?: $pages->contentByUri($page_uri, 'inactive', true);
 $is_home_page           = !empty($this_page['uri']) && $this_page['uri'] == '/home';
-$content_body_type_id   = !empty($_GET['content_body_type_id']) ? filter_var(trim($_GET['content_body_type_id'], '/'), FILTER_SANITIZE_STRING) : null;
+$content_body_type_id   = !empty($_GET['content_body_type_id']) ? Sanitize::string(trim($_GET['content_body_type_id'], '/')) : null;
 $all_roles              = $roles->getAll();
 
 $title                  = 'Content Management';
@@ -65,7 +66,7 @@ if (!empty($_POST)) {
     foreach($_POST as $key => $val) {
         if ($key == 'content_roles') {
             foreach($val as $account_role)
-                $post[$key][] = (string)filter_var($account_role, FILTER_SANITIZE_STRING);
+                $post[$key][] = Sanitize::string($account_role);
         } else {
             $post[$key] = $val;
         }

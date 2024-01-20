@@ -11,6 +11,7 @@
  **/
 
 use Seo\Url;
+use Utilities\Sanitize;
 use Utilities\Token;
 
 
@@ -56,7 +57,7 @@ class File
             $allowed_file_extensions[$key] = trim(strtolower($val));
         }
 
-        $file_input_name    = filter_var($file_input_name, FILTER_SANITIZE_STRING);
+        $file_input_name    = Sanitize::string($file_input_name);
         $file_upload        = !empty($_FILES[$file_input_name]['tmp_name']) ? $_FILES[$file_input_name]['tmp_name'] : false;
         $file_reference     = !empty($_FILES[$file_input_name]['name']) ? $_FILES[$file_input_name]['name'] : false;
         $pathinfo           = pathinfo($file_reference);

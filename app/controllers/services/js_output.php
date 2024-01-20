@@ -14,11 +14,12 @@ use Assets\Js;
 use Assets\JsIterator;
 use Assets\Headers;
 use Seo\Minify;
+use Utilities\Sanitize;
 
 
 $headers    = new Headers();
 $js_output  = null;
-$iteration  = !empty($_GET['iteration']) ? filter_var($_GET['iteration'], FILTER_SANITIZE_STRING) : false;
+$iteration  = !empty($_GET['iteration']) ? Sanitize::string($_GET['iteration']) : false;
 
 if (empty($iteration)) {
     $js_obj                 = new Js();

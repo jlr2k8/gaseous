@@ -200,16 +200,16 @@
         },
         {
             "name": "smarty/smarty",
-            "version": "v4.3.2",
+            "version": "v4.5.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/smarty-php/smarty.git",
-                "reference": "1d9cda2be34fd6edb74924684260636fd0b89288"
+                "reference": "838d6ad1c635f8a6bafc08d791b8af18d8304b3a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/1d9cda2be34fd6edb74924684260636fd0b89288",
-                "reference": "1d9cda2be34fd6edb74924684260636fd0b89288",
+                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/838d6ad1c635f8a6bafc08d791b8af18d8304b3a",
+                "reference": "838d6ad1c635f8a6bafc08d791b8af18d8304b3a",
                 "shasum": ""
             },
             "require": {
@@ -260,9 +260,15 @@
             "support": {
                 "forum": "https://github.com/smarty-php/smarty/discussions",
                 "issues": "https://github.com/smarty-php/smarty/issues",
-                "source": "https://github.com/smarty-php/smarty/tree/v4.3.2"
+                "source": "https://github.com/smarty-php/smarty/tree/v4.5.7"
             },
-            "time": "2023-07-19T10:27:36+00:00"
+            "funding": [
+                {
+                    "url": "https://github.com/wisskid",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-06-29T08:48:56+00:00"
         },
         {
             "name": "swiftmailer/swiftmailer",
@@ -757,10 +763,10 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
-    "platform": [],
-    "platform-dev": [],
-    "plugin-api-version": "2.2.0"
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }
